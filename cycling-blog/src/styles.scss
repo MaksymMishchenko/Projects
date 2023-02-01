@@ -37,15 +37,16 @@ a:hover {
 
 a:active {}
 
-.menu-fixed {
-    position: fixed;
-    min-width: 100%;
-    top: 0;
-    bottom: 0;
-}
-.main-content {
-    margin-top: 4.4em;
-}
+// .menu-fixed {
+//     position: fixed;
+//     min-width: 100%;
+//     top: 0;
+//     bottom: 0;
+// }
+
+// .main-content {
+//     margin-top: 4.4em;
+// }
 
 .page-header {
     padding: 0.4em 1em;
@@ -126,9 +127,9 @@ main h3 {
     margin: 0;
 }
 
-// .menu.is-open .menu-dropdown {
-//     display: block;
-// }
+.menu.is-open .menu-dropdown {
+    display: block;
+}
 
 .search {
     position: absolute;
