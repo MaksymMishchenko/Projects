@@ -1,0 +1,15 @@
+.subtitle>a {
+    text-decoration: none;
+}
+
+.post_header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.post_header>div {
+    color: #666674;
+    font-size: 0.75rem;
+    margin-top: 0.4em;
+    font-weight: bold;
+}

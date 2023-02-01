@@ -9,6 +9,7 @@ import { PostPageComponent } from './post-page/post-page.component';
 import { BikesPageComponent } from './bikes-page/bikes-page.component';
 import { AboutPageComponent } from './about-page/about-page.component';
 import { RidePageComponent } from './ride-page/ride-page.component';
+import { PostComponent } from './shared/components/post/post.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { RidePageComponent } from './ride-page/ride-page.component';
     PostPageComponent,
     BikesPageComponent,
     AboutPageComponent,
-    RidePageComponent
+    RidePageComponent,
+    PostComponent
   ],
   imports: [
     BrowserModule,
