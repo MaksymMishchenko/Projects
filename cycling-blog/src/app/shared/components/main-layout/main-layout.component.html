@@ -1,2 +1,30 @@
-<p>main-layout works!</p>
-<router-outlet></router-outlet>
+<div class="menu-fixed">
+    <header class="page-header">
+        <div class="title">
+            <h1>Cycling-blog.com</h1>
+            <div class="logan">Keep calm and ride a bike.</div>
+        </div>
+    </header>
+    <nav class="menu">
+        <div class="search">
+            <img src="assets/search-icon.svg" alt="">
+        </div>
+        <button class="menu-toggle">collapse menu</button>
+        <div class="menu-dropdown">
+            <ul class="nav-menu">
+                <li><a href="">Home</a></li>
+                <li><a href="">Bikes</a></li>
+                <li><a href="">Where to ride</a></li>
+                <li><a href="">About us</a></li>
+            </ul>
+        </div>
+    </nav>
+</div>
+<div class="main-content">
+    <aside class="hero">
+        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Explicabo ex sunt repudiandae dicta, aut praesentium.
+    </aside>
+    <main>
+        <router-outlet></router-outlet>
+    </main>
+</div>
