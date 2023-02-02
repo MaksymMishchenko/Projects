@@ -1,10 +1,13 @@
 :root {
-    --brand-color: blue;
+    --light-pink: #bda07e;
     --text-color: #333;
     --bg-main: #fff;
+    --pink-color: #d6326c;
     --red-color: red;
+    --black-color: #000;
+    --white-color: #fff;
     --line-height: 1.6;
-    --title-color: #222;
+    
     box-sizing: border-box;
     font-size: calc(1vw + 0.6em);
 }
@@ -27,15 +30,19 @@ h1, h2, h3, h4 {
     color: var(--title-color) ;
 }
 
-a:link {}
-
-a:visited {}
-
-a:hover {
-    text-decoration: underline;
+a:link {
+    font-weight: bold;
+    color: var(--pink-color);
+    text-decoration: none;
 }
 
-a:active {}
+a:visited {
+    color: var(--light-pink);
+}
+
+a:active {
+    color: var(--light-pink);
+}
 
 // .menu-fixed {
 //     position: fixed;
@@ -129,6 +136,26 @@ main h3 {
 
 .menu.is-open .menu-dropdown {
     display: block;
+}
+
+.nav-menu {
+    margin: 0;
+    padding-left: 0;
+    border: 1px solid #ccc;
+    list-style: none;
+    background-color: var(--black-color);
+    color: var(--white-color);
+}
+
+.nav-menu > li + li {
+    border-top: 1px solid var(--text-color);
+}
+
+.nav-menu > li > a {
+    display: block;
+    padding: 0.1em 1em;
+    color: var(--white-color);
+    font-weight: normal;
 }
 
 .search {

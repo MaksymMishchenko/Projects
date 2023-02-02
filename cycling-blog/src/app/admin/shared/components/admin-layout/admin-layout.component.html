@@ -1,2 +1,22 @@
-<p>admin-layout works!</p>
-<router-outlet></router-outlet>
+<header class="page-header">
+    <div class="title">
+        <h1>Admin panel</h1>
+    </div>
+</header>
+<nav class="menu" id="main-menu">
+    <button class="menu-toggle" (click)="dropdownMenu($event)">collapse menu</button>
+    <div class="menu-dropdown">
+        <ul class="nav-menu">
+            <li routerLinkActive="active"><a [routerLink]="['/admin', 'dashboard']">Dashboard</a></li>
+            <li routerLinkActive="active"><a [routerLink]="['/admin', 'create']">Create</a></li>
+            <li><a href="#" (click)="logout($event)">Log out</a></li>
+        </ul>
+    </div>
+</nav>
+<div class="main-content">
+    <aside class="hero">
+    </aside>
+    <main>
+        <router-outlet></router-outlet>
+    </main>
+</div>

@@ -1,15 +1,15 @@
 <div class="menu-fixed">
     <header class="page-header">
         <div class="title">
-            <h1>Cycling-blog.com</h1>
+            <h1 routerLink="/">Cycling-blog.com</h1>
             <div class="logan">Keep calm and ride a bike.</div>
         </div>
     </header>
-    <nav class="menu">
+    <nav class="menu" id="main-menu">
         <div class="search">
             <img src="assets/search-icon.svg" alt="">
         </div>
-        <button class="menu-toggle">collapse menu</button>
+        <button (click)="dropdownMenu($event)" class="menu-toggle">collapse menu</button>
         <div class="menu-dropdown">
             <ul class="nav-menu">
                 <li><a href="">Home</a></li>
