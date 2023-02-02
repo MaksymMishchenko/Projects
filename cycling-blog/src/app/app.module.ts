@@ -10,6 +10,7 @@ import { BikesPageComponent } from './bikes-page/bikes-page.component';
 import { AboutPageComponent } from './about-page/about-page.component';
 import { RidePageComponent } from './ride-page/ride-page.component';
 import { PostComponent } from './shared/components/post/post.component';
+import { SharedModule } from './shared/shared.module';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { PostComponent } from './shared/components/post/post.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    SharedModule
   ],
   providers: [],
   bootstrap: [AppComponent]
