@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
 
 export class AdminLayoutComponent {
 
-  constructor(private router: Router, private auth: AuthService) { }
+  constructor(private router: Router, public auth: AuthService) { }
 
   dropdownMenu(event: Event) {
     event.preventDefault();

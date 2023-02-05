@@ -11,7 +11,7 @@ import { AuthService } from '../shared/services/auth.service';
 })
 export class LoginPageComponent implements OnInit {
 
-  constructor(private auth: AuthService, private router: Router) { }
+  constructor(public auth: AuthService, private router: Router) { }
 
   form!: FormGroup;
   submitted = false;
@@ -39,6 +39,6 @@ export class LoginPageComponent implements OnInit {
       this.form.reset();
       this.router.navigate(['/admin', 'dashboard'])
       this.submitted = false;
-    });
+    }, () => this.submitted = false);
   }
 }

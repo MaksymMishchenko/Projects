@@ -6,6 +6,7 @@
     --red-color: red;
     --black-color: #000;
     --white-color: #fff;
+    --danger-color: #cb2323;
     --light-grey: rgb(224, 222, 222);
     --line-height: 1.6;
 
@@ -218,3 +219,16 @@ main h3 {
 .centered {
     text-align: center;
 }
+
+.alert {
+    padding: 0.7rem;
+    margin: 1rem 0;
+    opacity: 0.9;
+    background: var(--text-color);
+    color: #333;
+  }
+
+  .alert-danger {
+    background: var(--danger-color);
+    color: #fff;
+  }

@@ -3,7 +3,7 @@
         <h1>Cycling-blog.com</h1>
     </div>
 </header>
-<nav class="menu" id="main-menu">
+<nav *ngIf="auth.isAuthenticated()" class="menu" id="main-menu">
     <button class="menu-toggle" (click)="dropdownMenu($event)">collapse menu</button>
     <div class="menu-dropdown">
         <ul class="nav-menu">
