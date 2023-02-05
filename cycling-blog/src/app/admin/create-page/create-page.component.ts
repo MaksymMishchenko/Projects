@@ -13,6 +13,7 @@ export class CreatePageComponent implements OnInit {
   ngOnInit() {
     this.form = new FormGroup({
       title: new FormControl('', [Validators.required]),
+      category: new FormControl('', [Validators.required]),
       text: new FormControl('', [Validators.required]),
       author: new FormControl('', [Validators.required])
     });
@@ -25,9 +26,12 @@ export class CreatePageComponent implements OnInit {
 
     const post: Post = {
       title: this.form.value.title,
-      text: this.form.value.content,
+      category: this.form.value.category,
+      text: this.form.value.text,
       author: this.form.value.author,
       date: new Date()
     }
+
+    console.log(post);
   }
 }

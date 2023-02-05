@@ -1,3 +1,7 @@
+@import "~quill/dist/quill.core.css";
+@import "~quill/dist/quill.snow.css";
+
+
 :root {
     --light-pink: #bda07e;
     --text-color: #333;
@@ -61,11 +65,11 @@ a:active {
 // }
 
 .page-header {
-    padding: 0.4em 1em;
+    padding: 0.1em 1em;
     background-color: var(--bg-main)
 }
 
-.title {
+.header {
     text-align: center;
 }
 
@@ -78,8 +82,11 @@ a:active {
 
 .slogan {
     color: var(--text-color);
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     margin: 0;
+    text-transform: uppercase;
+    color: var(--pink-color);
+    font-weight: bold;
 }
 
 .hero {

@@ -1,20 +1,29 @@
 <form class="card" [formGroup]="form" (ngSubmit)="submit()">
     <h1>Create new post</h1>
         <div class="form-control" ngClass="{invalid: form.get('title')?.touched && form.get('title')?.invalid}">
-            <label for="title">Title:</label><br>
-            <input class="title" id="title" type="text" formControlName="title">
+            <label for="title">Title:*</label><br>
+            <input id="title" type="text" formControlName="title">
             <div class="validation" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
                 <small *ngIf="form.get('title')?.errors?.['required']">Field title is required</small>
             </div>
         </div>
-
-        <div class="form-control">
-            <label>Post text:</label>
+        <div class="form-control" ngClass="{invalid: form.get('category')?.touched && form.get('category')?.invalid}">
+            <label for="category">Category:*</label><br>
+            <input id="category" type="text" formControlName="category">
+            <div class="validation" *ngIf="form.get('category')?.touched && form.get('category')?.invalid">
+                <small *ngIf="form.get('category')?.errors?.['required']">Field category is required</small>
+            </div>
         </div>
-
+        <div class="form-control">
+            <label>Post text:*</label>
+            <quill-editor formControlName="text"></quill-editor>
+            <div class="validation" *ngIf="form.get('text')?.touched && form.get('text')?.invalid">
+                <small *ngIf="form.get('text')?.errors?.['required']">Field text is required</small>
+            </div>
+        </div>
         <div class="form-control" ngClass="{invalid: form.get('author')?.touched && form.get('author')?.invalid}">
-            <label for="author">Post author:</label><br>
-            <input class="author" id="author" type="text" formControlName="author">
+            <label for="author">Post author:*</label><br>
+            <input id="author" type="text" formControlName="author">
             <div class="validation" *ngIf="form.get('author')?.touched && form.get('author')?.invalid">
                 <small *ngIf="form.get('author')?.errors?.['required']">Field author is required</small>
             </div>

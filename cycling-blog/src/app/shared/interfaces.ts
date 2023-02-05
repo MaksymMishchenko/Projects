@@ -11,7 +11,8 @@ export interface FireBaseResponse {
 
 export interface Post {
     id?: string
-    title: string
+    title: string,
+    category: string
     text: string
     author: string
     date: Date
