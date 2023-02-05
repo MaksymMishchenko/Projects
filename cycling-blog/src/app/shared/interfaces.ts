@@ -6,4 +6,5 @@ export interface User {
 
 export interface FireBaseResponse {
     idToken?: string
+    expiresIn?: string
 }
