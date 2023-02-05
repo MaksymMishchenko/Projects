@@ -216,6 +216,16 @@ main h3 {
     color: #fff;
 }
 
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.btn-dark {
+    background: var(--light-pink);
+    color: #fff;
+}
+
 .centered {
     text-align: center;
 }
@@ -226,9 +236,27 @@ main h3 {
     opacity: 0.9;
     background: var(--text-color);
     color: #333;
-  }
+}
 
-  .alert-danger {
+.alert-danger {
     background: var(--danger-color);
     color: #fff;
-  }
+}
+
+input[type='text'],
+input[type='email'],
+input[type='password'],
+input[type='date'],
+select,
+textarea {
+  display: block;
+  width: 90%;
+  padding: 0.4rem;
+  font-size: 1.2rem;
+  border: 1px solid #ccc;
+}
+
+input[type='submit'],
+button {
+  font: inherit;
+}
