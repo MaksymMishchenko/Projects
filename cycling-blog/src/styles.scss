@@ -13,6 +13,7 @@
     --danger-color: #cb2323;
     --light-grey: rgb(224, 222, 222);
     --light-green: rgb(55, 177, 55);
+    --green-color: green;
     --line-height: 1.6;
 
     box-sizing: border-box;
@@ -268,4 +269,21 @@ textarea {
 input[type='submit'],
 button {
     font: inherit;
+}
+
+.alert {
+    padding: 0.3em 2em;
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.alert-success {
+    background-color: var(--green-color);
+    color: #fff;
+}
+
+.alert-danger {
+    background-color: var(--red-color);
+    color: #fff;
 }
