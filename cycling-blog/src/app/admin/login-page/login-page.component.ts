@@ -21,7 +21,7 @@ export class LoginPageComponent implements OnInit {
 
     this.route.queryParams.subscribe((params: Params) => {
       if (params['sessionTimedOut']) {
-        this.message = 'Session timed out. Please, log in.'
+        this.message = 'Session timed out. Please, log in again.'
       }
     });
 

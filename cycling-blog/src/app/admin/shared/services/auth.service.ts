@@ -5,7 +5,9 @@ import { Observable, Subject, throwError } from "rxjs";
 import { catchError, tap } from "rxjs/operators";
 import { environment } from "../env";
 
-@Injectable()
+@Injectable({
+    providedIn: 'root'
+})
 
 export class AuthService {
 
@@ -64,6 +66,5 @@ export class AuthService {
         } else {
             localStorage.clear();
         }
-
     }
 }
