@@ -19,6 +19,7 @@ export class CreatePageComponent implements OnInit {
       selectCategory: new FormGroup({
         category: new FormControl('', [Validators.required])
       }),
+      description: new FormControl('', [Validators.required]),
       text: new FormControl('', [Validators.required]),
       author: new FormControl('', [Validators.required])
     });
@@ -32,6 +33,7 @@ export class CreatePageComponent implements OnInit {
     const post: Post = {
       title: this.form.value.title,
       category: this.form.get('selectCategory')?.get('category')?.value,
+      description: this.form.value.description,
       text: this.form.value.text,
       author: this.form.value.author,
       date: new Date()
