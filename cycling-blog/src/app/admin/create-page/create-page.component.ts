@@ -15,11 +15,13 @@ export class CreatePageComponent implements OnInit {
   ngOnInit() {
     this.form = new FormGroup({
       title: new FormControl('', [Validators.required]),
-      category: new FormControl('', [Validators.required]),
+      selectCategory: new FormGroup({
+        category: new FormControl('', [Validators.required])
+      }),
       text: new FormControl('', [Validators.required]),
       author: new FormControl('', [Validators.required])
     });
-  }
+  };
 
   submit() {
     if (this.form.invalid) {
@@ -28,7 +30,7 @@ export class CreatePageComponent implements OnInit {
 
     const post: Post = {
       title: this.form.value.title,
-      category: this.form.value.category,
+      category: this.form.get('selectCategory')?.get('category')?.value,
       text: this.form.value.text,
       author: this.form.value.author,
       date: new Date()
@@ -37,5 +39,5 @@ export class CreatePageComponent implements OnInit {
     this.postsService.create(post).subscribe(() => {
       this.form.reset();
     });
-  }
+  };
 }
