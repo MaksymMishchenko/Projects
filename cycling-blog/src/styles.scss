@@ -12,6 +12,7 @@
     --white-color: #fff;
     --danger-color: #cb2323;
     --light-grey: rgb(224, 222, 222);
+    --light-green: rgb(55, 177, 55);
     --line-height: 1.6;
 
     box-sizing: border-box;
@@ -52,17 +53,6 @@ a:visited {
 a:active {
     color: var(--light-pink);
 }
-
-// .menu-fixed {
-//     position: fixed;
-//     min-width: 100%;
-//     top: 0;
-//     bottom: 0;
-// }
-
-// .main-content {
-//     margin-top: 4.4em;
-// }
 
 .page-header {
     padding: 0.1em 1em;
@@ -233,6 +223,18 @@ main h3 {
     color: #fff;
 }
 
+.btn-edit {
+    background: var(--light-green);
+    padding-right: 1em;
+    margin-right: 0.5em;
+    color: #fff;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: #fff;
+}
+
 .centered {
     text-align: center;
 }
@@ -256,14 +258,14 @@ input[type='password'],
 input[type='date'],
 select,
 textarea {
-  display: block;
-  width: 90%;
-  padding: 0.4rem;
-  font-size: 1.2rem;
-  border: 1px solid #ccc;
+    display: block;
+    width: 90%;
+    padding: 0.4rem;
+    font-size: 1.2rem;
+    border: 1px solid #ccc;
 }
 
 input[type='submit'],
 button {
-  font: inherit;
+    font: inherit;
 }

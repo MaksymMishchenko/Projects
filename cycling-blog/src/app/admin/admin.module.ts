@@ -8,12 +8,19 @@ import { LoginPageComponent } from './login-page/login-page.component';
 import { CreatePageComponent } from './create-page/create-page.component';
 import { EditPageComponent } from './edit-page/edit-page.component';
 import { DashboardPageComponent } from './dashboard-page/dashboard-page.component';
-import { AuthService } from "./shared/services/auth.service";
 import { SharedModule } from "../shared/shared.module";
 import { AuthGuard } from "./shared/services/auth.guard";
+import { SearchPipe } from "./shared/search.pipe";
 
 @NgModule({
-    declarations: [AdminLayoutComponent, LoginPageComponent, CreatePageComponent, EditPageComponent, DashboardPageComponent],
+    declarations: [
+        AdminLayoutComponent,
+         LoginPageComponent,
+          CreatePageComponent,
+           EditPageComponent,
+            DashboardPageComponent,
+            SearchPipe
+        ],
     imports: [
         CommonModule,
         FormsModule,

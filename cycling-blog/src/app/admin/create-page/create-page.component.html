@@ -15,8 +15,10 @@
             <option value="gravel">Gravel</option>
             <option value="road">Road</option>
         </select>
-        <div class="validation" *ngIf="form.get('selectCategory')?.get('category')?.touched && form.get('selectCategory')?.get('category')?.invalid">
-            <small *ngIf="form.get('selectCategory')?.get('category')?.errors?.['required']">Field category is required</small>
+        <div class="validation"
+            *ngIf="form.get('selectCategory')?.get('category')?.touched && form.get('selectCategory')?.get('category')?.invalid">
+            <small *ngIf="form.get('selectCategory')?.get('category')?.errors?.['required']">Field category is
+                required</small>
         </div>
     </div>
     <div class="form-control">
