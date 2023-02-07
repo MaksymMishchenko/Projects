@@ -15,6 +15,7 @@ export interface Post {
     category: string
     description: string
     text: string
+    image: string
     author: string
     date: Date
 }

@@ -35,12 +35,12 @@ export class PostsService {
 
     getPostById(id: any): Observable<Post> {
         return this.http.get<Post>(`${environment.firebaseDbUrl}/posts/${id}.json`)
-        .pipe(map((post: Post) => {
-            return {
-                ...post, id,
-                date: new Date(post.date)
-            }
-        }));
+            .pipe(map((post: Post) => {
+                return {
+                    ...post, id,
+                    date: new Date(post.date)
+                }
+            }));
     }
 
     update(post: Post): Observable<Post> {

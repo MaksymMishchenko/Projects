@@ -26,8 +26,6 @@ import { AlertService } from "./shared/services/alert.service";
     ],
     imports: [
         CommonModule,
-        FormsModule,
-        ReactiveFormsModule,
         SharedModule,
         RouterModule.forChild([
             {

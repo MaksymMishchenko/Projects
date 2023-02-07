@@ -21,6 +21,7 @@ export class CreatePageComponent implements OnInit {
       }),
       description: new FormControl('', [Validators.required]),
       text: new FormControl('', [Validators.required]),
+      image: new FormControl('', [Validators.required]),
       author: new FormControl('', [Validators.required])
     });
   };
@@ -35,6 +36,7 @@ export class CreatePageComponent implements OnInit {
       category: this.form.get('selectCategory')?.get('category')?.value,
       description: this.form.value.description,
       text: this.form.value.text,
+      image: this.form.value.image,
       author: this.form.value.author,
       date: new Date()
     }

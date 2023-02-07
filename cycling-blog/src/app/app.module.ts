@@ -1,5 +1,6 @@
-import { NgModule, Provider } from '@angular/core';
+import { NgModule, Provider, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -12,7 +13,6 @@ import { RidePageComponent } from './ride-page/ride-page.component';
 import { PostComponent } from './shared/components/post/post.component';
 import { SharedModule } from './shared/shared.module';
 import { AuthInterceptor } from './shared/auth.interceptor';
-import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 const INTERCEPTOR_PROVIDER: Provider = {
   provide: HTTP_INTERCEPTORS,

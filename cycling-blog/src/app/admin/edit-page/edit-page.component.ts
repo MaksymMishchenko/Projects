@@ -32,6 +32,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
           category: new FormControl(post.category, [Validators.required])
         }),
         text: new FormControl(post.text, [Validators.required]),
+        image: new FormControl(post.image, [Validators.required]),
         author: new FormControl(post.author, [Validators.required])
       })
     })
@@ -48,6 +49,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
       ...this.post,
       text: this.form.value.text,
       title: this.form.value.title,
+      image: this.form.value.image,
       author: this.form.value.author
     }).subscribe(() => {
       this.submitted = false;
