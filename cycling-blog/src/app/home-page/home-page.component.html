@@ -1,5 +1,5 @@
 <h2>Latest</h2>
-<div class="row" *ngIf="posts$ | async as posts; else loading">
+<div *ngIf="posts$ | async as posts; else loading">
     <app-post *ngFor="let post of posts" [post]="post"
     ></app-post>
 </div>

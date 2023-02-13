@@ -27,7 +27,6 @@
 
 body {
     margin: 0;
-    padding: 0;
     font-family: Arial, Helvetica, sans-serif;
     color: var(--text-color);
     line-height: var(--line-height);
@@ -98,72 +97,6 @@ main h3 {
     font-size: 1.4rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-}
-
-.menu {
-    position: relative;
-}
-
-.menu-toggle {
-    position: absolute;
-    top: -1.2em;
-    right: 0.1em;
-    border: 0;
-    background-color: transparent;
-    font-size: 3em;
-    width: 1em;
-    height: 1em;
-    line-height: 0.4;
-    text-indent: 5em;
-    white-space: nowrap;
-    overflow: hidden;
-}
-
-.menu-toggle::after {
-    position: absolute;
-    top: 0.2em;
-    left: 0.2em;
-    display: block;
-    content: "\2261";
-    text-indent: 0;
-}
-
-.menu-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    left: 0;
-    margin: 0;
-}
-
-.menu.is-open .menu-dropdown {
-    display: block;
-}
-
-.nav-menu {
-    margin: 0;
-    padding-left: 0;
-    border: 1px solid #ccc;
-    list-style: none;
-    background-color: var(--black-color);
-    color: var(--white-color);
-}
-
-.nav-menu>li+li {
-    border-top: 1px solid var(--text-color);
-}
-
-.nav-menu>li>a {
-    display: block;
-    padding: 0.1em 1em;
-    color: var(--white-color);
-    font-weight: normal;
-}
-
-.search {
-    position: absolute;
-    top: -3.5em;
-    left: 0.8em;
 }
 
 .column img {
@@ -285,4 +218,16 @@ button {
 .alert-danger {
     background-color: var(--red-color);
     color: #fff;
+}
+
+.post_header {
+    display: flex;
+    justify-content: space-between;
+}
+
+.post_header>div {
+    color: #666674;
+    font-size: 0.75rem;
+    margin-top: 0.4em;
+    font-weight: bold;
 }

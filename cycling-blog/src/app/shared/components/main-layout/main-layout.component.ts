@@ -7,10 +7,5 @@ import { Component } from '@angular/core';
 })
 export class MainLayoutComponent {
 
-  dropdownMenu(event: Event) {
-    event.preventDefault();
-    const menu = document.getElementById('main-menu');
-    menu!.classList.toggle('is-open');
-  };
 }
 

@@ -1,0 +1,11 @@
+<nav class="menu" id="main-menu">
+    <button (click)="dropdownMenu($event)" class="menu-toggle">collapse menu</button>
+    <div class="menu-dropdown">
+        <ul class="nav-menu">
+            <li><a class="home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" routerLink="/" href="#">Home</a></li>
+            <li><a class="bikes" routerLinkActive="active" routerLink="/bikes" href="#">Bikes</a></li>
+            <li><a class="ride" routerLinkActive="active" routerLink="/where-to-ride" href="#">Where to ride</a></li>
+            <li><a class="about" routerLinkActive="active" routerLink="/about-us" href="#">About us</a></li>
+        </ul>
+    </div>
+</nav>
