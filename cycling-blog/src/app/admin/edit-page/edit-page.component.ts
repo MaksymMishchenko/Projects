@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Subscribable, Subscription, switchMap } from 'rxjs';
 import { Post } from 'src/app/shared/interfaces';
@@ -12,12 +12,23 @@ import { AlertService } from '../shared/services/alert.service';
   styleUrls: ['./edit-page.component.scss']
 })
 export class EditPageComponent implements OnInit, OnDestroy {
+
   form!: FormGroup;
   post!: Post;
   submitted = false;
-  uSub!: Subscription
+  uSub!: Subscription;
+  get title() { return this.form.get('title'); }
+  get selectCategory() { return this.form.get('selectCategory')?.get('category'); }
+  get text() { return this.form.get('text'); }
+  get image() { return this.form.get('image'); }
+  get author() { return this.form.get('author'); }
 
-  constructor(private route: ActivatedRoute, private postsService: PostsService, private alert: AlertService) { }
+  constructor(
+    private route: ActivatedRoute,
+    private postsService: PostsService,
+    private alert: AlertService,
+    private fb: FormBuilder
+  ) { }
 
   ngOnInit() {
     this.route.params.pipe(
@@ -25,17 +36,17 @@ export class EditPageComponent implements OnInit, OnDestroy {
         return this.postsService.getPostById(params['id'])
       })
     ).subscribe((post: Post) => {
-      this.post = post
-      this.form = new FormGroup({
+      this.post = post;
+      this.form = this.fb.group({
         title: new FormControl(post.title, [Validators.required]),
-        selectCategory: new FormGroup({
+        selectCategory: this.fb.group({
           category: new FormControl(post.category, [Validators.required])
         }),
         text: new FormControl(post.text, [Validators.required]),
         image: new FormControl(post.image, [Validators.required]),
         author: new FormControl(post.author, [Validators.required])
       })
-    })
+    });
   }
 
   submit() {
@@ -59,7 +70,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.uSub) {
-      this.uSub.unsubscribe()
-    }
+      this.uSub.unsubscribe();
+    };
   }
 }

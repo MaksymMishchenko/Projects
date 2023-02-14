@@ -53,40 +53,11 @@ a:active {
     color: var(--light-pink);
 }
 
-.page-header {
-    padding: 0.1em 1em;
-    background-color: var(--bg-main)
-}
-
-.header {
-    text-align: center;
-}
-
 .title>h1 {
     color: var(--text-color);
     text-transform: uppercase;
     font-size: 1.5rem;
     margin: .2em 0;
-}
-
-.slogan {
-    color: var(--text-color);
-    font-size: 0.9rem;
-    margin: 0;
-    text-transform: uppercase;
-    color: var(--pink-color);
-    font-weight: bold;
-}
-
-.hero {
-    padding: 2em 1em;
-    text-align: center;
-    font-weight: bold;
-    background-image: url(assets/hero-cycling-small.jpg);
-    background-repeat: no-repeat;
-    background-size: 100%;
-    color: #fff;
-    text-shadow: 0.1em 0.1em 0.3em black;
 }
 
 main {
@@ -108,19 +79,15 @@ main h3 {
     color: #888;
     margin: 0;
 
-    &.invalid {
-        color: var(--red-color);
-
-        input {
-            border-color: var(--red-color);
-        }
-    }
-
     .validation {
         color: var(--red-color);
         font-size: 0.875rem;
         font-weight: bolder;
         letter-spacing: 0.1em;
+    }
+
+    &.invalid {
+        color: var(--red-color);
     }
 }
 

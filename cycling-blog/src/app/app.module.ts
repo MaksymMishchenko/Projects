@@ -14,6 +14,8 @@ import { PostComponent } from './shared/components/post/post.component';
 import { SharedModule } from './shared/shared.module';
 import { AuthInterceptor } from './shared/auth.interceptor';
 import { NavbarItemsComponent } from './shared/components/navbar/navbar-items/navbar-items.component';
+import { HeroComponent } from './shared/components/hero/hero.component';
+import { HeaderComponent } from './shared/components/header/header.component';
 
 const INTERCEPTOR_PROVIDER: Provider = {
   provide: HTTP_INTERCEPTORS,
@@ -25,13 +27,15 @@ const INTERCEPTOR_PROVIDER: Provider = {
   declarations: [
     AppComponent,
     MainLayoutComponent,
+    HeaderComponent,
     NavbarItemsComponent,
     HomePageComponent,
     PostPageComponent,
     BikesPageComponent,
     AboutPageComponent,
     RidePageComponent,
-    PostComponent
+    PostComponent,
+    HeroComponent
   ],
   imports: [
     BrowserModule,

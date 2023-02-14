@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Post } from 'src/app/shared/interfaces';
 import { PostsService } from 'src/app/shared/posts.service';
 import { AlertService } from '../shared/services/alert.service';
@@ -10,13 +10,19 @@ import { AlertService } from '../shared/services/alert.service';
   styleUrls: ['./create-page.component.scss']
 })
 export class CreatePageComponent implements OnInit {
-  constructor(private postsService: PostsService, private alert: AlertService) { }
-  form!: FormGroup
+
+  form!: FormGroup;
+
+  constructor(
+    private postsService: PostsService,
+    private alert: AlertService,
+    private fb: FormBuilder
+    ) { }
 
   ngOnInit() {
-    this.form = new FormGroup({
+    this.form = this.fb.group({
       title: new FormControl('', [Validators.required]),
-      selectCategory: new FormGroup({
+      selectCategory: this.fb.group({
         category: new FormControl('', [Validators.required])
       }),
       description: new FormControl('', [Validators.required]),
@@ -24,7 +30,7 @@ export class CreatePageComponent implements OnInit {
       image: new FormControl('', [Validators.required]),
       author: new FormControl('', [Validators.required])
     });
-  };
+  }
 
   submit() {
     if (this.form.invalid) {
@@ -45,5 +51,5 @@ export class CreatePageComponent implements OnInit {
       this.form.reset();
       this.alert.success('Post was created')
     });
-  };
+  }
 }

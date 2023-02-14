@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { User } from 'src/app/shared/interfaces';
 import { AuthService } from '../shared/services/auth.service';
@@ -11,25 +11,35 @@ import { AuthService } from '../shared/services/auth.service';
 })
 export class LoginPageComponent implements OnInit {
 
-  constructor(public auth: AuthService, private router: Router, private route: ActivatedRoute) { }
-
   form!: FormGroup;
   submitted = false;
-  message!: string
+  message!: string;
+  get email() { return this.form.get('email'); }
+  get password() { return this.form.get('password'); }
+
+  constructor(
+    private fb: FormBuilder,
+    public auth: AuthService,
+    private router: Router,
+    private route: ActivatedRoute) {
+    this.createForm();
+  }
 
   ngOnInit() {
 
     this.route.queryParams.subscribe((params: Params) => {
       if (params['sessionTimedOut']) {
-        this.message = 'Session timed out. Please, log in again.'
+        this.message = 'Session timed out. Please, log in again.';
       }
     });
+  }
 
-    this.form = new FormGroup({
+  createForm() {
+    this.form = this.fb.group({
       email: new FormControl('', [Validators.required, Validators.email]),
       password: new FormControl('', [Validators.required, Validators.minLength(6)])
     });
-  };
+  }
 
   submit() {
     if (this.form.invalid) {

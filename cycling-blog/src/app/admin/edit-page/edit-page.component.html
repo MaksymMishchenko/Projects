@@ -1,46 +1,48 @@
 <div *ngIf="form; else loading">
     <form class="card" [formGroup]="form" (ngSubmit)="submit()">
         <h1>Update post</h1>
-        <div class="form-control" ngClass="{invalid: form.get('title')?.touched && form.get('title')?.invalid}">
+        <div class="form-control" ngClass="{invalid: title?.touched && title?.invalid}">
             <label for="title">Title:*</label>
             <input id="title" type="text" formControlName="title">
-            <div class="validation" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
-                <small *ngIf="form.get('title')?.errors?.['required']">Field title is required</small>
+            <div class="validation" *ngIf="title?.touched && title?.invalid">
+                <small *ngIf="title?.errors?.['required']">Field title is required</small>
             </div>
         </div>
-        <div class="form-control" ngClass="{invalid: form.get('category')?.touched && form.get('category')?.invalid}"
+        <div class="form-control" ngClass="{invalid: selectCategory?.touched && selectCategory?.invalid}"
             formGroupName="selectCategory">
             <label for="category">Category:*</label>
+
             <select id="category" formControlName="category">
                 <option value="mtb">MTB</option>
                 <option value="gravel">Gravel</option>
                 <option value="road">Road</option>
             </select>
+
             <div class="validation"
-                *ngIf="form.get('selectCategory')?.get('category')?.touched && form.get('selectCategory')?.get('category')?.invalid">
-                <small *ngIf="form.get('selectCategory')?.get('category')?.errors?.['required']">Field category is
+                *ngIf="selectCategory?.touched && form.get('selectCategory')?.get('category')?.invalid">
+                <small *ngIf="selectCategory?.errors?.['required']">Field category is
                     required</small>
             </div>
         </div>
         <div class="form-control">
             <label>Post text:*</label>
             <quill-editor formControlName="text"></quill-editor>
-            <div class="validation" *ngIf="form.get('text')?.touched && form.get('text')?.invalid">
-                <small *ngIf="form.get('text')?.errors?.['required']">Field text is required</small>
+            <div class="validation" *ngIf="text?.touched && text?.invalid">
+                <small *ngIf="text?.errors?.['required']">Field text is required</small>
             </div>
         </div>
-        <div class="form-control" ngClass="{invalid: form.get('image')?.touched && form.get('image')?.invalid}">
+        <div class="form-control" ngClass="{invalid: image?.touched && image?.invalid}">
             <label for="image">Url image:*</label>
             <input id="image" type="text" formControlName="image">
-            <div class="validation" *ngIf="form.get('image')?.touched && form.get('image')?.invalid">
-                <small *ngIf="form.get('image')?.errors?.['required']">Field image is required</small>
+            <div class="validation" *ngIf="image?.touched && form.get('image')?.invalid">
+                <small *ngIf="text?.errors?.['required']">Field image is required</small>
             </div>
         </div>
-        <div class="form-control" ngClass="{invalid: form.get('author')?.touched && form.get('author')?.invalid}">
+        <div class="form-control" ngClass="{invalid: author?.touched && author?.invalid}">
             <label for="author">Post author:*</label>
             <input id="author" type="text" formControlName="author">
-            <div class="validation" *ngIf="form.get('author')?.touched && form.get('author')?.invalid">
-                <small *ngIf="form.get('author')?.errors?.['required']">Field author is required</small>
+            <div class="validation" *ngIf="author?.touched && author?.invalid">
+                <small *ngIf="author?.errors?.['required']">Field author is required</small>
             </div>
         </div>
         <button type="submit" class="btn btn-block btn-dark" [disabled]="form.invalid || submitted">Update post</button>

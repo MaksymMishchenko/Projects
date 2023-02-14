@@ -3,22 +3,22 @@
 <div class="alert alert-danger" *ngIf="message">{{message}}</div>
     <div class="centered">
         <h2>Enter to admin panel</h2>
-        <div class="form-control" ngClass="{invalid: form.get('email')?.touched && form.get('email')?.invalid}">
+        <div class="form-control" [class]="{invalid: 'email?.touched' && 'email?.invalid'}">
             <label for="email">Email:</label><br>
             <input class="email" id="email" type="email" placeholder="Email" formControlName="email">
-            <div class="validation" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
-                <small *ngIf="form.get('email')?.errors?.['required']">Field email is required</small>
-                <small *ngIf="form.get('email')?.errors?.['email']">Field email is incorrect</small>
+            <div class="validation" *ngIf="email?.touched && email?.invalid">
+                <small *ngIf="email?.errors?.['required']">Field email is required</small>
+                <small *ngIf="email?.errors?.['email']">Field email is incorrect</small>
             </div>
         </div>
-        <div class="form-control" ngClass="{invalid: form.get('password')?.touched && form.get('password')?.invalid}">
+        <div class="form-control" ngClass="{invalid: password?.touched && password?.invalid}">
             <label for="password">Password:</label><br>
             <input class="password" id="password" type="password" placeholder="Password" formControlName="password">
-            <div class="validation" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
-                <small *ngIf="form.get('password')?.errors?.['required']">Field password is required</small>
-                <small *ngIf="form.get('password')?.errors?.['minlength']">Password must not be less
-                    {{form.get('password')?.errors?.['minlength']?.requiredLength}} symbols. You input
-                    {{form.get('password')?.errors?.['minlength']?.actualLength}} symbol(s) </small>
+            <div class="validation" *ngIf="password?.touched && password?.invalid">
+                <small *ngIf="password?.errors?.['required']">Field password is required</small>
+                <small *ngIf="password?.errors?.['minlength']">Password must not be less
+                    {{password?.errors?.['minlength']?.requiredLength}} symbols. You input
+                    {{password?.errors?.['minlength']?.actualLength}} symbol(s)</small>
             </div>
         </div>
         <button type="submit" class="btn btn-primary" [disabled]="form.invalid || submitted">Enter</button>

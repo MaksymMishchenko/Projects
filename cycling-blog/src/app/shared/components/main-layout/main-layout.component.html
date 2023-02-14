@@ -1,18 +1,12 @@
-<div class="menu-fixed">
-    <header class="page-header">
-        <div class="header">
-            <h1 routerLink="/">Cycling-blog.com</h1>
-            <div class="slogan">Keep calm and ride a bike.</div>
-        </div>
-    </header>
-    <!-- nav bar here -->
-    <app-navbar-items></app-navbar-items>
-</div>
-<div class="main-content">
-    <aside class="hero">
-        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Explicabo ex sunt repudiandae dicta, aut praesentium.
-    </aside>
-    <main>
-        <router-outlet></router-outlet>
-    </main>
-</div>
+<!-- header here -->
+<app-header></app-header>
+
+<!-- nav bar here -->
+<app-navbar-items></app-navbar-items>
+
+<!-- hero -->
+<app-hero></app-hero>
+
+<main>
+    <router-outlet></router-outlet>
+</main>
