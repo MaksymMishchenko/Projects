@@ -3,15 +3,15 @@
 <div class="alert alert-danger" *ngIf="message">{{message}}</div>
     <div class="centered">
         <h2>Enter to admin panel</h2>
-        <div class="form-control" [class]="{invalid: 'email?.touched' && 'email?.invalid'}">
+        <div class="form-control" [ngClass]="{invalid: email?.invalid && (email?.touched || email?.dirty)}">
             <label for="email">Email:</label><br>
-            <input class="email" id="email" type="email" placeholder="Email" formControlName="email">
+            <input  class="email" id="email" type="email" placeholder="Email" formControlName="email">
             <div class="validation" *ngIf="email?.touched && email?.invalid">
                 <small *ngIf="email?.errors?.['required']">Field email is required</small>
                 <small *ngIf="email?.errors?.['email']">Field email is incorrect</small>
             </div>
         </div>
-        <div class="form-control" ngClass="{invalid: password?.touched && password?.invalid}">
+        <div class="form-control" [ngClass]="{invalid: password?.invalid && (password?.touched || password?.dirty)}">
             <label for="password">Password:</label><br>
             <input class="password" id="password" type="password" placeholder="Password" formControlName="password">
             <div class="validation" *ngIf="password?.touched && password?.invalid">

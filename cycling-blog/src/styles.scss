@@ -77,19 +77,19 @@ main h3 {
 .form-control {
     display: block;
     color: #888;
-    margin: 0;
-
-    .validation {
-        color: var(--red-color);
-        font-size: 0.875rem;
-        font-weight: bolder;
-        letter-spacing: 0.1em;
-    }
-
+    margin-bottom: .8rem;
+  
     &.invalid {
-        color: var(--red-color);
+      color: var(--danger-color);
+      input {
+        border-color: var(--danger-color);
+      }
     }
-}
+  
+    .validation {
+      color: var(--danger-color);
+    }
+  }
 
 .btn {
     display: inline-block;
