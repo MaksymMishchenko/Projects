@@ -18,8 +18,6 @@ export class EditPageComponent implements OnInit, OnDestroy {
   submitted = false;
   uSub!: Subscription;
 
-  category!: any;
-
   get title() { return this.form.get('title'); }
   get selectCategory() { return this.form.get('selectCategory')?.get('category'); }
   get text() { return this.form.get('text'); }
@@ -40,7 +38,6 @@ export class EditPageComponent implements OnInit, OnDestroy {
       })
     ).subscribe((post: Post) => {
       this.post = post;
-      this.category = post.category;
       this.form = this.fb.group({
         title: new FormControl(post.title, [Validators.required]),
         selectCategory: this.fb.group({

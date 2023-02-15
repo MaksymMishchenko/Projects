@@ -1,13 +1,13 @@
 <form class="card" [formGroup]="form" (ngSubmit)="submit()">
     <h1>Create new post</h1>
-    <div class="form-control" ngClass="{invalid: form.get('title')?.touched && form.get('title')?.invalid}">
+    <div class="form-control" [ngClass]="{invalid: title?.invalid && (title?.dirty || title?.touched)}">
         <label for="title">Title:*</label>
         <input id="title" type="text" formControlName="title">
-        <div class="validation" *ngIf="form.get('title')?.touched && form.get('title')?.invalid">
-            <small *ngIf="form.get('title')?.errors?.['required']">Field title is required</small>
+        <div class="validation" *ngIf="title?.invalid && (title?.dirty || title?.touched)">
+            <small *ngIf="title?.errors?.['required']">Field title is required</small>
         </div>
     </div>
-    <div class="form-control" ngClass="{invalid: form.get('category')?.touched && form.get('category')?.invalid}"
+    <div class="form-control" [ngClass]="{invalid: selectCategory?.invalid && (selectCategory?.dirty || selectCategory?.touched)}"
         formGroupName="selectCategory">
         <label for="category">Category:*</label>
         <select id="category" formControlName="category">
@@ -16,37 +16,30 @@
             <option value="road">Road</option>
         </select>
         <div class="validation"
-            *ngIf="form.get('selectCategory')?.get('category')?.touched && form.get('selectCategory')?.get('category')?.invalid">
-            <small *ngIf="form.get('selectCategory')?.get('category')?.errors?.['required']">Field category is
+            *ngIf="selectCategory?.invalid && (selectCategory?.dirty || selectCategory?.touched)">
+            <small *ngIf="selectCategory?.errors?.['required']">Field category is
                 required</small>
         </div>
     </div>
-    <div class="form-control">
-        <label>Post description:*</label>
-        <textarea type="text" cols="1" rows="4" formControlName="description"></textarea>
-        <div class="validation" *ngIf="form.get('description')?.touched && form.get('description')?.invalid">
-            <small *ngIf="form.get('description')?.errors?.['required']">Field text is required</small>
-        </div>
-    </div>
-    <div class="form-control">
+    <div class="form-control" [ngClass]="{invalid: text?.invalid && (text?.dirty || text?.touched)}">
         <label>Post text:*</label>
         <quill-editor formControlName="text"></quill-editor>
-        <div class="validation" *ngIf="form.get('text')?.touched && form.get('text')?.invalid">
-            <small *ngIf="form.get('text')?.errors?.['required']">Field text is required</small>
+        <div class="validation" *ngIf="text?.invalid && (text?.dirty || text?.touched)">
+            <small *ngIf="text?.errors?.['required']">Field text is required</small>
         </div>
     </div>
-    <div class="form-control" ngClass="{invalid: form.get('image')?.touched && form.get('image')?.invalid}">
-        <label for="image">Url image*</label>
-        <input id="image" type="text" placeholder="https://" formControlName="image">
-        <div class="validation" *ngIf="form.get('image')?.touched && form.get('image')?.invalid">
-            <small *ngIf="form.get('image')?.errors?.['required']">Field image is required</small>
+    <div class="form-control" [ngClass]="{invalid: image?.invalid && (image?.dirty || image?.touched)}">
+        <label for="image">Url image:*</label>
+        <input id="image" type="text" formControlName="image">
+        <div class="validation" *ngIf="image?.invalid && (image?.dirty || image?.touched)">
+            <small *ngIf="image?.errors?.['required']">Field image is required</small>
         </div>
     </div>
-    <div class="form-control" ngClass="{invalid: form.get('author')?.touched && form.get('author')?.invalid}">
+    <div class="form-control" [ngClass]="{invalid: author?.invalid && (author?.dirty || author?.touched)}">
         <label for="author">Post author:*</label>
         <input id="author" type="text" formControlName="author">
-        <div class="validation" *ngIf="form.get('author')?.touched && form.get('author')?.invalid">
-            <small *ngIf="form.get('author')?.errors?.['required']">Field author is required</small>
+        <div class="validation" *ngIf="author?.invalid && (author?.dirty || author?.touched)">
+            <small *ngIf="author?.errors?.['required']">Field author is required</small>
         </div>
     </div>
     <button type="submit" class="btn btn-block btn-dark" [disabled]="form.invalid">Create post</button>
