@@ -17,6 +17,9 @@ export class EditPageComponent implements OnInit, OnDestroy {
   post!: Post;
   submitted = false;
   uSub!: Subscription;
+
+  category!: any;
+
   get title() { return this.form.get('title'); }
   get selectCategory() { return this.form.get('selectCategory')?.get('category'); }
   get text() { return this.form.get('text'); }
@@ -27,7 +30,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private postsService: PostsService,
     private alert: AlertService,
-    private fb: FormBuilder
+    private fb: FormBuilder, 
   ) { }
 
   ngOnInit() {
@@ -37,6 +40,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
       })
     ).subscribe((post: Post) => {
       this.post = post;
+      this.category = post.category;
       this.form = this.fb.group({
         title: new FormControl(post.title, [Validators.required]),
         selectCategory: this.fb.group({
