@@ -31,7 +31,7 @@
         </div>
         <div class="form-control" [ngClass]="{invalid: image?.invalid && (image?.dirty || image?.touched)}">
             <label for="image">Url image:*</label>
-            <input id="image" type="url" formControlName="image">
+            <input id="image" type="text" formControlName="image">
             <div class="validation" *ngIf="image?.invalid && (image?.dirty || image?.touched)">
                 <small *ngIf="image?.errors?.['required']">Field image is required</small>
             </div>

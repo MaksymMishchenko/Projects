@@ -3,11 +3,11 @@
     <div class="form-control" [ngClass]="{invalid: title?.invalid && (title?.dirty || title?.touched)}">
         <label for="title">Title:*</label>
         <input id="title" type="text" formControlName="title">
-        <div class="validation" *ngIf="title?.invalid && (title?.dirty || title?.touched)">
-            <small *ngIf="title?.errors?.['required']">Field title is required</small>
+        <div class="validation" *ngIf="title?.touched && title?.invalid">
+            <small *ngIf="form.get('title')?.errors?.['required']">Field title is required</small>
         </div>
     </div>
-    <div class="form-control" [ngClass]="{invalid: selectCategory?.invalid && (selectCategory?.dirty || selectCategory?.touched)}"
+    <div class="form-control" [ngClass]="{invalid: category?.invalid && (category?.dirty || category?.touched)}"
         formGroupName="selectCategory">
         <label for="category">Category:*</label>
         <select id="category" formControlName="category">
@@ -16,29 +16,36 @@
             <option value="road">Road</option>
         </select>
         <div class="validation"
-            *ngIf="selectCategory?.invalid && (selectCategory?.dirty || selectCategory?.touched)">
-            <small *ngIf="selectCategory?.errors?.['required']">Field category is
+            *ngIf="category?.touched && category?.invalid">
+            <small *ngIf="category?.errors?.['required']">Field category is
                 required</small>
+        </div>
+    </div>
+    <div class="form-control" [ngClass]="{invalid: description?.invalid && (description?.dirty || description?.touched)}">
+        <label>Post description:*</label>
+        <textarea type="text" cols="1" rows="4" formControlName="description"></textarea>
+        <div class="validation" *ngIf="description?.touched && description?.invalid">
+            <small *ngIf="description?.errors?.['required']">Field description is required</small>
         </div>
     </div>
     <div class="form-control" [ngClass]="{invalid: text?.invalid && (text?.dirty || text?.touched)}">
         <label>Post text:*</label>
         <quill-editor formControlName="text"></quill-editor>
-        <div class="validation" *ngIf="text?.invalid && (text?.dirty || text?.touched)">
+        <div class="validation" *ngIf="text?.touched && text?.invalid">
             <small *ngIf="text?.errors?.['required']">Field text is required</small>
         </div>
     </div>
     <div class="form-control" [ngClass]="{invalid: image?.invalid && (image?.dirty || image?.touched)}">
-        <label for="image">Url image:*</label>
-        <input id="image" type="text" formControlName="image">
-        <div class="validation" *ngIf="image?.invalid && (image?.dirty || image?.touched)">
-            <small *ngIf="image?.errors?.['required']">Field image is required</small>
+        <label for="image">Url image*</label>
+        <input id="image" type="text" placeholder="https://" formControlName="image">
+        <div class="validation" *ngIf="image?.touched && image?.invalid">
+            <small *ngIf="image?.errors?.['required']">Field url image is required</small>
         </div>
     </div>
     <div class="form-control" [ngClass]="{invalid: author?.invalid && (author?.dirty || author?.touched)}">
         <label for="author">Post author:*</label>
         <input id="author" type="text" formControlName="author">
-        <div class="validation" *ngIf="author?.invalid && (author?.dirty || author?.touched)">
+        <div class="validation" *ngIf="author?.touched && author?.invalid">
             <small *ngIf="author?.errors?.['required']">Field author is required</small>
         </div>
     </div>

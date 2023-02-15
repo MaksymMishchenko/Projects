@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Post } from 'src/app/shared/interfaces';
 import { PostsService } from 'src/app/shared/posts.service';
 import { AlertService } from '../shared/services/alert.service';
@@ -9,12 +10,13 @@ import { AlertService } from '../shared/services/alert.service';
   templateUrl: './create-page.component.html',
   styleUrls: ['./create-page.component.scss']
 })
+
 export class CreatePageComponent implements OnInit {
 
   form!: FormGroup;
-
   get title() { return this.form.get('title'); }
-  get selectCategory() { return this.form.get('selectCategory')?.get('category'); }
+  get category() { return this.form.get('selectCategory')?.get('category'); }
+  get description() { return this.form.get('description'); }
   get text() { return this.form.get('text'); }
   get image() { return this.form.get('image'); }
   get author() { return this.form.get('author'); }
@@ -22,7 +24,8 @@ export class CreatePageComponent implements OnInit {
   constructor(
     private postsService: PostsService,
     private alert: AlertService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) { }
 
   ngOnInit() {
@@ -45,7 +48,7 @@ export class CreatePageComponent implements OnInit {
 
     const post: Post = {
       title: this.form.value.title,
-      category: this.form.get('selectCategory')?.get('category')?.value,
+      category: this.category?.value,
       description: this.form.value.description,
       text: this.form.value.text,
       image: this.form.value.image,
@@ -55,6 +58,7 @@ export class CreatePageComponent implements OnInit {
 
     this.postsService.create(post).subscribe(() => {
       this.form.reset();
+      this.router.navigate(['/admin', 'dashboard']);
       this.alert.success('Post was created');
     });
   }
