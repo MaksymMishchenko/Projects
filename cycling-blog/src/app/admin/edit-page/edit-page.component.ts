@@ -44,7 +44,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
           category: new FormControl(post.category, [Validators.required])
         }),
         text: new FormControl(post.text, [Validators.required]),
-        image: new FormControl(post.image, [Validators.required]),
+        image: new FormControl(post.image, [Validators.required, Validators.pattern('(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?')]),
         author: new FormControl(post.author, [Validators.required])
       })
     });

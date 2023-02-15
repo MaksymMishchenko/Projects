@@ -34,6 +34,7 @@
             <input id="image" type="text" formControlName="image">
             <div class="validation" *ngIf="image?.invalid && (image?.dirty || image?.touched)">
                 <small *ngIf="image?.errors?.['required']">Field image is required</small>
+                <small *ngIf="image?.errors?.['pattern']">Please provide valid url</small>
             </div>
         </div>
         <div class="form-control" [ngClass]="{invalid: author?.invalid && (author?.dirty || author?.touched)}">

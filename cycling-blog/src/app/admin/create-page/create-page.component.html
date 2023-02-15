@@ -12,8 +12,8 @@
         <label for="category">Category:*</label>
         <select id="category" formControlName="category">
             <option value="mtb">MTB</option>
+            <option value="road">ROAD</option>
             <option value="gravel">Gravel</option>
-            <option value="road">Road</option>
         </select>
         <div class="validation"
             *ngIf="category?.touched && category?.invalid">

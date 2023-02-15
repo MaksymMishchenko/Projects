@@ -14,6 +14,7 @@ import { AlertService } from '../shared/services/alert.service';
 export class CreatePageComponent implements OnInit {
 
   form!: FormGroup;
+
   get title() { return this.form.get('title'); }
   get category() { return this.form.get('selectCategory')?.get('category'); }
   get description() { return this.form.get('description'); }
@@ -36,7 +37,7 @@ export class CreatePageComponent implements OnInit {
       }),
       description: new FormControl('', [Validators.required]),
       text: new FormControl('', [Validators.required]),
-      image: new FormControl('', [Validators.required]),
+      image: new FormControl('', [Validators.required, Validators.pattern('(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?')]),
       author: new FormControl('', [Validators.required])
     });
   }
