@@ -8,12 +8,23 @@ import { PostsService } from '../shared/posts.service';
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.scss']
 })
-export class HomePageComponent implements OnInit {
-  posts$!: Observable<Post[]>
+export class HomePageComponent implements OnInit, OnDestroy {
 
+  posts!: Post[]
+  pSub!: Subscription
+  postRows!: number
   constructor(private postService: PostsService) { }
 
   ngOnInit() {
-    this.posts$ = this.postService.getAllPosts();
+    this.pSub = this.postService.getAllPosts()
+      .subscribe(posts => {
+        this.posts = posts;
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.pSub) {
+      this.pSub.unsubscribe();
+    }
   }
 }

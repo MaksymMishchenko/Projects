@@ -10,7 +10,6 @@ import { PostPageComponent } from './post-page/post-page.component';
 import { BikesPageComponent } from './bikes-page/bikes-page.component';
 import { AboutPageComponent } from './about-page/about-page.component';
 import { RidePageComponent } from './ride-page/ride-page.component';
-import { PostComponent } from './shared/components/post/post.component';
 import { SharedModule } from './shared/shared.module';
 import { AuthInterceptor } from './shared/auth.interceptor';
 import { NavbarItemsComponent } from './shared/components/navbar/navbar-items/navbar-items.component';
@@ -34,7 +33,6 @@ const INTERCEPTOR_PROVIDER: Provider = {
     BikesPageComponent,
     AboutPageComponent,
     RidePageComponent,
-    PostComponent,
     HeroComponent
   ],
   imports: [

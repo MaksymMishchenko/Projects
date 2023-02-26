@@ -33,3 +33,15 @@ button {
     border-radius: .3em;
     color: white;
 }
+
+@media (min-width: 35em) {
+    .header > h1{
+        margin-top: -2.5em;
+    }
+}
+
+@media (min-width: 50em) {
+    .header > h1{
+        margin-top: -5em;
+    }
+}

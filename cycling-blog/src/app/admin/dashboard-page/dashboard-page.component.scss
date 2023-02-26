@@ -24,19 +24,14 @@ tr:nth-child(odd) {
     }
 
     tr {
+        border-bottom: 3px dashed var(--pink-color);
+        padding-bottom: 1em;
         margin-bottom: 1em;
-    }
-
-    tr {
-        border-bottom: 3px dashed var(--pink-color)
     }
 
     input {
         width: 100%;
         margin-bottom: 0.5em;
-    }
-
-    tr {
-        padding-bottom: 1em;
-    }
+    }  
 }
+

@@ -78,18 +78,19 @@ main h3 {
     display: block;
     color: #888;
     margin-bottom: .8rem;
-  
+
     &.invalid {
-      color: var(--danger-color);
-      input {
-        border-color: var(--danger-color);
-      }
+        color: var(--danger-color);
+
+        input {
+            border-color: var(--danger-color);
+        }
     }
-  
+
     .validation {
-      color: var(--danger-color);
+        color: var(--danger-color);
     }
-  }
+}
 
 .btn {
     display: inline-block;
@@ -197,4 +198,154 @@ button {
     font-size: 0.75rem;
     margin-top: 0.4em;
     font-weight: bold;
+}
+
+.menu {
+    position: relative;
+}
+
+.menu-toggle {
+    position: absolute;
+    top: -1.2em;
+    right: 0.1em;
+    border: 0;
+    background-color: transparent;
+    font-size: 3em;
+    width: 1em;
+    height: 1em;
+    line-height: 0.4;
+    text-indent: 5em;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.menu-toggle::after {
+    position: absolute;
+    top: 0.2em;
+    left: 0.2em;
+    display: block;
+    content: "\2261";
+    text-indent: 0;
+}
+
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    left: 0;
+    margin: 0;
+}
+
+.menu.is-open .menu-dropdown {
+    display: block;
+}
+
+.nav-menu {
+    margin: 0;
+    padding-left: 0;
+    border: 1px solid #ccc;
+    list-style: none;
+    background-color: var(--black-color);
+    color: var(--white-color);
+}
+
+.nav-menu>li+li {
+    border-top: 1px solid var(--text-color);
+}
+
+.nav-menu>li>a {
+    display: block;
+    padding: 0.1em 1em;
+    color: var(--white-color);
+    font-weight: normal;
+}
+
+.nav-menu>li>a.active {
+    color: var(--pink-color);
+    font-weight: bolder;
+}
+
+@media (min-width: 35em) {
+
+    .page-header {
+        padding: 1em;
+    }
+
+    .hero {
+        padding: 5em 3em;
+        font-size: 1.2rem;
+    }
+
+    main {
+        padding: 2em 1em;
+    }
+
+    main>h2 {
+        margin-top: -1.5em;
+        margin-bottom: 1em;
+    }
+
+    .menu-toggle {
+        display: none;
+    }
+
+    .menu-dropdown {
+        display: block;
+        position: static;
+    }
+
+    .nav-menu {
+        display: flex;
+        border: 0;
+        padding: 0 1em;
+    }
+
+    .nav-menu>li {
+        flex: 1;
+        border: 0;
+    }
+
+    .nav-menu>li+li {
+        border: 0;
+    }
+
+    .nav-menu>li>a {
+        padding: 0.3em;
+        text-align: center;
+    }
+
+    .row {
+        display: flex;
+        margin-left: -.75em;
+        margin-right: -.75em;
+    }
+
+    .column {
+        flex: 1;
+        margin-left: 0.75em;
+        margin-right: 0.75em;
+    }
+}
+
+@media (min-width: 50em) {
+    .page-header {
+        padding: 1em 4em;
+    }
+
+    .hero {
+        padding: 7em 6em;
+    }
+
+    main {
+        padding: 2em 4em;
+    }
+
+    main>h2 {
+        margin-top: -2.5em;
+        margin-bottom: 1em;
+    }
+
+    .nav-menu {
+        padding: 0 4em;
+    }
 }
