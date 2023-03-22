@@ -13,6 +13,7 @@ import { AuthGuard } from "./shared/services/auth.guard";
 import { SearchPipe } from "./shared/search.pipe";
 import { AlertComponent } from './shared/components/alert/alert.component';
 import { AlertService } from "./shared/services/alert.service";
+import { ErrorComponent } from "../shared/components/error/error.component";
 
 @NgModule({
     declarations: [

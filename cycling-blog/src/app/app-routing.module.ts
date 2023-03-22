@@ -6,8 +6,12 @@ import { HomePageComponent } from './home-page/home-page.component';
 import { PostPageComponent } from './post-page/post-page.component';
 import { MainLayoutComponent } from './shared/components/main-layout/main-layout.component';
 import { BikesPageComponent } from './bikes-page/bikes-page.component';
+import { ErrorComponent } from './shared/components/error/error.component';
 
 const routes: Routes = [
+  {
+    path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
+  },
   {
     path: '', component: MainLayoutComponent, children: [
       { path: '', redirectTo: '/', pathMatch: 'full' },
@@ -16,10 +20,9 @@ const routes: Routes = [
       { path: 'bikes', component: BikesPageComponent },
       { path: 'where-to-ride', component: RidePageComponent },
       { path: 'about-us', component: AboutPageComponent },
+      { path: 'error', component: ErrorComponent },
+      { path: '**', redirectTo: '/error' },
     ]
-  },
-  {
-    path: 'admin', loadChildren: () => import('./admin/admin.module').then(m => m.AdminModule)
   }
 ];
 
