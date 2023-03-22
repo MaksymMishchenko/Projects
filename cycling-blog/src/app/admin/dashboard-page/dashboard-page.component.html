@@ -19,11 +19,12 @@
                 <td>{{ post.author }}</td>
                 <td>{{ post.date | date: 'short' }}</td>
                 <td>
-                    <tr>
-                        <td><button class="btn btn-edit" [routerLink]="['/admin', 'post', post.id, 'edit']">Edit</button></td>
-                    <td><a class="btn btn-danger" (click)="remove(post.id)">Delete</a></td>
-                    </tr>
+            <tr>
+                <td><button class="btn btn-edit" [routerLink]="['/admin', 'post', post.id, 'edit']">Edit</button>
                 </td>
+                <td><a class="btn btn-danger" (click)="remove(post.id)">Delete</a></td>
+            </tr>
+            </td>
             </tr>
         </tbody>
     </table>

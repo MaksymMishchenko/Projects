@@ -8,7 +8,8 @@
                 <small *ngIf="title?.errors?.['required']">Field title is required</small>
             </div>
         </div>
-        <div class="form-control" [ngClass]="{invalid: selectCategory?.invalid && (selectCategory?.dirty || selectCategory?.touched)}"
+        <div class="form-control"
+            [ngClass]="{invalid: selectCategory?.invalid && (selectCategory?.dirty || selectCategory?.touched)}"
             formGroupName="selectCategory">
             <label for="category">Category:*</label>
             <select id="category" formControlName="category">
@@ -22,6 +23,15 @@
                     required</small>
             </div>
         </div>
+
+        <div class="form-control" [ngClass]="{invalid: title?.invalid && (title?.dirty || title?.touched)}">
+            <label for="title">Title:*</label>
+            <input id="title" type="text" formControlName="title">
+            <div class="validation" *ngIf="title?.invalid && (title?.dirty || title?.touched)">
+                <small *ngIf="title?.errors?.['required']">Field title is required</small>
+            </div>
+        </div>
+
         <div class="form-control" [ngClass]="{invalid: text?.invalid && (text?.dirty || text?.touched)}">
             <label>Post text:*</label>
             <quill-editor formControlName="text"></quill-editor>
@@ -29,6 +39,20 @@
                 <small *ngIf="text?.errors?.['required']">Field text is required</small>
             </div>
         </div>
+
+        <div class="seo">
+            <h4>SEO</h4>
+            <div class="form-control">
+                <label for="metaTitle">Meta title:</label>
+                <input id="metaTitle" type="text" formControlName="metaTitle">
+            </div>
+
+            <div class="form-control">
+                <label for="metaDescription">Meta description:</label>
+                <textarea id="metaDescription" type="text" formControlName="metaDescription"></textarea>
+            </div>
+        </div>
+
         <div class="form-control" [ngClass]="{invalid: image?.invalid && (image?.dirty || image?.touched)}">
             <label for="image">Url image:*</label>
             <input id="image" type="text" formControlName="image">

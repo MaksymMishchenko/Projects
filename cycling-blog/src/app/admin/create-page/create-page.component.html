@@ -15,19 +15,21 @@
             <option value="road">ROAD</option>
             <option value="gravel">Gravel</option>
         </select>
-        <div class="validation"
-            *ngIf="category?.touched && category?.invalid">
+        <div class="validation" *ngIf="category?.touched && category?.invalid">
             <small *ngIf="category?.errors?.['required']">Field category is
                 required</small>
         </div>
     </div>
-    <div class="form-control" [ngClass]="{invalid: description?.invalid && (description?.dirty || description?.touched)}">
+
+    <div class="form-control"
+        [ngClass]="{invalid: description?.invalid && (description?.dirty || description?.touched)}">
         <label>Post description:*</label>
         <textarea type="text" cols="1" rows="4" formControlName="description"></textarea>
         <div class="validation" *ngIf="description?.touched && description?.invalid">
             <small *ngIf="description?.errors?.['required']">Field description is required</small>
         </div>
     </div>
+
     <div class="form-control" [ngClass]="{invalid: text?.invalid && (text?.dirty || text?.touched)}">
         <label>Post text:*</label>
         <quill-editor formControlName="text"></quill-editor>
@@ -35,6 +37,20 @@
             <small *ngIf="text?.errors?.['required']">Field text is required</small>
         </div>
     </div>
+
+    <div class="seo">
+        <h4>SEO</h4>
+        <div class="form-control">
+            <label for="metaTitle">Meta title:</label>
+            <input id="metaTitle" type="text" formControlName="metaTitle">
+        </div>
+
+        <div class="form-control">
+            <label for="metaDescription">Meta description:</label>
+            <textarea id="metaDescription" type="text" formControlName="metaDescription"></textarea>
+        </div>
+    </div>
+
     <div class="form-control" [ngClass]="{invalid: image?.invalid && (image?.dirty || image?.touched)}">
         <label for="image">Url image*</label>
         <input id="image" type="text" placeholder="https://" formControlName="image">

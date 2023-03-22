@@ -265,6 +265,17 @@ button {
     font-weight: bolder;
 }
 
+.seo {
+    display: block;
+    border: 1px solid #ccc;
+    padding: 1em;
+    margin-top: 0;
+}
+
+.seo h4 {
+    margin: 0;
+}
+
 @media (min-width: 35em) {
 
     .page-header {

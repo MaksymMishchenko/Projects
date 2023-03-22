@@ -35,6 +35,8 @@ export class CreatePageComponent implements OnInit {
       selectCategory: this.fb.group({
         category: new FormControl('', [Validators.required])
       }),
+      metaTitle: new FormControl('', Validators.required),
+      metaDescription: new FormControl('', Validators.required),
       description: new FormControl('', [Validators.required]),
       text: new FormControl('', [Validators.required]),
       image: new FormControl('', [Validators.required, Validators.pattern('(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?')]),
@@ -50,6 +52,8 @@ export class CreatePageComponent implements OnInit {
     const post: Post = {
       title: this.form.value.title,
       category: this.category?.value,
+      metaTitle: this.form.value.metaTitle,
+      metaDescription: this.form.value.metaDescription,
       description: this.form.value.description,
       text: this.form.value.text,
       image: this.form.value.image,

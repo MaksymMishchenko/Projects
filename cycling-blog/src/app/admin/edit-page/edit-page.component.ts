@@ -28,7 +28,7 @@ export class EditPageComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private postsService: PostsService,
     private alert: AlertService,
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
   ) { }
 
   ngOnInit() {
@@ -43,6 +43,8 @@ export class EditPageComponent implements OnInit, OnDestroy {
         selectCategory: this.fb.group({
           category: new FormControl(post.category, [Validators.required])
         }),
+        metaTitle: new FormControl(post.metaTitle),
+        metaDescription: new FormControl(post.metaDescription),
         text: new FormControl(post.text, [Validators.required]),
         image: new FormControl(post.image, [Validators.required, Validators.pattern('(https?://)?([\\da-z.-]+)\\.([a-z.]{2,6})[/\\w .-]*/?')]),
         author: new FormControl(post.author, [Validators.required])
