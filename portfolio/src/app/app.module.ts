@@ -7,6 +7,7 @@ import { MainLayoutComponent } from './shared/components/main-layout/main-layout
 import { HomePageComponent } from './home-page/home-page.component';
 import { PortfolioPageComponent } from './portfolio-page/portfolio-page.component';
 import { ContactPageComponent } from './contact-page/contact-page.component';
+import { NavComponent } from './shared/components/nav/nav.component';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { ContactPageComponent } from './contact-page/contact-page.component';
     MainLayoutComponent,
     HomePageComponent,
     PortfolioPageComponent,
-    ContactPageComponent
+    ContactPageComponent,
+    NavComponent
   ],
   imports: [
     BrowserModule,

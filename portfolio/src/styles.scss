@@ -1,1 +1,107 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Alkatra&display=swap');
+
+:root {
+    box-sizing: border-box;
+    font-size: calc(1vw + 0.6em);
+}
+
+*,
+::before,
+::after {
+    box-sizing: inherit;
+}
+
+body {
+    margin: 0;
+    font-family: 'Alkatra', cursive;
+}
+
+a:link {
+    color: #1476b8;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a:visited {
+    color: #1430b8;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a:active {
+    color: #b81414;
+}
+
+.page-header {
+    padding: 0.4em 1em;
+    background-color: #fff;
+}
+
+.title>h1 {
+    color: #333;
+    text-transform: uppercase;
+    font-size: 1.5rem;
+    margin: .2em 0;
+}
+
+.menu {
+    position: relative;
+}
+
+.menu-toggle {
+    position: absolute;
+    top: -1.2em;
+    right: 0.1em;
+    border: 0;
+    background-color: transparent;
+    font-size: 3em;
+    width: 1em;
+    height: 1em;
+    line-height: 0.4;
+    text-indent: 5em;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.menu-toggle::after {
+    position: absolute;
+    top: 0.2em;
+    left: 0.2em;
+    display: block;
+    content: "\2261";
+    text-indent: 0;
+}
+
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    left: 0;
+    margin: 0;
+}
+
+.menu.is-open .menu-dropdown {
+    display: block;
+}
+
+.nav-menu {
+    margin: 0;
+    padding-left: 0.3em;
+    border: 1px solid #fff;
+    list-style: none;
+    background-color: #e7e5e5;
+    color: #fff;
+}
+
+.nav-menu>li+li {
+    border-top: 1px solid #ccc;
+}
+
+.nav-menu>li>a {
+    display: block;
+    padding: 0.8em 1em;
+    color: #fff;
+    font-weight: normal;
+}

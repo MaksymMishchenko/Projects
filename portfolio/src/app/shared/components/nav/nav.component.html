@@ -1,0 +1,10 @@
+<nav class="menu" id="main-menu">
+    <button class="menu-toggle" id="toggle-menu" (click)="dropdownMenuOpen($event)">згорнути меню</button>
+    <div class="menu-dropdown">
+        <ul class="nav-menu">
+            <li routerLinkActive="activeLink" [routerLinkActiveOptions]="{exact: true}"><a routerLink="/" (click)="dropdownMenuClose($event)">Home</a></li>
+            <li routerLinkActive="activeLink"><a routerLink="/portfolio" (click)="dropdownMenuClose($event)">Portfolio</a></li>
+            <li routerLinkActive="activeLink"><a routerLink="/contact-us" (click)="dropdownMenuClose($event)">Contact Us</a></li>
+        </ul>
+    </div>
+</nav>
