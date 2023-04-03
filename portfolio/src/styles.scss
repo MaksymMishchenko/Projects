@@ -16,6 +16,31 @@ body {
     font-family: 'Alkatra', cursive;
 }
 
+main {
+    padding: 1em;
+}
+
+.portfolio {
+    display: none;
+}
+
+.subtitle {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.hero {
+    padding: 2em 1em;
+    text-align: center;
+    background-image: url(assets/hero-image-small.jpg);
+    background-size: 100%;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 0.1em 0.1em 0.3em #6b6a6a;
+}
+
 a:link {
     color: #1476b8;
     font-weight: bold;
@@ -35,15 +60,37 @@ a:active {
 }
 
 .page-header {
+    display: flex;
     padding: 0.4em 1em;
     background-color: #fff;
+    align-items: center;
 }
 
 .title>h1 {
     color: #333;
     text-transform: uppercase;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     margin: .2em 0;
+}
+
+.tel>a {
+    text-decoration: none;
+    margin-left: 1em;
+    color: #333;
+    text-transform: uppercase;
+    font-size: 1rem;
+}
+
+.button button {
+    font-size: 0.75rem;
+    padding: 0.5em;
+    margin-left: 1em;
+    color: #333;
+    border: none;
+    border-radius: 0.5em;
+    background-color: #333;
+    color: white;
+    
 }
 
 .menu {
@@ -91,7 +138,7 @@ a:active {
     padding-left: 0.3em;
     border: 1px solid #fff;
     list-style: none;
-    background-color: #e7e5e5;
+    background-color: #7f7f7f;
     color: #fff;
 }
 
@@ -104,4 +151,207 @@ a:active {
     padding: 0.8em 1em;
     color: #fff;
     font-weight: normal;
+}
+
+.portfolio {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-auto-rows: 1fr;
+    grid-gap: 1em;
+    grid-auto-flow: dense;
+}
+
+.portfolio .featured {
+    grid-row: span 2;
+    grid-column: span 2;
+}
+
+.portfolio>figure {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+}
+
+.portfolio img {
+    flex: 1;
+    object-fit: cover;
+    max-width: 100%;
+}
+
+.portfolio figcaption {
+    font-size: larger;
+    padding: 0.3em 0.8em;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    text-align: center;
+}
+
+footer {
+    padding: 2em 1em;
+    color: #fff;
+    background-color: #e1e1df;
+    text-shadow: 0.1em 0.1em 0.3em #ccc;
+}
+
+footer .social-icons {
+    text-align: center;
+}
+
+footer>p {
+    margin-top: 0;
+    text-align: center;
+}
+
+@media (min-width: 35em) {
+    .page-header {
+        padding: 1em;
+        justify-content: space-between;
+    }
+
+    .hero {
+        padding: 5em 3em;
+        font-size: 1.2rem;
+        text-align: center;
+        background-image: url(assets/hero-image-medium.jpg);
+        background-size: 100%;
+        color: #fff;
+        text-shadow: 0.1em 0.1em 0.3em #ccc;
+    }
+
+    main {
+        padding: 2em 1em;
+    }
+
+    .menu-toggle {
+        display: none;
+    }
+
+    .menu-dropdown {
+        display: block;
+        position: static;
+    }
+
+    .nav-menu {
+        display: flex;
+        border: 0;
+        padding: 0 1em;
+    }
+
+    .nav-menu>li {
+        flex: 1;
+    }
+
+    .nav-menu li+li {
+        border: 0;
+    }
+
+    .nav-menu>li>a {
+        padding: 0.3em;
+        text-align: center;
+    }
+
+    .portfolio {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-auto-rows: 1fr;
+        grid-gap: 1em;
+        grid-auto-flow: dense;
+    }
+
+    .portfolio .featured {
+        grid-row: span 2;
+        grid-column: span 2;
+    }
+
+    .portfolio>figure {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+    }
+
+    .portfolio img {
+        flex: 1;
+        object-fit: cover;
+        max-width: 100%;
+    }
+
+    .portfolio figcaption {
+        padding: 0.3em 0.8em;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        text-align: center;
+    }
+
+    .row {
+        display: flex;
+        margin-left: -.75em;
+        margin-right: -.75em;
+    }
+
+    .column {
+        flex: 1;
+        margin-right: 0.75em;
+        margin-left: 0.75em;
+    }
+}
+
+@media (min-width: 50em) {
+
+    :root {
+        font-size: 1.125em;
+    }
+
+    .page-header {
+        padding: 1em 4em;
+    }
+
+    .hero {
+        padding: 7em 6em;
+        font-size: 1.2rem;
+        text-align: center;
+        background-image: url(assets/hero-image-big.jpg);
+        background-size: 100%;
+        color: #fff;
+        text-shadow: 0.1em 0.1em 0.3em #ccc;
+    }
+
+    .nav-menu {
+        padding: 0 4em;
+    }
+
+    main {
+        padding: 2em 4em;
+    }
+
+    .portfolio {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-auto-rows: 1fr;
+        grid-gap: 1em;
+        grid-auto-flow: dense;
+    }
+
+    .portfolio .featured {
+        grid-row: span 2;
+        grid-column: span 2;
+    }
+
+    .portfolio>figure {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+    }
+
+    .portfolio img {
+        flex: 1;
+        object-fit: cover;
+        max-width: 100%;
+    }
+
+    .portfolio figcaption {
+        padding: 0.3em 0.8em;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: #fff;
+        text-align: center;
+    }
 }

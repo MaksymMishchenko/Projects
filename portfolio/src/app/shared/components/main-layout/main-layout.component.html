@@ -1,9 +1,16 @@
 <header id="header" class="page-header">
     <div class="title">
-        <h1>Презентація вашого продукту крізь фото</h1>
+        <h1 routerLink="/portfolio">Photography</h1>
+    </div>
+    <div class="tel">
+        <a href="tel:0674153598">(067)
+            415-35-98</a>
+    </div>
+
+    <div class="button">
+        <button (click)="gotoToContactForm()">Залишити заявку</button>
     </div>
 </header>
-
 <app-nav></app-nav>
-<p>main-layout works!</p>
 <router-outlet></router-outlet>
+<app-footer></app-footer>
