@@ -1,0 +1,22 @@
+form {
+    margin-left: 20%;
+    margin-right: 20%;
+}
+
+.form-control, label, input, textarea {
+    display: block;
+    color: var(--brand-color);
+    margin-bottom: .8rem;
+    width: 100%;
+  
+    &.invalid {
+      color: var(--danger-color);
+      input {
+        border-color: var(--danger-color);
+      }
+    }
+  
+    .validation {
+      color: var(--danger-color);
+    }
+  }

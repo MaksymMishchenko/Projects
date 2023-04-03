@@ -1,1 +1,47 @@
-<p>contact-page works!</p>
+<form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+
+    <h1>Залишити заявку на фотосесію</h1>
+
+    <div class="form-control"
+        [ngClass]="{invalid: contactForm.get('name')!.touched && contactForm.get('name')!.invalid}">
+        <label for="name">Ім'я:</label>
+        <input type="text" name="name" id="name" placeholder="Ім'я" formControlName="name">
+        <div class="validation" *ngIf="contactForm.get('name')!.touched && contactForm.get('name')!.invalid">
+            <small *ngIf="contactForm.get('name')!errors!['required']">Вкажіть ім'я</small>
+        </div>
+    </div>
+
+    <div class="form-control"
+        [ngClass]="{invalid: contactForm.get('email')!.touched && contactForm.get('email')!.invalid}">
+        <label for="email">Пошта:</label>
+        <input type="text" name="email" id="email" placeholder="photo@mail.ua" formControlName="email">
+        <div class="validation" *ngIf="contactForm.get('email')!.touched && contactForm.get('email')!.invalid">
+            <small *ngIf="contactForm.get('email')!.errors!['required']">Вкажіть пошту</small>
+            <small *ngIf="contactForm.get('email')!.errors!['email']">Пошта не корректна</small>
+        </div>
+
+    </div>
+
+    <div class="form-control"
+        [ngClass]="{invalid: contactForm.get('phone')!.touched && contactForm.get('phone')!.invalid}">
+        <label for="phone">Телефон:</label>
+        <input type="text" name="phone" id="phone" placeholder="+380671111111" formControlName="phone">
+        <div class="validation" *ngIf="contactForm.get('phone')!.touched && contactForm.get('phone')!.invalid">
+            <small *ngIf="contactForm.get('phone')!errors!['required']">Вкажіть телефон</small>
+        </div>
+    </div>
+
+    <div class="form-control"
+        [ngClass]="{invalid: contactForm.get('comment')!.touched && contactForm.get('comment')!.invalid}">
+        <label for="comment">Коментар:</label>
+        <textarea name="comment" id="comment" cols="30" rows="7" placeholder="Приклад: Хочу замовити предметну зйомку"
+            formControlName="comment"></textarea>
+        <div class="validation" *ngIf="contactForm.get('comment')!.touched && contactForm.get('comment')!.invalid">
+            <small *ngIf="contactForm.get('comment')!errors!['required']">Вкажіть коментар</small>
+        </div>
+    </div>
+
+    <p>{{message}}</p>
+
+    <button type="submit" [disabled]="contactForm.invalid">Надіслати</button>
+</form>
