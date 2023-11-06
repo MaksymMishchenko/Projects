@@ -10,7 +10,7 @@
 <body>
     <div class="container">
         <header>
-            <h1 class="page-heading">Welcome to Car blog</h1>
+            <h1 class="page-heading">Welcome to our Car blog</h1>
         </header>
         <nav>
             <ul class="site-nav">
@@ -22,25 +22,27 @@
         </nav>
         <div class="sidebar-top tile">
             <h3>Categories</h3>
-            <ul>
+            <ul class="site-categories">
                 <li><a href="#">Mercedes</a></li>
                 <li><a href="#">Alfa-romeo</a></li>
                 <li><a href="#">Lamborgini</a></li>
                 <li><a href="#">Ferrari</a></li>
             </ul>
         </div>
-        <div class="sidebar-bottom tile centered">
-            <small>Latest magazine</small>
-            <img src="" />
-            <a class="dwl-button" href="#">Download</a>
+        <div class="sidebar-bottom tile">
+            <h4>Latest magazine</h4>
+            <div class="centered">
+                <img src="../images/magazine.jpg" />
+                <a class="dwl-button" href="#">Download</a>
+            </div>
         </div>
         <main class="main tile">
             @RenderBody()
         </main>
         <footer class="tile centered">
-            <div>
-                &copy; 2023 - CarBlogApp
-            </div>
+            <p>
+                &copy; 2023 - CarBlogApp. All right reserved.
+            </p>
         </footer>
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
