@@ -6,25 +6,29 @@
 
 <h2>Contact us</h2>
 
-<form class="contact">
+<div class="contact">
     <h3>Fill in the form, please</h3>
-    @using (Html.BeginForm("Contact", "Home", FormMethod.Post))
+    @using (Html.BeginForm())
     {
         <div class="group">
             <p>
                 @Html.LabelFor(m => m.Name)
                 @Html.EditorFor(m=>m.Name)
+                @Html.ValidationMessageFor(m=>m.Name)
             </p>
             <p>
                 @Html.LabelFor(m => m.Email)
                 @Html.EditorFor(m => m.Email)
+                @Html.ValidationMessageFor(m=>m.Email)
             </p>
         </div>
         <p>
             @Html.LabelFor(m => m.Message)
             @Html.TextAreaFor(m => m.Message)
+            @Html.ValidationMessageFor(m=>m.Message)
         </p>
-        <button type="submit" name="submit" value="Submit">Submit</button>
+        @Html.ValidationSummary(true)
+        <input type="submit" value="Submit" />
     }
-</form>
+</div>
 

@@ -1,6 +1,7 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace CarBlogApp.Controllers
 {
@@ -22,18 +23,34 @@ namespace CarBlogApp.Controllers
         {
             return View();
         }
-        
         public IActionResult Contact()
         {
             return View();
         }
+
         [HttpPost]
         public IActionResult Contact(ContactForm form)
         {
-            if (form == null) { }
-            return RedirectToAction("Contact");
-        }
+            if (string.IsNullOrEmpty(form.Name))
+            {
+                ModelState.AddModelError("Name", "Input your name, please");
+            }
 
+            if (form.Email != null && !new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$").IsMatch(form.Email))
+            {
+                ModelState.AddModelError("Email", "Input correct email, please");
+            }
+
+            if (string.IsNullOrEmpty(form.Message))
+            {
+                ModelState.AddModelError("Message", "Input your message, please");
+            }
+            if (ModelState.IsValid)
+            {
+                return View("Success");
+            }
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
