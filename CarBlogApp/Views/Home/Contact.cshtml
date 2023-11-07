@@ -1,0 +1,30 @@
+﻿@model CarBlogApp.Models.ContactForm;
+
+@{
+    ViewData["Title"] = "Contact us";
+}
+
+<h2>Contact us</h2>
+
+<form class="contact">
+    <h3>Fill in the form, please</h3>
+    @using (Html.BeginForm("Contact", "Home", FormMethod.Post))
+    {
+        <div class="group">
+            <p>
+                @Html.LabelFor(m => m.Name)
+                @Html.EditorFor(m=>m.Name)
+            </p>
+            <p>
+                @Html.LabelFor(m => m.Email)
+                @Html.EditorFor(m => m.Email)
+            </p>
+        </div>
+        <p>
+            @Html.LabelFor(m => m.Message)
+            @Html.TextAreaFor(m => m.Message)
+        </p>
+        <button type="submit" name="submit" value="Submit">Submit</button>
+    }
+</form>
+

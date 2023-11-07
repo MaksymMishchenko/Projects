@@ -152,3 +152,41 @@ footer {
 footer > p {
     color: #709b90;
 }
+
+.contact {
+    padding: 1.5em;
+    border: 1px solid #709b90;
+    margin: auto;
+}
+
+    .contact h3 {
+        margin: 0;
+        font-size: 0.9em;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+.text-box {
+    display: block;
+    width: 100%;
+}
+
+.contact textarea {
+    width: 100%;
+    height: 100px;
+}
+
+.contact > button {
+    margin-top: 1em;
+    background-color: #709b90;
+    border: 1px solid grey;
+    padding: .5em 1em;
+    color: white;
+    border-radius: .2em;
+}
+    .contact > button:hover {
+        background-color: #cc6b5a;
+        border: 1px solid grey;
+        border-radius: .5em;
+        cursor: pointer;
+    }
