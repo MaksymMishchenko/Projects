@@ -202,4 +202,14 @@ footer > p {
 
 .input-validation-error {
     border: 1px solid red;
+    background-color: white;
+}
+
+.validation-summary-errors {
+    font-weight: bold;
+    color: red;
+}
+
+.validation-summary-valid {
+    display: none;
 }
