@@ -176,7 +176,7 @@ footer > p {
     height: 100px;
 }
 
-.contact > button {
+.button {
     margin-top: 1em;
     background-color: #709b90;
     border: 1px solid grey;
@@ -185,7 +185,7 @@ footer > p {
     border-radius: .2em;
 }
 
-    .contact > button:hover {
+    .button:hover {
         background-color: #cc6b5a;
         border: 1px solid grey;
         border-radius: .5em;
