@@ -31,20 +31,6 @@ namespace CarBlogApp.Controllers
         [HttpPost]
         public IActionResult Contact(ContactForm form)
         {
-            if (string.IsNullOrEmpty(form.Name))
-            {
-                ModelState.AddModelError("Name", "Input your name, please");
-            }
-
-            if (form.Email != null && !new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$").IsMatch(form.Email))
-            {
-                ModelState.AddModelError("Email", "Input correct email, please");
-            }
-
-            if (string.IsNullOrEmpty(form.Message))
-            {
-                ModelState.AddModelError("Message", "Input your message, please");
-            }
             if (ModelState.IsValid)
             {
                 return View("Success");

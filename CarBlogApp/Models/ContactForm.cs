@@ -7,6 +7,7 @@ namespace CarBlogApp.Models
         public int? UserId { get; set; }
         [Display(Name = "Name")]
         [Required(ErrorMessage = "Field name is required")]
+        [StringLength(12, MinimumLength = 3, ErrorMessage = "Field must contain min 3 symbols")]
         public string? Name { get; set; }
         [Display(Name = "Email")]
         [Required(ErrorMessage = "Field email is required")]
