@@ -184,9 +184,22 @@ footer > p {
     color: white;
     border-radius: .2em;
 }
+
     .contact > button:hover {
         background-color: #cc6b5a;
         border: 1px solid grey;
         border-radius: .5em;
         cursor: pointer;
     }
+
+.field-validation-error {
+    color: red;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+.input-validation-error {
+    border: 1px solid red;
+}
