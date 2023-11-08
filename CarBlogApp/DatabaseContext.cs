@@ -1,0 +1,15 @@
+﻿using CarBlogApp.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace CarBlogApp
+{
+    public class DatabaseContext : DbContext
+    {
+        public DbSet<ContactForm> InboxMessages { get; set; }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=CarBlogApp;Trusted_Connection=true");
+        }
+    }
+}
