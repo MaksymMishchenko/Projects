@@ -4,7 +4,7 @@ namespace CarBlogApp.Models
 {
     public class ContactForm
     {
-        public int? UserId { get; set; }
+        public int Id { get; set; }
         [Display(Name = "Name")]
         [Required(ErrorMessage = "Field name is required")]
         [StringLength(12, MinimumLength = 3, ErrorMessage = "Field must contain min 3 symbols")]

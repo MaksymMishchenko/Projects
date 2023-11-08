@@ -1,7 +1,6 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 
 namespace CarBlogApp.Controllers
 {
@@ -29,13 +28,30 @@ namespace CarBlogApp.Controllers
         }
 
         [HttpPost]
-        public IActionResult Contact(ContactForm form)
+        public async Task<IActionResult> Contact(ContactForm messages)
         {
             if (ModelState.IsValid)
             {
+                await AddMessageToInbox(messages);
                 return View("Success");
             }
+
             return View();
+        }
+        /// <summary>
+        /// Add new message from contact form to database asynchronously
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <returns>Message added users in contact form</returns>
+        private async Task<ContactForm> AddMessageToInbox(ContactForm messages)
+        {
+            using (var db = new DatabaseContext())
+            {
+                db.InboxMessages.Add(messages);
+                await db.SaveChangesAsync();
+            }
+
+            return messages;
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
