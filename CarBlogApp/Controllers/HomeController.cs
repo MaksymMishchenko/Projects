@@ -1,5 +1,6 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace CarBlogApp.Controllers
@@ -8,15 +9,63 @@ namespace CarBlogApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
+
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            await AddPost();
+
+            return View(await GetAllPosts());
         }
+
+        private async Task<IEnumerable<Post>> GetAllPosts()
+        {
+            IEnumerable<Post> posts;
+            using (var db = new DatabaseContext())
+            {
+                posts = await db.Posts.ToListAsync();
+            }
+
+            return posts;
+        }
+
+        private async Task AddPost()
+        {
+            using (var db = new DatabaseContext())
+            {
+                db.Posts.AddRange(
+                     new Post
+                     {
+                         Title = "Lorem ipsum dolor sit amet 1",
+                         Author = "Peter",
+                         Date = DateTime.Now,
+                         Img = "../images/media-img.jpg",
+                         Body = "This is body 1"
+                     },
+                      new Post
+                      {
+                          Title = "Lorem ipsum dolor sit amet 2",
+                          Author = "Peter",
+                          Date = DateTime.Now,
+                          Img = "../images/media-img.jpg",
+                          Body = "This is body 2"
+                      },
+                       new Post
+                       {
+                           Title = "Lorem ipsum dolor sit amet 3",
+                           Author = "Peter",
+                           Date = DateTime.Now,
+                           Img = "../images/media-img.jpg",
+                           Body = "This is body 3"
+                       });
+                await db.SaveChangesAsync();
+            }
+        }
+
 
         public IActionResult About()
         {
