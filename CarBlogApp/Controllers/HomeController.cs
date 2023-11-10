@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.IO;
 
 namespace CarBlogApp.Controllers
 {
@@ -66,7 +67,6 @@ namespace CarBlogApp.Controllers
             }
         }
 
-
         public IActionResult About()
         {
             return View();
@@ -102,6 +102,39 @@ namespace CarBlogApp.Controllers
 
             return messages;
         }
+
+        public async Task<IActionResult> GetMagazine()
+        {
+            string path = "wwwroot\\files";
+            string file = "sample.pdf";
+            string contentType = "application/octet-stream";
+
+            var memory = await DownloadFile(path, file);
+
+            return File(memory, contentType, file);
+        }
+        /// <summary>
+        /// Download file to MemoryStream asynchronously
+        /// </summary>
+        /// <param name="uploadPath"></param>
+        /// <param name="fileName"></param>
+        /// <returns>MemoryStream wich contains downloaded file</returns>
+        private async Task<MemoryStream> DownloadFile(string uploadPath, string fileName)
+        {
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), uploadPath, fileName);
+            var memory = new MemoryStream();
+            if (System.IO.File.Exists(fullPath))
+            {
+                using (var stream = new FileStream(fullPath, FileMode.Open))
+                {
+                    await stream.CopyToAsync(memory);
+                }
+
+                memory.Position = 0;
+            }
+
+            return memory;
+        }             
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
