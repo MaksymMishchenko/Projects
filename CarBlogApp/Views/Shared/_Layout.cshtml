@@ -23,23 +23,22 @@
         <div class="sidebar-top tile">
             <h3>Categories</h3>
             <ul class="site-categories">
-                @if (ViewData.ContainsKey("CategoriesViewModel"))                
+                @if (ViewData.ContainsKey("CategoriesViewModel"))
                 {
                     var categoriesViewModel = ViewData["CategoriesViewModel"] as CategoriesViewModel;
 
                     @foreach (var category in categoriesViewModel?.Categories!)
                     {
-                        <li><a>@category.Name</a></li>
-                    }                    
+                        <li><a>@Html.ActionLink(category.Name, "ShowPostsByCategoryId", "Home", new {category.Id})</a></li>
+                    }
                 }
-               
             </ul>
         </div>
         <div class="sidebar-bottom tile">
             <h3>Latest magazine</h3>
             <div class="centered">
                 <img src="../../images/magazine.jpg" />
-                <a class="dwl-button" asp-action="GetMagazine", asp-controller="Home">Download</a>
+                <a class="dwl-button" asp-action="GetMagazine" , asp-controller="Home">Download</a>
             </div>
         </div>
         <main class="main tile">

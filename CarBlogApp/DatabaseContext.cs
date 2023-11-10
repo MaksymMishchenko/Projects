@@ -10,8 +10,8 @@ namespace CarBlogApp
         public DbSet<Post> Posts { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {           
-            optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=CarBlogApp;Trusted_Connection=true");            
-        }
+        {
+            optionsBuilder.UseSqlServer(@"Server=(localdb)\mssqllocaldb;Database=CarBlogApp;Trusted_Connection=true");
+        }        
     }
 }
