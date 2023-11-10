@@ -1,8 +1,8 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
-using System.IO;
 
 namespace CarBlogApp.Controllers
 {
@@ -34,6 +34,34 @@ namespace CarBlogApp.Controllers
             return posts;
         }
 
+        public async Task<IActionResult> ShowFullPost(int id)
+        {
+            Post post = await GetFullPost(id);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            return View(post);
+        }
+
+        /// <summary>
+        /// Search post in database asynchronously
+        /// </summary>
+        /// <param name="id">id of the current post</param>
+        /// <returns>Found post from database</returns>
+        private async Task<Post> GetFullPost(int id)
+        {
+            Post? post = null;
+            using (var db = new DatabaseContext())
+            {
+                post = await db.Posts.FindAsync(id);
+            }
+
+            return post!;
+        }
+
         private async Task AddPost()
         {
             using (var db = new DatabaseContext())
@@ -45,7 +73,8 @@ namespace CarBlogApp.Controllers
                          Author = "Peter",
                          Date = DateTime.Now,
                          Img = "../images/media-img.jpg",
-                         Body = "This is body 1"
+                         Description = "This is body 1",
+                         Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
                      },
                       new Post
                       {
@@ -53,7 +82,8 @@ namespace CarBlogApp.Controllers
                           Author = "Peter",
                           Date = DateTime.Now,
                           Img = "../images/media-img.jpg",
-                          Body = "This is body 2"
+                          Description = "This is body 2",
+                          Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
                       },
                        new Post
                        {
@@ -61,7 +91,8 @@ namespace CarBlogApp.Controllers
                            Author = "Peter",
                            Date = DateTime.Now,
                            Img = "../images/media-img.jpg",
-                           Body = "This is body 3"
+                           Description = "this is body 3",
+                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
                        });
                 await db.SaveChangesAsync();
             }
@@ -134,7 +165,7 @@ namespace CarBlogApp.Controllers
             }
 
             return memory;
-        }             
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

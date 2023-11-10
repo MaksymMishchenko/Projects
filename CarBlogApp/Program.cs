@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace CarBlogApp
 {
     public class Program

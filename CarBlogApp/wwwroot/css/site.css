@@ -12,7 +12,24 @@ body {
     font-family: Verdana, sans-serif;
     font-size: calc(0.5em + 1vh);
     background-color: #709b90;
-    color: black;
+    color: #333;
+    
+}
+
+a:link {
+    color: #008cdb;
+}
+
+a:visited {
+    color: #5f4b44;
+}
+
+a:hover {
+    color: #cc6b5a;
+}
+
+a:active {
+    color: indianred;
 }
 
 .container {
@@ -34,9 +51,21 @@ header, nav {
     grid-row: 3/4;
 }
 
+    .sidebar-top > h3 {
+        color: #cc6b5a;
+    }
+
 .sidebar-bottom {
     grid-column: 1/2;
     grid-row: 4/5;
+}
+
+    .sidebar-bottom > h3 {
+        color: #cc6b5a;
+    }
+
+.title-inner {
+    color: #cc6b5a;
 }
 
 .main {
@@ -68,6 +97,7 @@ footer {
 
 .page-heading {
     margin: 0;
+    color: whitesmoke;
 }
 
 .site-nav {
@@ -142,11 +172,15 @@ footer {
     padding: 0 .5em .5em 0;
 }
 
+    .media-text > h2 {
+        font-size: 1.3em;
+    }
+
 .media-info {
     margin-top: 0;
     font-size: .7em;
     font-weight: bold;
-    color: #709b90;
+    color: #3d3d3d;
 }
 
 footer > p {
