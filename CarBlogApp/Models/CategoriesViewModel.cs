@@ -2,6 +2,6 @@
 {
     public class CategoriesViewModel
     {
-        public IEnumerable<Category>? Categories { get; set; }
+        public IEnumerable<Category>? Categories { get; set; }       
     }
 }

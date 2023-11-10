@@ -1,7 +1,6 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using System.Diagnostics;
 
 namespace CarBlogApp.Controllers
@@ -15,10 +14,10 @@ namespace CarBlogApp.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index(int? id)
+        public async Task<IActionResult> Index()
         {
-            await AddCategory(id);
-            await AddPost();
+            //await AddCategory(id);
+            //await AddPost();
             var allCategories = await GetAllCategories();
             var posts = await GetAllPosts();
 
@@ -29,13 +28,14 @@ namespace CarBlogApp.Controllers
 
             ViewData["CategoriesViewModel"] = categories;
 
-            //var model = new PostCategoryViewModel
-            //{
-            //    Posts = posts,
-            //    Categories = categories
-            //};
-
             return View(posts);
+        }
+
+        public async Task<IActionResult> ShowPostsByCategoryId(int? id)
+        {
+            var postsByCategory = await GetPostsByCategoryId(id);
+
+            return View(postsByCategory);
         }
 
         private async Task<IEnumerable<Post>> GetAllPosts()
@@ -85,10 +85,10 @@ namespace CarBlogApp.Controllers
             using (var db = new DatabaseContext())
             {
                 db.Categories.AddRange(
-                    new Category { Name = "Lamborgini", Posts = posts.Where(c => c.Id == id).ToList() },
-                    new Category { Name = "Alfa-Romeo", Posts = posts.Where(c => c.Id == id).ToList() },
-                    new Category { Name = "Mercedes", Posts = posts.Where(c => c.Id == id).ToList() },
-                    new Category { Name = "Ferrari", Posts = posts.Where(c => c.Id == id).ToList() }
+                    new Category { Name = "Lamborgini", Posts = posts.Where(c => c.Category?.Id == id).ToList() },
+                    new Category { Name = "Alfa-Romeo", Posts = posts.Where(c => c.Category?.Id == id).ToList() },
+                    new Category { Name = "Mercedes", Posts = posts.Where(c => c.Category?.Id == id).ToList() },
+                    new Category { Name = "Ferrari", Posts = posts.Where(c => c.Category?.Id == id).ToList() }
                     );
 
                 await db.SaveChangesAsync();
@@ -119,8 +119,13 @@ namespace CarBlogApp.Controllers
                          Date = DateTime.Now,
                          Img = "../images/media-img.jpg",
                          Description = "This is body 1",
-                         Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                         Category = "Lamborgini"
+                         Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
+                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
+                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
+                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
+                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
+                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                         CategoryId = 1
                      },
                       new Post
                       {
@@ -129,8 +134,13 @@ namespace CarBlogApp.Controllers
                           Date = DateTime.Now,
                           Img = "../images/media-img.jpg",
                           Description = "This is body 2",
-                          Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                          Category = "Alfa-Romeo"
+                          Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
+                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
+                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
+                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
+                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
+                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                          CategoryId = 2
                       },
                        new Post
                        {
@@ -139,8 +149,13 @@ namespace CarBlogApp.Controllers
                            Date = DateTime.Now,
                            Img = "../images/media-img.jpg",
                            Description = "this is body 3",
-                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                           Category = "Mercedes"
+                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
+                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
+                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
+                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
+                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
+                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                           CategoryId = 3
                        },
                        new Post
                        {
@@ -149,12 +164,31 @@ namespace CarBlogApp.Controllers
                            Date = DateTime.Now,
                            Img = "../images/media-img.jpg",
                            Description = "this is body 3",
-                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                           Category = "Ferrari"
+                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
+                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
+                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
+                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
+                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
+                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+                           CategoryId = 4
                        }
                        );
 
                 await db.SaveChangesAsync();
+            }
+        }
+        /// <summary>
+        /// Create posts list by category id 
+        /// </summary>
+        /// <param name="id">id which user pass choosing a category</param>
+        /// <returns>all posts by category id</returns>
+        private async Task<IEnumerable<Post>> GetPostsByCategoryId(int? id)
+        {
+            // IEnumerable<Post> posts = new List<Post>();
+
+            using (var db = new DatabaseContext())
+            {
+                return await db.Posts.Where(post => post.CategoryId == id).ToListAsync();
             }
         }
 

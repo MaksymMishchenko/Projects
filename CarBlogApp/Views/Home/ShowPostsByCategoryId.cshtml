@@ -1,14 +1,14 @@
 ﻿@model IEnumerable<CarBlogApp.Models.Post>;
 
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Posts by category";
 }
 
 @foreach (var post in Model)
 {
     <div class="media">
         <div class="media-img">
-            <img src=@post.Img />
+            <img src=../@post.Img />
         </div>
 
         <div class="media-text">
