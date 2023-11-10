@@ -23,10 +23,16 @@
         <div class="sidebar-top tile">
             <h3>Categories</h3>
             <ul class="site-categories">
-                <li><a href="#">Mercedes</a></li>
-                <li><a href="#">Alfa-romeo</a></li>
-                <li><a href="#">Lamborgini</a></li>
-                <li><a href="#">Ferrari</a></li>
+                @if (ViewData.ContainsKey("CategoriesViewModel"))                
+                {
+                    var categoriesViewModel = ViewData["CategoriesViewModel"] as CategoriesViewModel;
+
+                    @foreach (var category in categoriesViewModel?.Categories!)
+                    {
+                        <li><a>@category.Name</a></li>
+                    }                    
+                }
+               
             </ul>
         </div>
         <div class="sidebar-bottom tile">
