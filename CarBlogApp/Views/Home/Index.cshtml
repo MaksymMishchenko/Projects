@@ -4,25 +4,6 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="media">
-    <div class="media-img">
-        <img src="../images/media-img.jpg" />
-    </div>
-
-    <div class="media-text">
-        <h2>Why do we use it?</h2>
-        <div class="media-info">
-            <span class="author">Author: Max</span><br />
-            <span class="date">Published: 21/02/2023 </span>
-        </div>
-        <p>
-            It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.
-            Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text,
-            and a search for 'lorem ipsum' will uncover many web sites still in their infancy.
-        </p>
-    </div>
-</div>
-
 @foreach (var item in Model)
 {
     <div class="media">
@@ -31,16 +12,14 @@
         </div>
 
         <div class="media-text">
-            <h2>@item.Title</h2>
+            <h2>@Html.ActionLink(@item.Title, "ShowFullPost", "Home", new {item.Id})</h2>
             <div class="media-info">
-                <span class="author">Author: @item.Author</span><br />
-                <span class="date">Published: @item.Date </span>
+                <span>Author: @item.Author</span><br />
+                <span>Published: @item.Date </span>
             </div>
             <p>
-                @item.Body
+                @item.Description
             </p>
-        </div>
+        </div>       
     </div>
-
-
 }
