@@ -18,26 +18,50 @@ namespace CarBlogApp.Controllers
         {
             //await AddCategory(id);
             //await AddPost();
-            var allCategories = await GetAllCategories();
-            var posts = await GetAllPosts();
-
-            var categories = new CategoriesViewModel
+            var categoryModel = new CategoriesViewModel
             {
-                Categories = allCategories
+                Categories = await GetAllCategories()
             };
 
-            ViewData["CategoriesViewModel"] = categories;
+            ViewData["CategoriesViewModel"] = categoryModel;
+
+            var posts = await GetAllPosts();
 
             return View(posts);
         }
 
         public async Task<IActionResult> ShowPostsByCategoryId(int? id)
         {
+            var categoryModel = new CategoriesViewModel
+            {
+                Categories = await GetAllCategories()
+            };
+
+            ViewData["CategoriesViewModel"] = categoryModel;
+
             var postsByCategory = await GetPostsByCategoryId(id);
 
             return View(postsByCategory);
         }
+        /// <summary>
+        /// Get all categories from database
+        /// </summary>
+        /// <returns>List all post's categories</returns>
+        private async Task<IEnumerable<Category>> GetAllCategories()
+        {
+            IEnumerable<Category> categories = new List<Category>();
 
+            using (var db = new DatabaseContext())
+            {
+                categories = await db.Categories.ToListAsync();
+            }
+
+            return categories;
+        }
+        /// <summary>
+        /// Get all posts from database
+        /// </summary>
+        /// <returns>List all post</returns>
         private async Task<IEnumerable<Post>> GetAllPosts()
         {
             IEnumerable<Post> posts = new List<Post>();
@@ -52,6 +76,13 @@ namespace CarBlogApp.Controllers
 
         public async Task<IActionResult> ShowFullPost(int? id)
         {
+            var categoryModel = new CategoriesViewModel
+            {
+                Categories = await GetAllCategories()
+            };
+
+            ViewData["CategoriesViewModel"] = categoryModel;
+
             Post post = await GetFullPost(id);
 
             if (post == null)
@@ -93,18 +124,6 @@ namespace CarBlogApp.Controllers
 
                 await db.SaveChangesAsync();
             }
-        }
-
-        private async Task<IEnumerable<Category>> GetAllCategories()
-        {
-            IEnumerable<Category> categories = new List<Category>();
-
-            using (var db = new DatabaseContext())
-            {
-                categories = await db.Categories.ToListAsync();
-            }
-
-            return categories;
         }
 
         private async Task AddPost()
@@ -184,26 +203,45 @@ namespace CarBlogApp.Controllers
         /// <returns>all posts by category id</returns>
         private async Task<IEnumerable<Post>> GetPostsByCategoryId(int? id)
         {
-            // IEnumerable<Post> posts = new List<Post>();
-
             using (var db = new DatabaseContext())
             {
                 return await db.Posts.Where(post => post.CategoryId == id).ToListAsync();
             }
         }
 
-        public IActionResult About()
+        public async Task<IActionResult> About()
         {
+            var categoryModel = new CategoriesViewModel
+            {
+                Categories = await GetAllCategories()
+            };
+
+            ViewData["CategoriesViewModel"] = categoryModel;
+
             return View();
         }
-        public IActionResult Contact()
+        public async Task<IActionResult> Contact()
         {
+            var categoryModel = new CategoriesViewModel
+            {
+                Categories = await GetAllCategories()
+            };
+
+            ViewData["CategoriesViewModel"] = categoryModel;
+
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Contact(ContactForm messages)
         {
+            var categoryModel = new CategoriesViewModel
+            {
+                Categories = await GetAllCategories()
+            };
+
+            ViewData["CategoriesViewModel"] = categoryModel;
+
             if (ModelState.IsValid)
             {
                 await AddMessageToInbox(messages);
