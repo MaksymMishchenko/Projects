@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CarBlog</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/CarBlogApp.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="page-heading">Admin Layout</h1>
+        </header>
+        <nav>
+            <ul class="site-nav">
+                <li><a href="#">Add Category</a></li>
+                <li><a href="#">Add post</a></li>
+                <li class="nav-right"><a href="#">Inbox message</a></li>                
+            </ul>
+        </nav>        
+        
+        <main class="admin-main tile">
+            @RenderBody()
+        </main>
+        <footer class="tile centered">
+            <p>
+                &copy; 2023 - CarBlogApp. All right reserved.
+            </p>
+        </footer>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
