@@ -93,7 +93,7 @@ namespace CarBlogApp.Controllers
             return View(post);
         }
 
-        /// <summary>
+        ///// <summary>
         /// Search post in database asynchronously
         /// </summary>
         /// <param name="id">id of the current post</param>
@@ -196,7 +196,7 @@ namespace CarBlogApp.Controllers
                 await db.SaveChangesAsync();
             }
         }
-        /// <summary>
+        ///// <summary>
         /// Create posts list by category id 
         /// </summary>
         /// <param name="id">id which user pass choosing a category</param>
