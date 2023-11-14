@@ -1,7 +1,6 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 
 namespace CarBlogApp.Controllers
 {
@@ -29,7 +28,14 @@ namespace CarBlogApp.Controllers
 
         public async Task<IActionResult> ShowAllCategories()
         {
-            return View(await GetAllCategories());
+            var categories = await GetAllCategories();
+
+            if (categories == null)
+            {
+                return NotFound();
+            }
+
+            return View(categories);
         }
 
         private async Task<IEnumerable<Category>> GetAllCategories()
@@ -42,6 +48,52 @@ namespace CarBlogApp.Controllers
             }
 
             return categories;
-        }        
+        }
+
+        public IActionResult AddCategory()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddCategory(Category category)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await AddNewCategory(category);
+                }
+
+                catch (Exception ex)
+                {
+                    return View(ex.Message, category);
+                }
+            }
+
+            return View("Success");
+        }
+        /// <summary>
+        /// Add new category from category form to database asynchronously or trow InvalidOperationException if category exists
+        /// </summary>
+        /// <param name="category"></param>
+        /// <returns></returns>
+        private async Task AddNewCategory(Category category)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var categoryExist = await db.Categories.FirstOrDefaultAsync(c => c.Name == category.Name);
+
+                if (categoryExist == null)
+                {
+                    await db.Categories.AddAsync(new Category { Name = category.Name?.Trim() });
+                    await db.SaveChangesAsync();
+                }
+                else
+                {
+                    throw new InvalidOperationException("SuchCategoryExist");
+                }
+            }
+        }
     }
 }

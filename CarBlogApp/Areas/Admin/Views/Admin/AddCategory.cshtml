@@ -1,0 +1,22 @@
+﻿@model CarBlogApp.Models.Category;
+
+@{
+    ViewData["Title"] = "Add new category";
+}
+
+<div class="contact">
+    <h3>Add new category, please</h3>
+
+    @using (Html.BeginForm())
+    {
+        <div class="group">
+            <p>
+                @Html.LabelFor(m => m.Name)
+                @Html.EditorFor(m=>m.Name)
+                @Html.ValidationMessageFor(m=>m.Name)
+            </p>
+        </div>
+        @Html.ValidationSummary(true)
+        <input class="button" type="submit" value="Submit" />
+    }
+</div>
