@@ -1,5 +1,5 @@
 ﻿@model IEnumerable<CarBlogApp.Models.Post>
-@{    
+@{
     ViewData["Title"] = "Admin Panel";
 }
 
@@ -20,7 +20,7 @@
             <td>@post.Title</td>
             <td>@post.Category?.Name</td>
             <td>@post.Date.ToShortDateString()</td>
-            <td>@post.Author</td>            
+            <td>@post.Author</td>
             <td>
                 @Html.ActionLink("Edit","Edit", new {id = post.Id})
                 @Html.ActionLink("Delete","Delete", new {id = post.Id})
