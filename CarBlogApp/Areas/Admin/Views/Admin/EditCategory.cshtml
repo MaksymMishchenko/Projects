@@ -1,11 +1,11 @@
 ﻿@model CarBlogApp.Models.Category;
 
 @{
-    ViewData["Title"] = "Add new category";
+    ViewData["Title"] = "Category Editing Form";
 }
 
 <div class="contact">
-    <h3>Add new category, please</h3>
+    <h3>Edit category, please</h3>
 
     @using (Html.BeginForm())
     {
@@ -13,7 +13,7 @@
             <p>
                 @Html.LabelFor(m => m.Name)
                 @Html.EditorFor(m => m.Name)
-                @Html.ValidationMessageFor(m=>m.Name)
+                @Html.ValidationMessageFor(m => m.Name)
             </p>
         </div>
         @Html.ValidationSummary(true)
