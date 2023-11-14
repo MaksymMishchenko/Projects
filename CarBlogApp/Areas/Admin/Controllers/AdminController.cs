@@ -1,6 +1,7 @@
 ﻿using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 
 namespace CarBlogApp.Controllers
 {
@@ -20,10 +21,27 @@ namespace CarBlogApp.Controllers
 
             using (var db = new DatabaseContext())
             {
-                posts = await db.Posts.ToListAsync();
+                posts = await db.Posts.Include(p => p.Category).ToListAsync();
             }
 
             return posts;
         }
+
+        public async Task<IActionResult> ShowAllCategories()
+        {
+            return View(await GetAllCategories());
+        }
+
+        private async Task<IEnumerable<Category>> GetAllCategories()
+        {
+            IEnumerable<Category> categories = new List<Category>();
+
+            using (var db = new DatabaseContext())
+            {
+                categories = await db.Categories.ToListAsync();
+            }
+
+            return categories;
+        }        
     }
 }
