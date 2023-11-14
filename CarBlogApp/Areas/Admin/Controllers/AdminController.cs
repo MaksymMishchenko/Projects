@@ -95,5 +95,79 @@ namespace CarBlogApp.Controllers
                 }
             }
         }
+
+        public async Task<IActionResult> EditCategory(int? id)
+        {
+            var currentCategory = await FindCategoryAsync(id);
+            return View(currentCategory);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditCategory(Category category)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await UpdateCurrentCategoryAsync(category);
+                }
+
+                catch (Exception ex)
+                {
+                    return View(ex.Message, category);
+                }
+            }
+
+            return View("SuccessfullEditing");
+        }
+
+        /// <summary>
+        /// Find category in database by id asynchronously
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private async Task<Category> FindCategoryAsync(int? id)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var currentCategory = await db.Categories.FindAsync(id);
+
+                if (currentCategory != null)
+                {
+                    return currentCategory;
+                }
+
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Find category in database and update category asynchronously
+        /// </summary>
+        /// <param name="category"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        private async Task UpdateCurrentCategoryAsync(Category category)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var currentCategory = await db.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
+
+                if (currentCategory != null)
+                {
+                    currentCategory.Name = category.Name;
+                    await db.SaveChangesAsync();
+                }
+
+                else
+                {
+                    throw new InvalidOperationException("CategoryNotFound");
+                }
+            }
+        }
     }
 }

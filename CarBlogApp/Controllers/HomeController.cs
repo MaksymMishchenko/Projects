@@ -27,6 +27,11 @@ namespace CarBlogApp.Controllers
 
             var posts = await GetAllPosts();
 
+            if (posts == null)
+            {
+                return View("SomethingWentWrong");
+            }
+
             return View(posts);
         }
 
@@ -37,9 +42,16 @@ namespace CarBlogApp.Controllers
                 Categories = await GetAllCategories()
             };
 
-            ViewData["CategoriesViewModel"] = categoryModel;            
+            ViewData["CategoriesViewModel"] = categoryModel;
 
-            return View(await GetPostsByCategoryId(id));
+            var posts = await GetPostsByCategoryId(id);
+
+            if (posts == null)
+            {
+                return View("SomethingWentWrong");
+            }
+
+            return View(posts);
         }
         /// <summary>
         /// Get all categories from database
@@ -270,7 +282,7 @@ namespace CarBlogApp.Controllers
             string file = "sample.pdf";
             string contentType = "application/octet-stream";
 
-            var memory = await DownloadFile(path, file);
+            var memory = await DownloadFile(path, file);           
 
             return File(memory, contentType, file);
         }
