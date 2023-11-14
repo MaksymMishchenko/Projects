@@ -35,10 +35,9 @@ namespace CarBlogApp
 
             app.MapControllerRoute(
                  name: "admin",
-                 pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
+                 pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");           
 
             app.Run();
-
         }
     }
 }

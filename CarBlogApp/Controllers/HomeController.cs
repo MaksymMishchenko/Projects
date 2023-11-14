@@ -37,11 +37,9 @@ namespace CarBlogApp.Controllers
                 Categories = await GetAllCategories()
             };
 
-            ViewData["CategoriesViewModel"] = categoryModel;
+            ViewData["CategoriesViewModel"] = categoryModel;            
 
-            var postsByCategory = await GetPostsByCategoryId(id);
-
-            return View(postsByCategory);
+            return View(await GetPostsByCategoryId(id));
         }
         /// <summary>
         /// Get all categories from database
@@ -130,7 +128,7 @@ namespace CarBlogApp.Controllers
         {
             using (var db = new DatabaseContext())
             {
-                db.Posts.AddRange(
+                await db.Posts.AddRangeAsync(
                      new Post
                      {
                          Title = "Lorem ipsum dolor sit amet 1",
@@ -144,7 +142,8 @@ namespace CarBlogApp.Controllers
                           " It has survived not only five centuries, but also the leap into electronic typesetting," +
                           " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
                           " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                         CategoryId = 1
+                         Category = new Category { Name = "Lamborgini" }
+
                      },
                       new Post
                       {
@@ -159,7 +158,7 @@ namespace CarBlogApp.Controllers
                           " It has survived not only five centuries, but also the leap into electronic typesetting," +
                           " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
                           " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                          CategoryId = 2
+                          Category = new Category { Name = "Alfa-Romeo" }
                       },
                        new Post
                        {
@@ -174,7 +173,7 @@ namespace CarBlogApp.Controllers
                           " It has survived not only five centuries, but also the leap into electronic typesetting," +
                           " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
                           " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                           CategoryId = 3
+                           Category = new Category { Name = "Mercedes" }
                        },
                        new Post
                        {
@@ -189,9 +188,8 @@ namespace CarBlogApp.Controllers
                           " It has survived not only five centuries, but also the leap into electronic typesetting," +
                           " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
                           " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                           CategoryId = 4
-                       }
-                       );
+                           Category = new Category { Name = "Ferrari" }
+                       });
 
                 await db.SaveChangesAsync();
             }

@@ -9,26 +9,29 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1 class="page-heading">Admin Layout</h1>
+        <header class="admin">
+            <h1 class="page-heading">Admin Panel</h1>
         </header>
-        <nav>
-            <ul class="site-nav">
-                <li><a asp-controller="Admin" asp-action="Index">All Posts</a></li>
-                <li><a href="#">Add Category</a></li>
-                <li><a href="#">Add post</a></li>
-                <li class="nav-right"><a href="#">Inbox message</a></li>                
+
+        <div class="admin-sidebar-top tile">
+            <h3>Menu</h3>
+            <ul class="site-categories">
+                <li><a asp-controller="Admin" asp-action="Index">Posts</a></li>                
+                <li>@Html.RouteLink("Categories", "admin", new { area = "Admin", controller = "Admin", action = "ShowAllCategories"})</li>                
+                <li class="nav-right"><a href="#">Inbox message</a></li>
             </ul>
-        </nav>        
-        
-        <main class="admin-main tile">
-            @RenderBody()
+        </div>
+
+        <main class="admin-main tile">            
+                @RenderBody()           
         </main>
-        <footer class="tile centered">
+
+        <footer class="admin tile centered">
             <p>
                 &copy; 2023 - CarBlogApp. All right reserved.
             </p>
         </footer>
+
     </div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

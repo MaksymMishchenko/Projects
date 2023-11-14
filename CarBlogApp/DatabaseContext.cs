@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CarBlogApp
 {
     public class DatabaseContext : DbContext
-    {
+    {        
         public DbSet<ContactForm> InboxMessages { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Post> Posts { get; set; }
