@@ -17,7 +17,7 @@
                 <li><a asp-controller="Home" , asp-action="Index">Home</a></li>
                 <li><a asp-controller="Home" , asp-action="About">About</a></li>
                 <li><a asp-controller="Home" , asp-action="Contact">Contact</a></li>
-                <li class="nav-right"><a asp-controller="Admin" , asp-action="Index">Admin panel</a></li>
+                <li class="nav-right">@Html.RouteLink("Admin panel", "admin", new { area = "Admin", controller="Admin", action="Index"})</li>                
             </ul>
         </nav>
         <div class="sidebar-top tile">

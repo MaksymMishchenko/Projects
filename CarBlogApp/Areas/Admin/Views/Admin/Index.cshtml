@@ -1,0 +1,29 @@
+﻿@model IEnumerable<CarBlogApp.Models.Post>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Admin Panel";
+}
+
+<table>
+    <tr>
+        <th>Id</th>
+        <th>Title</th>
+        <th>Date</th>
+        <th>Author</th>
+        <th>Actions</th>
+    </tr>
+
+    @foreach (var post in Model)
+    {
+        <tr>
+            <td>@post.Id</td>
+            <td>@post.Title</td>
+            <td>@post.Date</td>
+            <td>@post.Author</td>
+            <td>
+                @Html.ActionLink("Edit","Edit", new {id = post.Id})
+                @Html.ActionLink("Delete","Delete", new {id = post.Id})
+            </td>
+        </tr>
+    }
+</table>
