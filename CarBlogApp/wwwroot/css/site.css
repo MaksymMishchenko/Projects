@@ -270,3 +270,13 @@ footer > p {
 .validation-summary-valid {
     display: none;
 }
+
+.notifications-success {
+    font-weight: bold;
+    color: green;
+}
+
+.notifications-warning {
+    font-weight: bold;
+    color: red;
+}

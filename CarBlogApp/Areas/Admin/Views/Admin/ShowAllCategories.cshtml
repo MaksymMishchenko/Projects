@@ -5,8 +5,44 @@
 }
 
 <p>
-    @Html.RouteLink("Add Category", "admin", new{ area = "Admin", controller = "Admin", action = "AddCategory" })
+    @Html.RouteLink("Add Category", "admin", new { area = "Admin", controller = "Admin", action = "AddCategory" })
 </p>
+
+@if (ViewBag.IsAdded == true)
+{
+    <div class="notifications-success">
+        <small>Category was added successfully</small>
+    </div>
+}
+
+@if (ViewBag.IsAdded == false)
+{
+    <div class="notifications-warning">
+        <small>Such category exist! Please choose another one</small>
+    </div>
+}
+
+@if (ViewBag.IsDeleted == true)
+{
+     <div class="notifications-success">
+        <small>Category was deleted successfully</small>
+    </div>
+}
+
+@if (ViewBag.IsDeleted == false)
+{
+    <div class="notifications-warning">
+        <small>There is no such a category!</small>
+    </div>
+}
+
+@if (ViewBag.IsEdited == true)
+{
+    <div class="notifications-success">
+        <small>Category was updated successfully</small>
+    </div>
+}
+
 
 <table class="table-centered">
     <tr>
@@ -23,8 +59,7 @@
             <td>@category.Posts?.Capacity</td>
             <td>
                 @Html.RouteLink("Edit", "admin", new {area = "Admin", controller="Admin", action="EditCategory", id = category.Id})
-               
-                @Html.ActionLink("Delete","Delete", new {id = category.Id})
+                @Html.RouteLink("Delete", "admin", new {area = "Admin", controller="Admin", action="OnDeleteCategory", id = category.Id})
             </td>
         </tr>
     }

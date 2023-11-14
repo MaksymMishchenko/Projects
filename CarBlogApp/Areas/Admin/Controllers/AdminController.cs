@@ -62,23 +62,23 @@ namespace CarBlogApp.Controllers
             {
                 try
                 {
-                    await AddNewCategory(category);
+                    ViewBag.IsAdded = await AddNewCategory(category);
                 }
 
                 catch (Exception ex)
                 {
-                    return View(ex.Message, category);
+                    return View(ex.Message);
                 }
             }
 
-            return View("Success");
+            return View("ShowAllCategories", await GetAllCategories());
         }
         /// <summary>
         /// Add new category from category form to database asynchronously or trow InvalidOperationException if category exists
         /// </summary>
         /// <param name="category"></param>
         /// <returns></returns>
-        private async Task AddNewCategory(Category category)
+        private async Task<bool> AddNewCategory(Category category)
         {
             using (var db = new DatabaseContext())
             {
@@ -88,10 +88,13 @@ namespace CarBlogApp.Controllers
                 {
                     await db.Categories.AddAsync(new Category { Name = category.Name?.Trim() });
                     await db.SaveChangesAsync();
+
+                    return true;
                 }
                 else
                 {
-                    throw new InvalidOperationException("SuchCategoryExist");
+                    return false;
+                    throw new InvalidOperationException("Such Category Exist");
                 }
             }
         }
@@ -109,7 +112,8 @@ namespace CarBlogApp.Controllers
             {
                 try
                 {
-                    await UpdateCurrentCategoryAsync(category);
+                    ViewBag.IsEdited = await UpdateCurrentCategoryAsync(category);
+                    
                 }
 
                 catch (Exception ex)
@@ -118,7 +122,7 @@ namespace CarBlogApp.Controllers
                 }
             }
 
-            return View("SuccessfullEditing");
+            return View("ShowAllCategories", await GetAllCategories());
         }
 
         /// <summary>
@@ -151,7 +155,7 @@ namespace CarBlogApp.Controllers
         /// <param name="category"></param>
         /// <returns></returns>
         /// <exception cref="InvalidOperationException"></exception>
-        private async Task UpdateCurrentCategoryAsync(Category category)
+        private async Task<bool> UpdateCurrentCategoryAsync(Category category)
         {
             using (var db = new DatabaseContext())
             {
@@ -161,13 +165,41 @@ namespace CarBlogApp.Controllers
                 {
                     currentCategory.Name = category.Name;
                     await db.SaveChangesAsync();
+
+                    return true;
                 }
 
                 else
                 {
-                    throw new InvalidOperationException("CategoryNotFound");
+                    return false;
+                    throw new InvalidOperationException("Category Not Found");
                 }
             }
+        }
+
+        public async Task<IActionResult> OnDeleteCategory(int? id)
+        {
+            ViewBag.IsDeleted = await DeleteCategory(id);
+
+            return View("ShowAllCategories", await GetAllCategories());
+        }
+
+        private async Task<bool> DeleteCategory(int? id)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var toRemove = await db.Categories.FirstOrDefaultAsync(c => c.Id == id);
+
+                if (toRemove != null)
+                {
+                    db.Categories.Remove(toRemove);
+                    await db.SaveChangesAsync();
+
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
