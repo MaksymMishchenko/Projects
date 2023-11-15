@@ -1,0 +1,52 @@
+﻿@model CarBlogApp.Models.Post;
+
+@{
+    ViewData["Title"] = "Add new post";
+}
+
+<div class="contact">
+    <h3>Add new post, please</h3>
+
+    @using (Html.BeginForm())
+    {
+        <div class="group">
+            <p>
+                @Html.LabelFor(m => m.Title)
+                @Html.EditorFor(m => m.Title)
+            </p>
+
+            <p>
+                @Html.LabelFor(m => m.Img)
+                @Html.EditorFor(m => m.Img)
+            </p>
+
+            <p>
+                @Html.LabelFor(m => m.Description)
+                @Html.EditorFor(m => m.Description)
+            </p>
+
+            <p>
+                @Html.LabelFor(m => m.Body)
+                @Html.EditorFor(m => m.Body)
+            </p>
+
+            <p>
+                @Html.LabelFor(m => m.Author)
+                @Html.EditorFor(m => m.Author)
+            </p>
+
+            <p>
+                @Html.LabelFor(m => m.Date)
+                @Html.EditorFor(m => m.Date)
+            </p>
+
+            <p>
+                @Html.LabelFor(m => m.Category)
+                @Html.EditorFor(m => m.Category)
+            </p>
+
+        </div>
+        @Html.ValidationSummary(true)
+        <input class="button" type="submit" value="Submit" />
+    }
+</div>

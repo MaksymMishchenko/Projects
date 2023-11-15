@@ -20,7 +20,7 @@ namespace CarBlogApp.Controllers
 
             using (var db = new DatabaseContext())
             {
-                posts = await db.Posts.Include(p => p.Category).ToListAsync();
+                posts = await db.Posts.Include(c => c.Category).ToListAsync();
             }
 
             return posts;
@@ -82,6 +82,8 @@ namespace CarBlogApp.Controllers
         {
             using (var db = new DatabaseContext())
             {
+                //var postsByCategory = await db.Posts.Where(c => c.Category!.Name == category.Name).ToListAsync();
+
                 var categoryExist = await db.Categories.FirstOrDefaultAsync(c => c.Name == category.Name);
 
                 if (categoryExist == null)
@@ -91,6 +93,7 @@ namespace CarBlogApp.Controllers
 
                     return true;
                 }
+               
                 else
                 {
                     return false;
@@ -113,7 +116,7 @@ namespace CarBlogApp.Controllers
                 try
                 {
                     ViewBag.IsEdited = await UpdateCurrentCategoryAsync(category);
-                    
+
                 }
 
                 catch (Exception ex)
@@ -136,7 +139,6 @@ namespace CarBlogApp.Controllers
             using (var db = new DatabaseContext())
             {
                 var currentCategory = await db.Categories.FindAsync(id);
-
                 if (currentCategory != null)
                 {
                     return currentCategory;
@@ -200,6 +202,50 @@ namespace CarBlogApp.Controllers
             }
 
             return false;
+        }
+
+        public IActionResult AddPost()
+        {
+            return View();
+        }
+        
+        [HttpPost]
+        public async Task<IActionResult> AddPost(Post post)
+        {
+            //if (ModelState.IsValid)
+            //{
+            try
+            {
+                await AddNewPost(post);
+            }
+        
+            catch (Exception ex)
+            {
+                return View(ex.Message);
+            }
+            //}
+        
+            return View("Success"); //"Index", await GetAllPosts() 
+        }
+        
+        private async Task AddNewPost(Post post)
+        {
+            using (var db = new DatabaseContext())
+            {
+                await db.Posts.AddAsync(
+                    new Post
+                    {
+                        Title = post.Title,
+                        Author = post.Author,
+                        Date = post.Date,
+                        Img = post.Img,
+                        Description = post.Description,
+                        Body = post.Body,
+                        Category = new Category { Name = post.Category?.Name }
+                    });
+        
+                await db.SaveChangesAsync();
+            }
         }
     }
 }

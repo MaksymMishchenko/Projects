@@ -4,6 +4,10 @@
     ViewData["Title"] = "Admin Panel";
 }
 
+<p>
+    @Html.RouteLink("Add new post", "admin", new { area = "Admin", controller = "Admin", action = "AddPost" })
+</p>
+
 <table class="table-centered">
     <tr>
         <th>Id</th>

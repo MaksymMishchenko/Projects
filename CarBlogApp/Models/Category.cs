@@ -11,6 +11,6 @@ namespace CarBlogApp.Models
         [Required(ErrorMessage = "Field name is required")]
         [StringLength(20, MinimumLength = 3, ErrorMessage = "Field must contain min 3 & max 20 symbols")]
         public string? Name { get; set; }
-        public List<Post>? Posts { get; set; }
+        public List<Post>? Posts { get; set; } = new List<Post>();
     }
 }
