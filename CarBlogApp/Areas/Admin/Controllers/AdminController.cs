@@ -225,7 +225,7 @@ namespace CarBlogApp.Controllers
             }
             //}
         
-            return View("Success"); //"Index", await GetAllPosts() 
+            return View("Index", await GetAllPosts());  
         }
         
         private async Task AddNewPost(Post post)
