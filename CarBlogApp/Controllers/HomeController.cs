@@ -16,8 +16,7 @@ namespace CarBlogApp.Controllers
 
         public async Task<IActionResult> Index()
         {
-            //await AddCategory(id);
-            //await AddPost();
+            //await AddPost();           
             var categoryModel = new CategoriesViewModel
             {
                 Categories = await GetAllCategories()
@@ -117,23 +116,6 @@ namespace CarBlogApp.Controllers
             }
 
             return post!;
-        }
-
-        private async Task AddCategory(int? id)
-        {
-            var posts = await GetAllPosts();
-
-            using (var db = new DatabaseContext())
-            {
-                db.Categories.AddRange(
-                    new Category { Name = "Lamborgini", Posts = posts.Where(c => c.Category?.Id == id).ToList() },
-                    new Category { Name = "Alfa-Romeo", Posts = posts.Where(c => c.Category?.Id == id).ToList() },
-                    new Category { Name = "Mercedes", Posts = posts.Where(c => c.Category?.Id == id).ToList() },
-                    new Category { Name = "Ferrari", Posts = posts.Where(c => c.Category?.Id == id).ToList() }
-                    );
-
-                await db.SaveChangesAsync();
-            }
         }
 
         private async Task AddPost()
@@ -282,7 +264,7 @@ namespace CarBlogApp.Controllers
             string file = "sample.pdf";
             string contentType = "application/octet-stream";
 
-            var memory = await DownloadFile(path, file);           
+            var memory = await DownloadFile(path, file);
 
             return File(memory, contentType, file);
         }
