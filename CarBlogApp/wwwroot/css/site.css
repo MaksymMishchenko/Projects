@@ -251,6 +251,8 @@ footer > p {
 
 .field-validation-error {
     color: red;
+    font-weight: bold;
+    padding: 0.2em 0;
 }
 
 .field-validation-valid {
@@ -258,6 +260,7 @@ footer > p {
 }
 
 .input-validation-error {
+    font-weight: bold;
     border: 1px solid red;
     background-color: white;
 }

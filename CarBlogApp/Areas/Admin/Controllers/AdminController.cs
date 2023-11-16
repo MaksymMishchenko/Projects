@@ -208,9 +208,13 @@ namespace CarBlogApp.Controllers
         [HttpPost]
         public async Task<IActionResult> AddPost(CreatePostViewModel viewModel)
         {
-            ViewBag.IsPostAdded = await AddNewPost(viewModel);
+            if (ModelState.IsValid)
+            {
+                ViewBag.IsPostAdded = await AddNewPost(viewModel);
+                return View("Index", await GetAllPosts());
+            }
 
-            return RedirectToAction("Index", await GetAllPosts());
+            return View(viewModel);
         }
         /// <summary>
         /// Asynchronously adds a new post to the database using the provided view model.
@@ -226,10 +230,7 @@ namespace CarBlogApp.Controllers
                     var addedPost = await db.Posts.AddAsync(viewModel.Post);
                     await db.SaveChangesAsync();
 
-                    if (addedPost.State == EntityState.Added)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 return false;
