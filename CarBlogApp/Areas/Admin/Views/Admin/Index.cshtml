@@ -41,7 +41,7 @@
             <td>@post.Date.ToShortDateString()</td>
             <td>@post.Author</td>
             <td>
-                @Html.ActionLink("Edit","Edit", new {id = post.Id})
+                @Html.RouteLink("Edit","admin", new { area = "Admin", controller = "Admin", action = "EditPost", id = post.Id })
                 @Html.ActionLink("Delete","Delete", new {id = post.Id})
             </td>
         </tr>
