@@ -1,5 +1,7 @@
-﻿using CarBlogApp.Models;
+﻿using CarBlogApp.Areas.Admin.Models;
+using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarBlogApp.Controllers
@@ -82,23 +84,17 @@ namespace CarBlogApp.Controllers
         {
             using (var db = new DatabaseContext())
             {
-                //var postsByCategory = await db.Posts.Where(c => c.Category!.Name == category.Name).ToListAsync();
-
                 var categoryExist = await db.Categories.FirstOrDefaultAsync(c => c.Name == category.Name);
 
                 if (categoryExist == null)
                 {
-                    await db.Categories.AddAsync(new Category { Name = category.Name?.Trim() });
+                    var addedCategory = await db.Categories.AddAsync(new Category { Name = category.Name?.Trim() });
                     await db.SaveChangesAsync();
 
                     return true;
                 }
-               
-                else
-                {
-                    return false;
-                    throw new InvalidOperationException("Such Category Exist");
-                }
+
+                return false;
             }
         }
 
@@ -144,10 +140,7 @@ namespace CarBlogApp.Controllers
                     return currentCategory;
                 }
 
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
             }
         }
 
@@ -171,11 +164,7 @@ namespace CarBlogApp.Controllers
                     return true;
                 }
 
-                else
-                {
-                    return false;
-                    throw new InvalidOperationException("Category Not Found");
-                }
+                return false;
             }
         }
 
@@ -204,47 +193,46 @@ namespace CarBlogApp.Controllers
             return false;
         }
 
-        public IActionResult AddPost()
+        public async Task<IActionResult> AddPost()
         {
-            return View();
+            var categorySelectList = new SelectList(await GetAllCategories(), "Id", "Name");
+            var model = new CreatePostViewModel
+            {
+                Post = new Post() { Date = DateTime.Today },
+                Categories = categorySelectList
+            };
+
+            return View(model);
         }
-        
+
         [HttpPost]
-        public async Task<IActionResult> AddPost(Post post)
+        public async Task<IActionResult> AddPost(CreatePostViewModel viewModel)
         {
-            //if (ModelState.IsValid)
-            //{
-            try
-            {
-                await AddNewPost(post);
-            }
-        
-            catch (Exception ex)
-            {
-                return View(ex.Message);
-            }
-            //}
-        
-            return View("Index", await GetAllPosts());  
+            ViewBag.IsPostAdded = await AddNewPost(viewModel);
+
+            return RedirectToAction("Index", await GetAllPosts());
         }
-        
-        private async Task AddNewPost(Post post)
+        /// <summary>
+        /// Asynchronously adds a new post to the database using the provided view model.
+        /// </summary>
+        /// <param name="viewModel"></param>
+        /// <returns>Returns true if the post was successfully added; otherwise, returns false.</returns>
+        private async Task<bool> AddNewPost(CreatePostViewModel viewModel)
         {
             using (var db = new DatabaseContext())
             {
-                await db.Posts.AddAsync(
-                    new Post
+                if (viewModel.Post != null)
+                {
+                    var addedPost = await db.Posts.AddAsync(viewModel.Post);
+                    await db.SaveChangesAsync();
+
+                    if (addedPost.State == EntityState.Added)
                     {
-                        Title = post.Title,
-                        Author = post.Author,
-                        Date = post.Date,
-                        Img = post.Img,
-                        Description = post.Description,
-                        Body = post.Body,
-                        Category = new Category { Name = post.Category?.Name }
-                    });
-        
-                await db.SaveChangesAsync();
+                        return true;
+                    }
+                }
+
+                return false;
             }
         }
     }
