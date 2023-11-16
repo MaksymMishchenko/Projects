@@ -13,6 +13,7 @@
             <p>
                 @Html.LabelFor(m => m.Post!.Title)
                 @Html.EditorFor(m => m.Post!.Title)
+                @Html.ValidationMessageFor(m => m.Post!.Title)
             </p>
 
             <p>
@@ -22,27 +23,32 @@
 
             <p>
                 @Html.LabelFor(m => m.Post!.Description)
-                @Html.EditorFor(m => m.Post!.Description)
+                @Html.TextAreaFor(m => m.Post!.Description)<br />
+                @Html.ValidationMessageFor(m => m.Post!.Description)
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Body)
-                @Html.EditorFor(m => m.Post!.Body)
+                @Html.TextAreaFor(m => m.Post!.Body)
+                @Html.ValidationMessageFor(m => m.Post!.Body)
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Author)
                 @Html.EditorFor(m => m.Post!.Author)
+                @Html.ValidationMessageFor(m => m.Post!.Author)
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Date)
                 @Html.EditorFor(m => m.Post!.Date)
+                @Html.ValidationMessageFor(m => m.Post!.Date)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Post!.Category)<br />
-                @Html.DropDownListFor(m => m.Post!.CategoryId, Model.Categories, "-- Select Category --")                
+                @Html.LabelFor(m => m.Post!.Category)
+                @Html.DropDownListFor(m => m.Post!.CategoryId, Model.Categories, "-- Select Category --", null)<br />
+                @Html.ValidationMessageFor(m => m.Post!.CategoryId)
             </p>
 
         </div>
