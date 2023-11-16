@@ -3,6 +3,7 @@ using CarBlogApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Versioning;
 
 namespace CarBlogApp.Controllers
 {
@@ -235,6 +236,35 @@ namespace CarBlogApp.Controllers
 
                 return false;
             }
+        }
+
+        public async Task<IActionResult> EditPost(int? id)
+        {
+            var model = new CreatePostViewModel
+            {
+                Post = await FindPostAsync(id),
+                Categories = new SelectList(await GetAllCategories(), "Id", "Name")
+            };
+
+            return View(model);
+        }
+        /// <summary>
+        /// Asynchronously finds and returns a Post with the specified ID from the database.
+        /// </summary>
+        /// <param name="id">The ID of the Post to find.</param>
+        /// <returns>If a Post with the specified ID is found, returns the Post; otherwise, returns null.</returns>
+        private async Task<Post?> FindPostAsync(int? id)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var foundPost = await db.Posts.FindAsync(id);
+
+                if (foundPost != null)
+                {
+                    return foundPost;
+                }
+            }
+            return null;
         }
     }
 }
