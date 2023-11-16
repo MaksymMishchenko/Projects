@@ -15,8 +15,7 @@ namespace CarBlogApp.Controllers
         }
 
         public async Task<IActionResult> Index()
-        {
-            //await AddPost();           
+        {                      
             var categoryModel = new CategoriesViewModel
             {
                 Categories = await GetAllCategories()
@@ -118,81 +117,12 @@ namespace CarBlogApp.Controllers
             return post!;
         }
 
-        private async Task AddPost()
-        {
-            using (var db = new DatabaseContext())
-            {
-                await db.Posts.AddRangeAsync(
-                     new Post
-                     {
-                         Title = "Lorem ipsum dolor sit amet 1",
-                         Author = "Peter",
-                         Date = DateTime.Now,
-                         Img = "../images/media-img.jpg",
-                         Description = "This is body 1",
-                         Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
-                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
-                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
-                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
-                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
-                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                         Category = new Category { Name = "Lamborgini" }
 
-                     },
-                      new Post
-                      {
-                          Title = "Lorem ipsum dolor sit amet 2",
-                          Author = "Maks",
-                          Date = DateTime.Now,
-                          Img = "../images/media-img.jpg",
-                          Description = "This is body 2",
-                          Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
-                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
-                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
-                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
-                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
-                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                          Category = new Category { Name = "Alfa-Romeo" }
-                      },
-                       new Post
-                       {
-                           Title = "Lorem ipsum dolor sit amet 3",
-                           Author = "Ivan",
-                           Date = DateTime.Now,
-                           Img = "../images/media-img.jpg",
-                           Description = "this is body 3",
-                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
-                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
-                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
-                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
-                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
-                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                           Category = new Category { Name = "Mercedes" }
-                       },
-                       new Post
-                       {
-                           Title = "Lorem ipsum dolor sit amet 3",
-                           Author = "Ivan",
-                           Date = DateTime.Now,
-                           Img = "../images/media-img.jpg",
-                           Description = "this is body 3",
-                           Body = "Lorem Ipsum is simply dummy text of the printing and typesetting industry." +
-                          " Lorem Ipsum has been the industry's standard dummy text ever since the 1500s," +
-                          " when an unknown printer took a galley of type and scrambled it to make a type specimen book." +
-                          " It has survived not only five centuries, but also the leap into electronic typesetting," +
-                          " remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages," +
-                          " and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-                           Category = new Category { Name = "Ferrari" }
-                       });
-
-                await db.SaveChangesAsync();
-            }
-        }
         ///// <summary>
-        /// Create posts list by category id 
+        /// Retrieves a collection of posts based on the provided category ID.
         /// </summary>
         /// <param name="id">id which user pass choosing a category</param>
-        /// <returns>all posts by category id</returns>
+        /// <returns>A collection of posts matching the specified category ID</returns>
         private async Task<IEnumerable<Post>> GetPostsByCategoryId(int? id)
         {
             using (var db = new DatabaseContext())

@@ -8,6 +8,20 @@
     @Html.RouteLink("Add new post", "admin", new { area = "Admin", controller = "Admin", action = "AddPost" })
 </p>
 
+@if (ViewBag.IsPostAdded == true)
+{
+    <div class="notifications-success">
+        <small>Post was added successfully</small>
+    </div>
+}
+
+@if (ViewBag.IsPostAdded == false)
+{
+    <div class="notifications-warning">
+        <small>Post was not added! Please try again</small>
+    </div>
+}
+
 <table class="table-centered">
     <tr>
         <th>Id</th>

@@ -43,8 +43,8 @@
     </div>
 }
 
-
 <table class="table-centered">
+
     <tr>
         <th>Id</th>
         <th>Name</th>
@@ -58,9 +58,10 @@
             <td>@category.Name</td>
             <td>@category.Posts?.Capacity</td>
             <td>
-                @Html.RouteLink("Edit", "admin", new {area = "Admin", controller="Admin", action="EditCategory", id = category.Id})
-                @Html.RouteLink("Delete", "admin", new {area = "Admin", controller="Admin", action="OnDeleteCategory", id = category.Id})
+                @Html.RouteLink("Edit", "admin", new { area = "Admin", controller = "Admin", action = "EditCategory", id = category.Id})
+                @Html.RouteLink("Delete", "admin", new { area = "Admin", controller = "Admin", action = "OnDeleteCategory", id = category.Id})
             </td>
         </tr>
     }
+
 </table>

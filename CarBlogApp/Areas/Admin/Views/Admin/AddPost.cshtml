@@ -1,4 +1,4 @@
-﻿@model CarBlogApp.Models.Post;
+﻿@model CarBlogApp.Areas.Admin.Models.CreatePostViewModel;
 
 @{
     ViewData["Title"] = "Add new post";
@@ -11,38 +11,38 @@
     {
         <div class="group">
             <p>
-                @Html.LabelFor(m => m.Title)
-                @Html.EditorFor(m => m.Title)
+                @Html.LabelFor(m => m.Post!.Title)
+                @Html.EditorFor(m => m.Post!.Title)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Img)
-                @Html.EditorFor(m => m.Img)
+                @Html.LabelFor(m => m.Post!.Img)
+                @Html.EditorFor(m => m.Post!.Img)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Description)
-                @Html.EditorFor(m => m.Description)
+                @Html.LabelFor(m => m.Post!.Description)
+                @Html.EditorFor(m => m.Post!.Description)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Body)
-                @Html.EditorFor(m => m.Body)
+                @Html.LabelFor(m => m.Post!.Body)
+                @Html.EditorFor(m => m.Post!.Body)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Author)
-                @Html.EditorFor(m => m.Author)
+                @Html.LabelFor(m => m.Post!.Author)
+                @Html.EditorFor(m => m.Post!.Author)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Date)
-                @Html.EditorFor(m => m.Date)
+                @Html.LabelFor(m => m.Post!.Date)
+                @Html.EditorFor(m => m.Post!.Date)
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Category)
-                @Html.EditorFor(m => m.Category)
+                @Html.LabelFor(m => m.Post!.Category)<br />
+                @Html.DropDownListFor(m => m.Post!.CategoryId, Model.Categories, "-- Select Category --")                
             </p>
 
         </div>
