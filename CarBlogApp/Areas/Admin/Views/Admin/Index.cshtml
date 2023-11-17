@@ -36,8 +36,22 @@
     </div>
 }
 
+@if (ViewBag.IsDeleted == true)
+{
+    <div class="notifications-success">
+        <small>Post was deleted successfully</small>
+    </div>
+}
+
+@if (ViewBag.IsDeleted == false)
+{
+    <div class="notifications-warning">
+        <small>Post was not deleted! Please try again</small>
+    </div>
+}
+
 <table class="table-centered">
-    <tr> 
+    <tr>
         <th>Id</th>
         <th>Title</th>
         <th>Category</th>
@@ -55,8 +69,8 @@
             <td>@post.Date.ToShortDateString()</td>
             <td>@post.Author</td>
             <td>
-                @Html.RouteLink("Edit","admin", new { area = "Admin", controller = "Admin", action = "EditPost", id = post.Id })
-                @Html.ActionLink("Delete","Delete", new {id = post.Id})
+                @Html.RouteLink("Edit", "admin", new { area = "Admin", controller = "Admin", action = "EditPost", id = post.Id })
+                @Html.RouteLink("Delete", "admin", new { area = "Admin", controller = "Admin", action = "DeletePost", id = post.Id })
             </td>
         </tr>
     }
