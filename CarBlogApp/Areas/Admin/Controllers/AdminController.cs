@@ -1,5 +1,6 @@
 ﻿using CarBlogApp.Areas.Admin.Models;
 using CarBlogApp.Models;
+using Humanizer.Localisation.TimeToClockNotation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -228,7 +229,7 @@ namespace CarBlogApp.Controllers
             {
                 if (viewModel.Post != null)
                 {
-                    var addedPost = await db.Posts.AddAsync(viewModel.Post);
+                    await db.Posts.AddAsync(viewModel.Post);
                     await db.SaveChangesAsync();
 
                     return true;
@@ -248,6 +249,17 @@ namespace CarBlogApp.Controllers
 
             return View(model);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> EditPost(Post post)
+        {
+            if (ModelState.IsValid)
+            {
+                ViewBag.IsUpdated = await UpdatePostAsync(post);
+            }
+
+            return View("Index", await GetAllPosts());
+        }
         /// <summary>
         /// Asynchronously finds and returns a Post with the specified ID from the database.
         /// </summary>
@@ -264,7 +276,45 @@ namespace CarBlogApp.Controllers
                     return foundPost;
                 }
             }
+
             return null;
+        }
+
+        /// <summary>
+        /// Asynchronously updates a Post in the database with the information from the provided Post object.
+        /// </summary>
+        /// <param name="post">The Post object containing the updated information.</param>
+        /// <returns>
+        /// Returns true if the update is successful; otherwise, returns false.
+        /// </returns>
+        private async Task<bool> UpdatePostAsync(Post post)
+        {
+            using (var db = new DatabaseContext())
+            {
+                if (post == null)
+                {
+                    return false;
+                }
+
+                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == post.Id);
+
+                if (foundPost != null)
+                {
+                    foundPost.Title = post.Title;
+                    foundPost.Img = post.Img;
+                    foundPost.Description = post.Description;
+                    foundPost.Body = post.Body;
+                    foundPost.Author = post.Author;
+                    foundPost.Date = post.Date;
+                    foundPost.CategoryId = post.CategoryId;                    
+
+                    await db.SaveChangesAsync();
+
+                    return true;
+                }
+
+                return false;
+            }
         }
     }
 }

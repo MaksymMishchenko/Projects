@@ -22,8 +22,22 @@
     </div>
 }
 
+@if (ViewBag.IsUpdated == true)
+{
+    <div class="notifications-success">
+        <small>Post was updated successfully</small>
+    </div>
+}
+
+@if (ViewBag.IsUpdated == false)
+{
+    <div class="notifications-warning">
+        <small>Post was not updated! Please try again</small>
+    </div>
+}
+
 <table class="table-centered">
-    <tr>
+    <tr> 
         <th>Id</th>
         <th>Title</th>
         <th>Category</th>
