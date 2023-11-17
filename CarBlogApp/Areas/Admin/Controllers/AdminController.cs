@@ -306,8 +306,40 @@ namespace CarBlogApp.Controllers
                     foundPost.Body = post.Body;
                     foundPost.Author = post.Author;
                     foundPost.Date = post.Date;
-                    foundPost.CategoryId = post.CategoryId;                    
+                    foundPost.CategoryId = post.CategoryId;
 
+                    await db.SaveChangesAsync();
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+        
+        public async Task<IActionResult> DeletePost(int? id)
+        {
+            ViewBag.IsDeleted = await RemovePostAsync(id);
+
+            return View("Index", await GetAllPosts());
+        }
+
+        /// <summary>
+        /// Asynchronously removes a Post from the database based on its ID.
+        /// </summary>
+        /// <param name="id">The ID of the Post to be removed.</param>
+        /// <returns>
+        /// Returns true if the removal is successful; otherwise, returns false.
+        /// </returns>
+        private async Task<bool> RemovePostAsync(int? id)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == id);
+
+                if (foundPost != null)
+                {
+                    db.Posts.Remove(foundPost); 
                     await db.SaveChangesAsync();
 
                     return true;
