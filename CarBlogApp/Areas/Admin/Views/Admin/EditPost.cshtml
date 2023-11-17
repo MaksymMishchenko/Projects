@@ -10,6 +10,10 @@
     @using (Html.BeginForm())
     {
         <div class="group">
+            <p>                
+                @Html.HiddenFor(m => m.Post!.Id)                
+            </p>
+
             <p>
                 @Html.LabelFor(m => m.Post!.Title)
                 @Html.EditorFor(m => m.Post!.Title)
