@@ -5,9 +5,10 @@
 }
 
 <div class="contact">
+
     <h3>Add new post, please</h3>
 
-    @using (Html.BeginForm())
+    @using (Html.BeginForm(FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         <div class="group">
             <p>
@@ -17,8 +18,9 @@
             </p>
 
             <p>
-                @Html.LabelFor(m => m.Post!.Img)
-                @Html.EditorFor(m => m.Post!.Img)
+                <label asp-for="ImageFile"></label>
+                <input asp-for="ImageFile" type="file" />
+                @Html.ValidationMessageFor(m => m.ImageFile)
             </p>
 
             <p>
@@ -55,4 +57,5 @@
         @Html.ValidationSummary(true)
         <input class="button" type="submit" value="Submit" />
     }
+
 </div>
