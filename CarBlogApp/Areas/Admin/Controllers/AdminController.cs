@@ -275,7 +275,7 @@ namespace CarBlogApp.Controllers
                 return $"{postImagePath}";
             }
 
-            return $"default.jpg";
+            return $"../uploads/default.jpg";
         }
 
         public async Task<IActionResult> EditPost(int? id)
