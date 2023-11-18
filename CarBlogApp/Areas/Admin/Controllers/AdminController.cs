@@ -1,10 +1,8 @@
 ﻿using CarBlogApp.Areas.Admin.Models;
 using CarBlogApp.Models;
-using Humanizer.Localisation.TimeToClockNotation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Versioning;
 
 namespace CarBlogApp.Controllers
 {
@@ -218,6 +216,7 @@ namespace CarBlogApp.Controllers
 
             return View(viewModel);
         }
+
         /// <summary>
         /// Asynchronously adds a new post to the database using the provided view model.
         /// </summary>
@@ -225,11 +224,24 @@ namespace CarBlogApp.Controllers
         /// <returns>Returns true if the post was successfully added; otherwise, returns false.</returns>
         private async Task<bool> AddNewPost(CreatePostViewModel viewModel)
         {
+            string imagePath = await UploadPostImageAsync(viewModel);
+
             using (var db = new DatabaseContext())
             {
                 if (viewModel.Post != null)
                 {
-                    await db.Posts.AddAsync(viewModel.Post);
+                    var createPost = new Post
+                    {
+                        Title = viewModel.Post.Title,
+                        Img = imagePath,
+                        Description = viewModel.Post.Description,
+                        Body = viewModel.Post.Body,
+                        Author = viewModel.Post.Author,
+                        Date = viewModel.Post.Date,
+                        CategoryId = viewModel.Post.CategoryId
+                    };
+
+                    await db.Posts.AddAsync(createPost);
                     await db.SaveChangesAsync();
 
                     return true;
@@ -237,6 +249,33 @@ namespace CarBlogApp.Controllers
 
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Uploads the post image asynchronously.
+        /// </summary>
+        /// <param name="viewModel">The view model containing the image file.</param>
+        /// <returns>
+        /// A string representing the path of the uploaded image if successful;
+        /// Otherwise, returns a default image path.
+        /// </returns>
+        public async Task<string> UploadPostImageAsync(CreatePostViewModel viewModel)
+        {
+            if (viewModel.ImageFile != null && viewModel.ImageFile.Length > 0)
+            {
+                var uniqueImageFileName = Path.Combine(Guid.NewGuid().ToString() + viewModel.ImageFile.FileName);
+                var uploadFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\uploads", uniqueImageFileName);
+                var postImagePath = Path.Combine("../uploads/" + uniqueImageFileName);
+
+                using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
+                {
+                    await viewModel.ImageFile.CopyToAsync(fileStream);
+                }
+
+                return $"{postImagePath}";
+            }
+
+            return $"default.jpg";
         }
 
         public async Task<IActionResult> EditPost(int? id)
@@ -316,7 +355,7 @@ namespace CarBlogApp.Controllers
                 return false;
             }
         }
-        
+
         public async Task<IActionResult> DeletePost(int? id)
         {
             ViewBag.IsDeleted = await RemovePostAsync(id);
@@ -339,7 +378,7 @@ namespace CarBlogApp.Controllers
 
                 if (foundPost != null)
                 {
-                    db.Posts.Remove(foundPost); 
+                    db.Posts.Remove(foundPost);
                     await db.SaveChangesAsync();
 
                     return true;

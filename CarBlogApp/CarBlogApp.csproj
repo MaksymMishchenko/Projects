@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Shared\" />
+    <Folder Include="wwwroot\uploads\" />
   </ItemGroup>
 
 </Project>
