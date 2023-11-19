@@ -15,9 +15,9 @@
             <h2>@Html.ActionLink(@post.Title, "ShowFullPost", "Home", new { post.Id })</h2>
             <div class="media-info">
                 <span>Author: @post.Author</span><br />
-                <span>Published: @post.Date </span>
+                <span>Published: @post.Date</span>
             </div>
-            <p>
+            <p style="overflow:hidden">
                 @post.Description
             </p>
         </div>

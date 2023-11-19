@@ -280,9 +280,16 @@ namespace CarBlogApp.Controllers
 
         public async Task<IActionResult> EditPost(int? id)
         {
+            var exitingPost = await FindPostAsync(id);
+
+            if (exitingPost == null)
+            {
+                return NotFound();
+            }
+
             var model = new CreatePostViewModel
             {
-                Post = await FindPostAsync(id),
+                Post = exitingPost,
                 Categories = new SelectList(await GetAllCategories(), "Id", "Name")
             };
 
@@ -290,14 +297,17 @@ namespace CarBlogApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditPost(Post post)
+        public async Task<IActionResult> EditPost(CreatePostViewModel viewModel)
         {
             if (ModelState.IsValid)
             {
-                ViewBag.IsUpdated = await UpdatePostAsync(post);
+                ViewBag.IsUpdated = await UpdatePostAsync(viewModel);
+
+                return View("Index", await GetAllPosts());
             }
 
-            return View("Index", await GetAllPosts());
+            return View("EditPost", viewModel);
+
         }
         /// <summary>
         /// Asynchronously finds and returns a Post with the specified ID from the database.
@@ -326,31 +336,26 @@ namespace CarBlogApp.Controllers
         /// <returns>
         /// Returns true if the update is successful; otherwise, returns false.
         /// </returns>
-        private async Task<bool> UpdatePostAsync(Post post)
+        private async Task<bool> UpdatePostAsync(CreatePostViewModel viewModel)
         {
             using (var db = new DatabaseContext())
             {
-                if (post == null)
-                {
-                    return false;
-                }
-
-                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == post.Id);
+                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == viewModel.Post.Id);
 
                 if (foundPost != null)
                 {
-                    foundPost.Title = post.Title;
-                    foundPost.Img = post.Img;
-                    foundPost.Description = post.Description;
-                    foundPost.Body = post.Body;
-                    foundPost.Author = post.Author;
-                    foundPost.Date = post.Date;
-                    foundPost.CategoryId = post.CategoryId;
+                    foundPost.Title = viewModel.Post.Title;
+                    foundPost.Img = await UploadPostImageAsync(viewModel);
+                    foundPost.Description = viewModel.Post.Description;
+                    foundPost.Body = viewModel.Post.Body;
+                    foundPost.Author = viewModel.Post.Author;
+                    foundPost.Date = viewModel.Post.Date;
+                    foundPost.CategoryId = viewModel.Post.CategoryId;
 
                     await db.SaveChangesAsync();
 
                     return true;
-                }
+                }               
 
                 return false;
             }

@@ -24,7 +24,7 @@ namespace CarBlogApp.Models
 
         [Display(Name = "Description")]
         [Required(ErrorMessage = "Field description is required")]
-        [StringLength(100, MinimumLength = 50, ErrorMessage = "Field must contain min 50 & max 15 symbols")]
+        [StringLength(100, MinimumLength = 50, ErrorMessage = "Field must contain min 50 & max 100 symbols")]
         public string? Description { get; set; }
 
         [Display(Name = "Content")]
