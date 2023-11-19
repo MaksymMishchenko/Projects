@@ -183,6 +183,7 @@ footer {
     .media > * + * {
         margin-top: 0;
         margin-left: 0.5em;
+        overflow:hidden;
     }
 
 .media-img {
@@ -193,10 +194,11 @@ footer {
 .media-text {
     flex: 2;
     padding: 0 .5em .5em 0;
+  
 }
 
     .media-text > h2 {
-        font-size: 1.3em;
+        font-size: 1.3em;        
     }
 
 .media-info {

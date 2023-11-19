@@ -7,52 +7,64 @@
 <div class="contact">
     <h3>Edit post, please</h3>
 
-    @using (Html.BeginForm())
+    @using (Html.BeginForm(FormMethod.Post, new { enctype = "multipart/form-data" }))
     {
         <div class="group">
-            <p>                
-                @Html.HiddenFor(m => m.Post!.Id)                
+            <p>
+                @Html.HiddenFor(m => m.Post!.Id)
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Title)
                 @Html.EditorFor(m => m.Post!.Title)
-                @Html.ValidationMessageFor(m => m.Post!.Title)
+                <small>@Html.ValidationMessageFor(m => m.Post!.Title)</small>
             </p>
 
+            <div>
+
+                @if (!string.IsNullOrEmpty(@Model.Post!.Img))
+                {
+                    <p><label asp-for="@Model.Post!.Img">Image Preview:</label></p>
+                    var imagePath = "/" + @Model.Post!.Img as string;
+                    <img src="@Url.Content(imagePath)" alt="@Model.Post!.Title" class="img-preview" />
+                }                
+            </div>
+
             <p>
-                @Html.LabelFor(m => m.Post!.Img)
-                @Html.EditorFor(m => m.Post!.Img)
+                <label asp-for="ImageFile"></label><br />
+                <input asp-for="ImageFile" type="file" /><br />
+                <small><em>Image requirements: 275 x 183 px <br /> Format: *.jpg</em></small>
+                <small>@Html.ValidationMessageFor(m => m.ImageFile)</small>
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Description)
                 @Html.TextAreaFor(m => m.Post!.Description)<br />
-                @Html.ValidationMessageFor(m => m.Post!.Description)
+                <small>@Html.ValidationMessageFor(m => m.Post!.Description)</small>
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Body)
                 @Html.TextAreaFor(m => m.Post!.Body)
-                @Html.ValidationMessageFor(m => m.Post!.Body)
+                <small>@Html.ValidationMessageFor(m => m.Post!.Body)</small>
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Author)
                 @Html.EditorFor(m => m.Post!.Author)
-                @Html.ValidationMessageFor(m => m.Post!.Author)
+                <small>@Html.ValidationMessageFor(m => m.Post!.Author)</small>
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Date)
                 @Html.EditorFor(m => m.Post!.Date)
-                @Html.ValidationMessageFor(m => m.Post!.Date)
+                <small>@Html.ValidationMessageFor(m => m.Post!.Date)</small>
             </p>
 
             <p>
                 @Html.LabelFor(m => m.Post!.Category)
                 @Html.DropDownListFor(m => m.Post!.CategoryId, Model.Categories, "-- Select Category --", null)<br />
-                @Html.ValidationMessageFor(m => m.Post!.CategoryId)
+                <small>@Html.ValidationMessageFor(m => m.Post!.CategoryId)</small>
             </p>
 
         </div>
