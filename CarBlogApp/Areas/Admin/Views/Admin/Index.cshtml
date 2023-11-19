@@ -65,7 +65,7 @@
         <tr>
             <td>@post.Id</td>
             <td>@post.Title</td>
-            <td>@post.Category?.Name</td>
+            <td>@Html.RouteLink(post.Category!.Name, "admin", new { area = "Admin", controller = "Admin", action = "ShowPostsByCategory", id = post.CategoryId })</td>
             <td>@post.Date.ToShortDateString()</td>
             <td>@post.Author</td>
             <td>
