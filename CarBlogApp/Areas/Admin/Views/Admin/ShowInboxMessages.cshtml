@@ -1,0 +1,46 @@
+﻿@model IEnumerable<CarBlogApp.Models.ContactForm>;
+
+@{
+    ViewData["Title"] = "Inbox messages";
+}
+
+<h2>Inbox messages</h2>
+
+@if (ViewBag.IsRemoved == true)
+{
+    <div class="notifications-success">
+        <small>Message was deleted successfully</small>
+    </div>
+}
+
+@if (ViewBag.IsRemoved == false)
+{
+    <div class="notifications-warning">
+        <small>Message was not deleted</small>
+    </div>
+}
+
+<table class="table-centered">    
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Message</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var message in Model)
+        {
+            <tr>
+                <td>@message.Id</td>
+                <td>@message.Name</td>
+                <td>@message.Email</td>
+                <td>@message.Message</td>
+                <td>@Html.RouteLink("Delete", "admin", new {area = "Admin", controller = "Admin", action="RemoveMessage", id = message.Id})</td>
+            </tr>
+        }        
+    </tbody>
+</table>

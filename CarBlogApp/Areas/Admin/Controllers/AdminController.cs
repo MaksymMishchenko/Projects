@@ -340,11 +340,11 @@ namespace CarBlogApp.Controllers
         {
             using (var db = new DatabaseContext())
             {
-                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == viewModel.Post.Id);
+                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == viewModel.Post!.Id);
 
                 if (foundPost != null)
                 {
-                    foundPost.Title = viewModel.Post.Title;
+                    foundPost.Title = viewModel.Post!.Title;
                     foundPost.Img = await UploadPostImageAsync(viewModel);
                     foundPost.Description = viewModel.Post.Description;
                     foundPost.Body = viewModel.Post.Body;
@@ -355,7 +355,7 @@ namespace CarBlogApp.Controllers
                     await db.SaveChangesAsync();
 
                     return true;
-                }               
+                }
 
                 return false;
             }
@@ -384,6 +384,61 @@ namespace CarBlogApp.Controllers
                 if (foundPost != null)
                 {
                     db.Posts.Remove(foundPost);
+                    await db.SaveChangesAsync();
+
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        public async Task<IActionResult> ShowInboxMessages()
+        {
+            return View(await GetInboxMessages());
+        }
+
+        /// <summary>
+        /// Retrieves inbox messages from the database asynchronously.
+        /// </summary>
+        /// <returns>
+        /// A collection of <see cref="ContactForm"/> representing inbox messages.
+        /// If no messages are found, an empty collection is returned.
+        /// </returns>
+        private async Task<IEnumerable<ContactForm>> GetInboxMessages()
+        {
+            List<ContactForm> messageBoxList;
+
+            using (var db = new DatabaseContext())
+            {
+                messageBoxList = await db.InboxMessages.ToListAsync();
+            }
+
+            return messageBoxList ?? Enumerable.Empty<ContactForm>();
+        }
+       
+        public async Task<IActionResult> RemoveMessage(int? id)
+        {
+            ViewBag.IsRemoved = await RemoveMessageById(id);
+
+            return View("ShowInboxMessages", await GetInboxMessages());
+        }
+
+        /// <summary>
+        /// Removes an inbox message from the database asynchronously based on its ID.
+        /// </summary>
+        /// <param name="id">The ID of the inbox message to be removed.</param>
+        /// <returns>
+        /// True if the message is found and successfully removed; otherwise, false.
+        /// </returns>
+        private async Task<bool> RemoveMessageById(int? id)
+        {
+            using (var db = new DatabaseContext())
+            {
+                var foundMessage = await db.InboxMessages.FindAsync(id);
+                if (foundMessage != null)
+                {
+                    db.InboxMessages.Remove(foundMessage);
                     await db.SaveChangesAsync();
 
                     return true;

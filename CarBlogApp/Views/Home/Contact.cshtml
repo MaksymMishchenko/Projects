@@ -14,18 +14,18 @@
             <p>
                 @Html.LabelFor(m => m.Name)
                 @Html.EditorFor(m=>m.Name)
-                @Html.ValidationMessageFor(m=>m.Name)
+                <small>@Html.ValidationMessageFor(m=>m.Name)</small>
             </p>
             <p>
                 @Html.LabelFor(m => m.Email)
                 @Html.EditorFor(m => m.Email)
-                @Html.ValidationMessageFor(m=>m.Email)
+                <small>@Html.ValidationMessageFor(m=>m.Email)</small>
             </p>
         </div>
         <p>
             @Html.LabelFor(m => m.Message)
             @Html.TextAreaFor(m => m.Message)
-            @Html.ValidationMessageFor(m=>m.Message)
+            <small>@Html.ValidationMessageFor(m=>m.Message)</small>
         </p>
         @Html.ValidationSummary(true)
         <input class="button" type="submit" value="Submit" />

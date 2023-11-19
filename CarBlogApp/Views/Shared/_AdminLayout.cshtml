@@ -18,8 +18,8 @@
             <ul class="site-categories">
                 <li><a asp-controller="Home" asp-action="Index">Car Blog</a></li>
                 <li><a asp-controller="Admin" asp-action="Index">Posts</a></li>                
-                <li>@Html.RouteLink("Categories", "admin", new { area = "Admin", controller = "Admin", action = "ShowAllCategories"})</li>                
-                <li class="nav-right"><a href="#">Inbox message</a></li>
+                <li>@Html.RouteLink("Categories", "admin", new { area = "Admin", controller = "Admin", action = "ShowAllCategories"})</li>              
+                <li class="nav-right">@Html.RouteLink("Inbox messages", "admin", new { area = "Admin", controller = "Admin", action = "ShowInboxMessages"})</li>
             </ul>
         </div>
 
