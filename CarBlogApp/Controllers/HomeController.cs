@@ -46,7 +46,7 @@ namespace CarBlogApp.Controllers
 
             if (posts == null)
             {
-                return View("SomethingWentWrong");
+                return NotFound();
             }
 
             return View(posts);

@@ -416,7 +416,7 @@ namespace CarBlogApp.Controllers
 
             return messageBoxList ?? Enumerable.Empty<ContactForm>();
         }
-       
+
         public async Task<IActionResult> RemoveMessage(int? id)
         {
             ViewBag.IsRemoved = await RemoveMessageById(id);
@@ -446,6 +446,27 @@ namespace CarBlogApp.Controllers
 
                 return false;
             }
+        }
+
+        public async Task<IActionResult> ShowPostsByCategory(int? id)
+        {
+            return View("Index", await GetPostsByCategory(id));
+        }
+        /// <summary>
+        /// Retrieves a collection of posts associated with a specified category ID
+        /// </summary>
+        /// <param name="id">The ID of the Post category to be sorted.</param>
+        /// <returns>Сollection of posts associated with a specified category ID</returns>
+        private async Task<IEnumerable<Post>> GetPostsByCategory(int? id)
+        {
+            IEnumerable<Post> posts;
+
+            using (var db = new DatabaseContext())
+            {
+                posts = await db.Posts.Where(p => p.CategoryId == id).Include(p => p.Category).ToListAsync();
+            }
+
+            return posts;
         }
     }
 }
