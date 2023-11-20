@@ -20,6 +20,6 @@ namespace CarBlogApp
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Posts)
                 .HasForeignKey(p => p.CategoryId);
-        }
+        }        
     }
 }

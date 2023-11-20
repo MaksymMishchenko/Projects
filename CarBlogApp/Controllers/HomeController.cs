@@ -14,9 +14,9 @@ namespace CarBlogApp.Controllers
         private readonly IMessageService _messageService;
 
         public HomeController(ILogger<HomeController> logger,
-            PostService postService,
-            CategoryService categoryService,
-            MessageService messageService)
+            IPostService postService,
+            ICategoryService categoryService,
+            IMessageService messageService)
         {
             _logger = logger;
             _postService = postService;

@@ -20,6 +20,7 @@ namespace CarBlogApp.Models
         [StringLength(15, MinimumLength = 3, ErrorMessage = "Field must contain min 3 & max 15 symbols")]
         public string? Author { get; set; }
 
+        [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
         [Display(Name = "Description")]

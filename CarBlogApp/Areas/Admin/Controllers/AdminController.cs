@@ -14,9 +14,9 @@ namespace CarBlogApp.Controllers
         private readonly IPostService _postService;
         private readonly ICategoryService _categoryService;
 
-        public AdminController(MessageService msgService,
-            PostService postService,
-            CategoryService categoryService)
+        public AdminController(IMessageService msgService,
+            IPostService postService,
+            ICategoryService categoryService)
         {
             _msgService = msgService;
             _postService = postService;

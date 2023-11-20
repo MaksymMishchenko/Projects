@@ -1,3 +1,4 @@
+using CarBlogApp.Interfaces;
 using CarBlogApp.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,9 +16,9 @@ namespace CarBlogApp
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            builder.Services.AddScoped<PostService>();
-            builder.Services.AddScoped<CategoryService>();
-            builder.Services.AddScoped<MessageService>();
+            builder.Services.AddScoped<IPostService, PostService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IMessageService, MessageService>();           
 
             builder.Services.AddControllersWithViews();
 
