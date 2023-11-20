@@ -1,6 +1,7 @@
-﻿using CarBlogApp.Models;
+﻿using CarBlogApp.Interfaces;
+using CarBlogApp.Models;
+using CarBlogApp.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
 namespace CarBlogApp.Controllers
@@ -8,27 +9,31 @@ namespace CarBlogApp.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly IPostService _postService;
+        private readonly ICategoryService _categoryService;
+        private readonly IMessageService _messageService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger,
+            PostService postService,
+            CategoryService categoryService,
+            MessageService messageService)
         {
             _logger = logger;
+            _postService = postService;
+            _categoryService = categoryService;
+            _messageService = messageService;
         }
 
         public async Task<IActionResult> Index()
-        {                      
+        {
             var categoryModel = new CategoriesViewModel
             {
-                Categories = await GetAllCategories()
+                Categories = await _categoryService.GetAllCategoriesAsync()
             };
 
             ViewData["CategoriesViewModel"] = categoryModel;
 
-            var posts = await GetAllPosts();
-
-            if (posts == null)
-            {
-                return View("SomethingWentWrong");
-            }
+            var posts = await _postService.GetAllPostsAsync();
 
             return View(posts);
         }
@@ -37,12 +42,12 @@ namespace CarBlogApp.Controllers
         {
             var categoryModel = new CategoriesViewModel
             {
-                Categories = await GetAllCategories()
+                Categories = await _categoryService.GetAllCategoriesAsync()
             };
 
             ViewData["CategoriesViewModel"] = categoryModel;
 
-            var posts = await GetPostsByCategoryId(id);
+            var posts = await _postService.GetPostsByCategoryAsync(id);
 
             if (posts == null)
             {
@@ -51,47 +56,17 @@ namespace CarBlogApp.Controllers
 
             return View(posts);
         }
-        /// <summary>
-        /// Get all categories from database
-        /// </summary>
-        /// <returns>List all post's categories</returns>
-        private async Task<IEnumerable<Category>> GetAllCategories()
-        {
-            IEnumerable<Category> categories = new List<Category>();
-
-            using (var db = new DatabaseContext())
-            {
-                categories = await db.Categories.ToListAsync();
-            }
-
-            return categories;
-        }
-        /// <summary>
-        /// Get all posts from database
-        /// </summary>
-        /// <returns>List all post</returns>
-        private async Task<IEnumerable<Post>> GetAllPosts()
-        {
-            IEnumerable<Post> posts = new List<Post>();
-
-            using (var db = new DatabaseContext())
-            {
-                posts = await db.Posts.ToListAsync();
-            }
-
-            return posts;
-        }
 
         public async Task<IActionResult> ShowFullPost(int? id)
         {
             var categoryModel = new CategoriesViewModel
             {
-                Categories = await GetAllCategories()
+                Categories = await _categoryService.GetAllCategoriesAsync()
             };
 
             ViewData["CategoriesViewModel"] = categoryModel;
 
-            Post post = await GetFullPost(id);
+            var post = await _postService.FindPostAsync(id);
 
             if (post == null)
             {
@@ -101,41 +76,11 @@ namespace CarBlogApp.Controllers
             return View(post);
         }
 
-        ///// <summary>
-        /// Search post in database asynchronously
-        /// </summary>
-        /// <param name="id">id of the current post</param>
-        /// <returns>Found post from database</returns>
-        private async Task<Post> GetFullPost(int? id)
-        {
-            Post? post = null;
-            using (var db = new DatabaseContext())
-            {
-                post = await db.Posts.FindAsync(id);
-            }
-
-            return post!;
-        }
-
-
-        ///// <summary>
-        /// Retrieves a collection of posts based on the provided category ID.
-        /// </summary>
-        /// <param name="id">id which user pass choosing a category</param>
-        /// <returns>A collection of posts matching the specified category ID</returns>
-        private async Task<IEnumerable<Post>> GetPostsByCategoryId(int? id)
-        {
-            using (var db = new DatabaseContext())
-            {
-                return await db.Posts.Where(post => post.CategoryId == id).ToListAsync();
-            }
-        }
-
         public async Task<IActionResult> About()
         {
             var categoryModel = new CategoriesViewModel
             {
-                Categories = await GetAllCategories()
+                Categories = await _categoryService.GetAllCategoriesAsync()
             };
 
             ViewData["CategoriesViewModel"] = categoryModel;
@@ -146,7 +91,7 @@ namespace CarBlogApp.Controllers
         {
             var categoryModel = new CategoriesViewModel
             {
-                Categories = await GetAllCategories()
+                Categories = await _categoryService.GetAllCategoriesAsync()
             };
 
             ViewData["CategoriesViewModel"] = categoryModel;
@@ -159,33 +104,19 @@ namespace CarBlogApp.Controllers
         {
             var categoryModel = new CategoriesViewModel
             {
-                Categories = await GetAllCategories()
+                Categories = await _categoryService.GetAllCategoriesAsync()
             };
 
             ViewData["CategoriesViewModel"] = categoryModel;
 
             if (ModelState.IsValid)
             {
-                await AddMessageToInbox(messages);
-                return View("Success");
+                ViewBag.IsSent = await _messageService.AddMessageToInbox(messages);
+
+                return View("FormSentSuccess");
             }
 
-            return View();
-        }
-        /// <summary>
-        /// Add new message from contact form to database asynchronously
-        /// </summary>
-        /// <param name="messages"></param>
-        /// <returns>Message added users in contact form</returns>
-        private async Task<ContactForm> AddMessageToInbox(ContactForm message)
-        {
-            using (var db = new DatabaseContext())
-            {
-                db.InboxMessages.Add(message);
-                await db.SaveChangesAsync();
-            }
-
-            return message;
+            return View(messages);
         }
 
         public async Task<IActionResult> GetMagazine()
@@ -198,13 +129,8 @@ namespace CarBlogApp.Controllers
 
             return File(memory, contentType, file);
         }
-        /// <summary>
-        /// Download file to MemoryStream asynchronously
-        /// </summary>
-        /// <param name="uploadPath"></param>
-        /// <param name="fileName"></param>
-        /// <returns>MemoryStream wich contains downloaded file</returns>
-        private async Task<MemoryStream> DownloadFile(string uploadPath, string fileName)
+
+        private static async Task<MemoryStream> DownloadFile(string uploadPath, string fileName)
         {
             var fullPath = Path.Combine(Directory.GetCurrentDirectory(), uploadPath, fileName);
             var memory = new MemoryStream();

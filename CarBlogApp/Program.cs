@@ -1,3 +1,4 @@
+using CarBlogApp.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarBlogApp
@@ -8,7 +9,15 @@ namespace CarBlogApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //Add services to the container.           
+            //Add services to the container.
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            builder.Services.AddDbContext<DatabaseContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            builder.Services.AddScoped<PostService>();
+            builder.Services.AddScoped<CategoryService>();
+            builder.Services.AddScoped<MessageService>();
 
             builder.Services.AddControllersWithViews();
 
@@ -35,7 +44,7 @@ namespace CarBlogApp
 
             app.MapControllerRoute(
                  name: "admin",
-                 pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");           
+                 pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}");
 
             app.Run();
         }
