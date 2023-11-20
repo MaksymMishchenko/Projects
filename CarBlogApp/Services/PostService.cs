@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarBlogApp.Services
 {
-    public class PostService : IPostService
+    public class PostService : IPostService, IDisposable
     {
         private readonly DatabaseContext? _dbContext;
 
         public PostService(DatabaseContext db)
         {
-            _dbContext = db;
+            _dbContext = db ?? throw new ArgumentNullException(nameof(db));
         }
         /// <summary>
         /// Retrieves all posts from the database, including related category information asynchronously.
@@ -185,6 +185,12 @@ namespace CarBlogApp.Services
             }
 
             return null;
+        }
+
+        public void Dispose()
+        {
+            _dbContext?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

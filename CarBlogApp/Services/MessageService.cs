@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarBlogApp.Services
 {
-    public class MessageService : IMessageService
+    public class MessageService : IMessageService, IDisposable
     {
         private readonly DatabaseContext _dbContext;
 
@@ -69,6 +69,11 @@ namespace CarBlogApp.Services
             }
 
             return false;
+        }
+        public void Dispose()
+        {
+            _dbContext?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
