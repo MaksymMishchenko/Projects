@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Message has been sent";
+}
+
+@if (ViewBag.IsSent == true)
+{
+    <div class="notifications-success">
+        <h2>Well done, your message is on its way to us!</h2>
+        <a>@Html.ActionLink("Go to blog", "Index", "Home", new{ @class="button"})</a>
+    </div>
+}
+
+@if (ViewBag.IsSent == false)
+{
+    <div class="notifications-warning">
+        <h2>Something went wrong. Try again later</h2>
+        <a>@Html.ActionLink("Go to blog", "Index", "Home", new{ @class="button"})</a>
+    </div>
+}

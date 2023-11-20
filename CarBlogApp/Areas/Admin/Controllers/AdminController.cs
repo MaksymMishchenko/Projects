@@ -1,36 +1,43 @@
 ﻿using CarBlogApp.Areas.Admin.Models;
+using CarBlogApp.Interfaces;
 using CarBlogApp.Models;
+using CarBlogApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace CarBlogApp.Controllers
 {
     [Area("Admin")]
     public class AdminController : Controller
     {
+        private readonly IMessageService _msgService;
+        private readonly IPostService _postService;
+        private readonly ICategoryService _categoryService;
+
+        public AdminController(MessageService msgService,
+            PostService postService,
+            CategoryService categoryService)
+        {
+            _msgService = msgService;
+            _postService = postService;
+            _categoryService = categoryService;
+        }
+
         public async Task<IActionResult> Index()
         {
-            var posts = await GetAllPosts();
+            var posts = await _postService.GetAllPostsAsync();
+
+            if (posts == null)
+            {
+                return NotFound();
+            }
 
             return View(posts);
         }
 
-        private async Task<IEnumerable<Post>> GetAllPosts()
-        {
-            IEnumerable<Post> posts = new List<Post>();
-
-            using (var db = new DatabaseContext())
-            {
-                posts = await db.Posts.Include(c => c.Category).ToListAsync();
-            }
-
-            return posts;
-        }
-
         public async Task<IActionResult> ShowAllCategories()
         {
-            var categories = await GetAllCategories();
+            var categories = await _categoryService.GetAllCategoriesAsync();
 
             if (categories == null)
             {
@@ -38,18 +45,6 @@ namespace CarBlogApp.Controllers
             }
 
             return View(categories);
-        }
-
-        private async Task<IEnumerable<Category>> GetAllCategories()
-        {
-            IEnumerable<Category> categories = new List<Category>();
-
-            using (var db = new DatabaseContext())
-            {
-                categories = await db.Categories.ToListAsync();
-            }
-
-            return categories;
         }
 
         public IActionResult AddCategory()
@@ -62,45 +57,23 @@ namespace CarBlogApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    ViewBag.IsAdded = await AddNewCategory(category);
-                }
+                ViewBag.IsAdded = await _categoryService.CreateNewCategoryAsync(category);
 
-                catch (Exception ex)
-                {
-                    return View(ex.Message);
-                }
+                return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
             }
 
-            return View("ShowAllCategories", await GetAllCategories());
-        }
-        /// <summary>
-        /// Add new category from category form to database asynchronously or trow InvalidOperationException if category exists
-        /// </summary>
-        /// <param name="category"></param>
-        /// <returns></returns>
-        private async Task<bool> AddNewCategory(Category category)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var categoryExist = await db.Categories.FirstOrDefaultAsync(c => c.Name == category.Name);
-
-                if (categoryExist == null)
-                {
-                    var addedCategory = await db.Categories.AddAsync(new Category { Name = category.Name?.Trim() });
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-
-                return false;
-            }
+            return View(category);
         }
 
         public async Task<IActionResult> EditCategory(int? id)
         {
-            var currentCategory = await FindCategoryAsync(id);
+            var currentCategory = await _categoryService.FindCategoryAsync(id);
+
+            if (currentCategory == null)
+            {
+                return NotFound();
+            }
+
             return View(currentCategory);
         }
 
@@ -109,93 +82,24 @@ namespace CarBlogApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                try
-                {
-                    ViewBag.IsEdited = await UpdateCurrentCategoryAsync(category);
+                ViewBag.IsEdited = await _categoryService.UpdateCurrentCategoryAsync(category);
 
-                }
-
-                catch (Exception ex)
-                {
-                    return View(ex.Message, category);
-                }
+                return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
             }
 
-            return View("ShowAllCategories", await GetAllCategories());
-        }
-
-        /// <summary>
-        /// Find category in database by id asynchronously
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        private async Task<Category> FindCategoryAsync(int? id)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var currentCategory = await db.Categories.FindAsync(id);
-                if (currentCategory != null)
-                {
-                    return currentCategory;
-                }
-
-                throw new InvalidOperationException();
-            }
-        }
-
-        /// <summary>
-        /// Find category in database and update category asynchronously
-        /// </summary>
-        /// <param name="category"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        private async Task<bool> UpdateCurrentCategoryAsync(Category category)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var currentCategory = await db.Categories.FirstOrDefaultAsync(c => c.Id == category.Id);
-
-                if (currentCategory != null)
-                {
-                    currentCategory.Name = category.Name;
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-
-                return false;
-            }
+            return View(category);
         }
 
         public async Task<IActionResult> OnDeleteCategory(int? id)
         {
-            ViewBag.IsDeleted = await DeleteCategory(id);
+            ViewBag.IsDeleted = await _categoryService.DeleteCategory(id);
 
-            return View("ShowAllCategories", await GetAllCategories());
-        }
-
-        private async Task<bool> DeleteCategory(int? id)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var toRemove = await db.Categories.FirstOrDefaultAsync(c => c.Id == id);
-
-                if (toRemove != null)
-                {
-                    db.Categories.Remove(toRemove);
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-            }
-
-            return false;
+            return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
         }
 
         public async Task<IActionResult> AddPost()
         {
-            var categorySelectList = new SelectList(await GetAllCategories(), "Id", "Name");
+            var categorySelectList = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name");
             var model = new CreatePostViewModel
             {
                 Post = new Post() { Date = DateTime.Today },
@@ -210,77 +114,16 @@ namespace CarBlogApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                ViewBag.IsPostAdded = await AddNewPost(viewModel);
-                return View("Index", await GetAllPosts());
+                ViewBag.IsPostAdded = await _postService.AddNewPostAsync(viewModel);
+                return View("Index", await _postService.GetAllPostsAsync());
             }
 
             return View(viewModel);
         }
 
-        /// <summary>
-        /// Asynchronously adds a new post to the database using the provided view model.
-        /// </summary>
-        /// <param name="viewModel"></param>
-        /// <returns>Returns true if the post was successfully added; otherwise, returns false.</returns>
-        private async Task<bool> AddNewPost(CreatePostViewModel viewModel)
-        {
-            string imagePath = await UploadPostImageAsync(viewModel);
-
-            using (var db = new DatabaseContext())
-            {
-                if (viewModel.Post != null)
-                {
-                    var createPost = new Post
-                    {
-                        Title = viewModel.Post.Title,
-                        Img = imagePath,
-                        Description = viewModel.Post.Description,
-                        Body = viewModel.Post.Body,
-                        Author = viewModel.Post.Author,
-                        Date = viewModel.Post.Date,
-                        CategoryId = viewModel.Post.CategoryId
-                    };
-
-                    await db.Posts.AddAsync(createPost);
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Uploads the post image asynchronously.
-        /// </summary>
-        /// <param name="viewModel">The view model containing the image file.</param>
-        /// <returns>
-        /// A string representing the path of the uploaded image if successful;
-        /// Otherwise, returns a default image path.
-        /// </returns>
-        public async Task<string> UploadPostImageAsync(CreatePostViewModel viewModel)
-        {
-            if (viewModel.ImageFile != null && viewModel.ImageFile.Length > 0)
-            {
-                var uniqueImageFileName = Path.Combine(Guid.NewGuid().ToString() + viewModel.ImageFile.FileName);
-                var uploadFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot\\uploads", uniqueImageFileName);
-                var postImagePath = Path.Combine("../uploads/" + uniqueImageFileName);
-
-                using (var fileStream = new FileStream(uploadFilePath, FileMode.Create))
-                {
-                    await viewModel.ImageFile.CopyToAsync(fileStream);
-                }
-
-                return $"{postImagePath}";
-            }
-
-            return $"../uploads/default.jpg";
-        }
-
         public async Task<IActionResult> EditPost(int? id)
         {
-            var exitingPost = await FindPostAsync(id);
+            var exitingPost = await _postService.FindPostAsync(id);
 
             if (exitingPost == null)
             {
@@ -290,7 +133,7 @@ namespace CarBlogApp.Controllers
             var model = new CreatePostViewModel
             {
                 Post = exitingPost,
-                Categories = new SelectList(await GetAllCategories(), "Id", "Name")
+                Categories = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name")
             };
 
             return View(model);
@@ -301,172 +144,36 @@ namespace CarBlogApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                ViewBag.IsUpdated = await UpdatePostAsync(viewModel);
+                ViewBag.IsUpdated = await _postService.UpdatePostAsync(viewModel);
 
-                return View("Index", await GetAllPosts());
+                return View("Index", await _postService.GetAllPostsAsync());
             }
 
-            return View("EditPost", viewModel);
-
-        }
-        /// <summary>
-        /// Asynchronously finds and returns a Post with the specified ID from the database.
-        /// </summary>
-        /// <param name="id">The ID of the Post to find.</param>
-        /// <returns>If a Post with the specified ID is found, returns the Post; otherwise, returns null.</returns>
-        private async Task<Post?> FindPostAsync(int? id)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var foundPost = await db.Posts.FindAsync(id);
-
-                if (foundPost != null)
-                {
-                    return foundPost;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Asynchronously updates a Post in the database with the information from the provided Post object.
-        /// </summary>
-        /// <param name="post">The Post object containing the updated information.</param>
-        /// <returns>
-        /// Returns true if the update is successful; otherwise, returns false.
-        /// </returns>
-        private async Task<bool> UpdatePostAsync(CreatePostViewModel viewModel)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == viewModel.Post!.Id);
-
-                if (foundPost != null)
-                {
-                    foundPost.Title = viewModel.Post!.Title;
-                    foundPost.Img = await UploadPostImageAsync(viewModel);
-                    foundPost.Description = viewModel.Post.Description;
-                    foundPost.Body = viewModel.Post.Body;
-                    foundPost.Author = viewModel.Post.Author;
-                    foundPost.Date = viewModel.Post.Date;
-                    foundPost.CategoryId = viewModel.Post.CategoryId;
-
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-
-                return false;
-            }
+            return View(viewModel);
         }
 
         public async Task<IActionResult> DeletePost(int? id)
         {
-            ViewBag.IsDeleted = await RemovePostAsync(id);
+            ViewBag.IsDeleted = await _postService.RemovePostAsync(id);
 
-            return View("Index", await GetAllPosts());
-        }
-
-        /// <summary>
-        /// Asynchronously removes a Post from the database based on its ID.
-        /// </summary>
-        /// <param name="id">The ID of the Post to be removed.</param>
-        /// <returns>
-        /// Returns true if the removal is successful; otherwise, returns false.
-        /// </returns>
-        private async Task<bool> RemovePostAsync(int? id)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var foundPost = await db.Posts.FirstOrDefaultAsync(p => p.Id == id);
-
-                if (foundPost != null)
-                {
-                    db.Posts.Remove(foundPost);
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-
-                return false;
-            }
-        }
-
-        public async Task<IActionResult> ShowInboxMessages()
-        {
-            return View(await GetInboxMessages());
-        }
-
-        /// <summary>
-        /// Retrieves inbox messages from the database asynchronously.
-        /// </summary>
-        /// <returns>
-        /// A collection of <see cref="ContactForm"/> representing inbox messages.
-        /// If no messages are found, an empty collection is returned.
-        /// </returns>
-        private async Task<IEnumerable<ContactForm>> GetInboxMessages()
-        {
-            List<ContactForm> messageBoxList;
-
-            using (var db = new DatabaseContext())
-            {
-                messageBoxList = await db.InboxMessages.ToListAsync();
-            }
-
-            return messageBoxList ?? Enumerable.Empty<ContactForm>();
-        }
-
-        public async Task<IActionResult> RemoveMessage(int? id)
-        {
-            ViewBag.IsRemoved = await RemoveMessageById(id);
-
-            return View("ShowInboxMessages", await GetInboxMessages());
-        }
-
-        /// <summary>
-        /// Removes an inbox message from the database asynchronously based on its ID.
-        /// </summary>
-        /// <param name="id">The ID of the inbox message to be removed.</param>
-        /// <returns>
-        /// True if the message is found and successfully removed; otherwise, false.
-        /// </returns>
-        private async Task<bool> RemoveMessageById(int? id)
-        {
-            using (var db = new DatabaseContext())
-            {
-                var foundMessage = await db.InboxMessages.FindAsync(id);
-                if (foundMessage != null)
-                {
-                    db.InboxMessages.Remove(foundMessage);
-                    await db.SaveChangesAsync();
-
-                    return true;
-                }
-
-                return false;
-            }
+            return View("Index", await _postService.GetAllPostsAsync());
         }
 
         public async Task<IActionResult> ShowPostsByCategory(int? id)
         {
-            return View("Index", await GetPostsByCategory(id));
+            return View("Index", await _postService.GetPostsByCategoryAsync(id));
         }
-        /// <summary>
-        /// Retrieves a collection of posts associated with a specified category ID
-        /// </summary>
-        /// <param name="id">The ID of the Post category to be sorted.</param>
-        /// <returns>Сollection of posts associated with a specified category ID</returns>
-        private async Task<IEnumerable<Post>> GetPostsByCategory(int? id)
+
+        public async Task<IActionResult> ShowInboxMessages()
         {
-            IEnumerable<Post> posts;
+            return View(await _msgService.GetInboxMessagesAsync());
+        }
 
-            using (var db = new DatabaseContext())
-            {
-                posts = await db.Posts.Where(p => p.CategoryId == id).Include(p => p.Category).ToListAsync();
-            }
+        public async Task<IActionResult> RemoveMessage(int? id)
+        {
+            ViewBag.IsRemoved = await _msgService.RemoveInboxMessageAsync(id);
 
-            return posts;
+            return View("ShowInboxMessages", await _msgService.GetInboxMessagesAsync());
         }
     }
 }
