@@ -1,8 +1,9 @@
-﻿using CarBlogApp.Interfaces;
+﻿using CarBlogApp.Dto;
+using CarBlogApp.Interfaces;
 using CarBlogApp.Models;
-using CarBlogApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace CarBlogApp.Controllers
 {
@@ -34,7 +35,6 @@ namespace CarBlogApp.Controllers
             ViewData["CategoriesViewModel"] = categoryModel;
 
             var posts = await _postService.GetAllPostsAsync();
-
             return View(posts);
         }
 
@@ -150,7 +150,7 @@ namespace CarBlogApp.Controllers
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            return View();
         }
     }
 }

@@ -20,12 +20,12 @@ namespace CarBlogApp.Services
         /// A collection of categories if available; otherwise, an empty collection.
         /// </returns>
         public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
-        {
+        {            
             if (_dbContext != null)
             {
                 return await _dbContext.Categories.ToListAsync();
             }
-
+            
             return Enumerable.Empty<Category>();
         }
 

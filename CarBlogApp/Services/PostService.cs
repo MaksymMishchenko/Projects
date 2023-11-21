@@ -13,6 +13,7 @@ namespace CarBlogApp.Services
         {
             _dbContext = db ?? throw new ArgumentNullException(nameof(db));
         }
+
         /// <summary>
         /// Retrieves all posts from the database, including related category information asynchronously.
         /// </summary>

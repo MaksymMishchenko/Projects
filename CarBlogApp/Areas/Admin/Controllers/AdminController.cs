@@ -1,7 +1,6 @@
 ﻿using CarBlogApp.Areas.Admin.Models;
 using CarBlogApp.Interfaces;
 using CarBlogApp.Models;
-using CarBlogApp.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -10,14 +9,17 @@ namespace CarBlogApp.Controllers
     [Area("Admin")]
     public class AdminController : Controller
     {
+        private readonly ILogger<AdminController> _logger;
         private readonly IMessageService _msgService;
         private readonly IPostService _postService;
         private readonly ICategoryService _categoryService;
 
-        public AdminController(IMessageService msgService,
+        public AdminController(ILogger<AdminController> logger,
+            IMessageService msgService,
             IPostService postService,
             ICategoryService categoryService)
         {
+            _logger = logger;
             _msgService = msgService;
             _postService = postService;
             _categoryService = categoryService;
@@ -37,14 +39,17 @@ namespace CarBlogApp.Controllers
 
         public async Task<IActionResult> ShowAllCategories()
         {
-            var categories = await _categoryService.GetAllCategoriesAsync();
-
-            if (categories == null)
+            try
             {
-                return NotFound();
+                var categories = await _categoryService.GetAllCategoriesAsync();
+                return View(categories);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "Internal server error");
 
-            return View(categories);
+            }
         }
 
         public IActionResult AddCategory()
@@ -58,8 +63,16 @@ namespace CarBlogApp.Controllers
             if (ModelState.IsValid)
             {
                 ViewBag.IsAdded = await _categoryService.CreateNewCategoryAsync(category);
+                try
+                {
+                    return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
+                }
+                catch (Exception ex)
+                {
 
-                return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
+                    _logger.LogError(ex.Message);
+                    return StatusCode(500, "Internal Server Error");
+                }
             }
 
             return View(category);
@@ -84,7 +97,14 @@ namespace CarBlogApp.Controllers
             {
                 ViewBag.IsEdited = await _categoryService.UpdateCurrentCategoryAsync(category);
 
-                return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
+                try
+                {
+                    return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                }
             }
 
             return View(category);
@@ -94,19 +114,35 @@ namespace CarBlogApp.Controllers
         {
             ViewBag.IsDeleted = await _categoryService.DeleteCategory(id);
 
-            return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
+            try
+            {
+                return View("ShowAllCategories", await _categoryService.GetAllCategoriesAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         public async Task<IActionResult> AddPost()
         {
-            var categorySelectList = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name");
-            var model = new CreatePostViewModel
+            try
             {
-                Post = new Post() { Date = DateTime.Today },
-                Categories = categorySelectList
-            };
+                var categorySelectList = new SelectList(await _categoryService.GetAllCategoriesAsync(), "Id", "Name");
+                var model = new CreatePostViewModel
+                {
+                    Post = new Post() { Date = DateTime.Today },
+                    Categories = categorySelectList
+                };
 
-            return View(model);
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "Internal server error");
+            }
         }
 
         [HttpPost]
