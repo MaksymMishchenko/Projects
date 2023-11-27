@@ -1,3 +1,7 @@
+using Microsoft.EntityFrameworkCore;
+using SportsStore.Domain.Concrete;
+using SportsStore.Domain.Interfaces;
+
 namespace SportsStore.WebUI
 {
     public class Program
@@ -8,6 +12,12 @@ namespace SportsStore.WebUI
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            builder.Services.AddDbContext<DatabaseContext>(options =>
+                options.UseSqlServer(connectionString));
+
+            builder.Services.AddTransient<IProductRepository, ProductRepository>();
 
             var app = builder.Build();
 
@@ -28,7 +38,7 @@ namespace SportsStore.WebUI
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Product}/{action=List}/{id?}");
 
             app.Run();
         }

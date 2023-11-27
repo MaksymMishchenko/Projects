@@ -1,21 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SportsStore.Domain.Interfaces;
 using SportsStore.WebUI.Models;
 using System.Diagnostics;
 
 namespace SportsStore.WebUI.Controllers
 {
-    public class HomeController : Controller
+    public class ProductController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<ProductController> _logger;
+        private readonly IProductRepository _repository;
 
-        public HomeController(ILogger<HomeController> logger)
+        public ProductController(ILogger<ProductController> logger, IProductRepository repository)
         {
             _logger = logger;
+            _repository = repository;   
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> List()
         {
-            return View();
+            return View(await _repository.Products.ToArrayAsync());
         }
 
         public IActionResult Privacy()

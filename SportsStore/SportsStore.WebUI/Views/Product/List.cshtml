@@ -1,0 +1,10 @@
+﻿@model IEnumerable<SportsStore.Domain.Entities.Product>;
+
+@foreach (var product in Model)
+{
+    <div class="item">
+        <h3 class="item">@product.Name</h3>
+        @product.Description
+        <h4>@product.Price?.ToString("c")</h4>
+    </div>
+}
