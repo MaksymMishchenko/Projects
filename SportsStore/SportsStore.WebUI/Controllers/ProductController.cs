@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using SportsStore.Domain.Interfaces;
 using SportsStore.WebUI.Models;
 using System.Diagnostics;
@@ -8,18 +8,23 @@ namespace SportsStore.WebUI.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly ILogger<ProductController> _logger;
+        //private readonly ILogger<ProductController> _logger;
         private readonly IProductRepository _repository;
+        public int PageSize = 4;
 
-        public ProductController(ILogger<ProductController> logger, IProductRepository repository)
+
+        public ProductController(IProductRepository repository)
         {
-            _logger = logger;
-            _repository = repository;   
+            //_logger = logger;
+            _repository = repository;
         }
 
-        public async Task<IActionResult> List()
+        public IActionResult List(int page = 1)
         {
-            return View(await _repository.Products.ToArrayAsync());
+            return View( _repository.Products
+            .OrderBy(p => p.ProductId)
+            .Skip((page - 1) * PageSize)
+            .Take(PageSize));
         }
 
         public IActionResult Privacy()
