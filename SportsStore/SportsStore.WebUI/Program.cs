@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SportsStore.Domain.Concrete;
 using SportsStore.Domain.Interfaces;
+using System.Globalization;
 
 namespace SportsStore.WebUI
 {
@@ -17,7 +18,7 @@ namespace SportsStore.WebUI
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            builder.Services.AddTransient<IProductRepository, ProductRepository>();
+            builder.Services.AddTransient<IProductRepository, ProductRepository>();            
 
             var app = builder.Build();
 
@@ -34,11 +35,15 @@ namespace SportsStore.WebUI
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            app.UseAuthorization();           
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Product}/{action=List}/{id?}");
+                pattern: "{controller}/{action}/{id?}",
+                defaults: new { 
+                controller = "Product",
+                action = "List"
+                });
 
             app.Run();
         }

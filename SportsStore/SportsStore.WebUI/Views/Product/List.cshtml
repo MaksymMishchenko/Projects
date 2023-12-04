@@ -1,10 +1,13 @@
-﻿@model IEnumerable<SportsStore.Domain.Entities.Product>;
+﻿@model SportsStore.WebUI.Models.ProductsListViewModel;
 
-@foreach (var product in Model)
-{
-    <div class="item">
-        <h3 class="item">@product.Name</h3>
-        @product.Description
-        <h4>@product.Price?.ToString("c")</h4>
-    </div>
+@{
+    ViewData["Title"] = "Product List";
 }
+
+@foreach (var product in Model.Products!)
+{
+    @Html.RenderPartialAsync("ProductSummary", product);
+}
+
+<div page-model="@Model.PagingInfo" class="pager"></div>
+
