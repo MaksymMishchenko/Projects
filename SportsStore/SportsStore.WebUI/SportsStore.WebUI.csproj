@@ -16,8 +16,4 @@
     <ProjectReference Include="..\SportsStore.Domain\SportsStore.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="HtmlHelpers\" />
-  </ItemGroup>
-
 </Project>
