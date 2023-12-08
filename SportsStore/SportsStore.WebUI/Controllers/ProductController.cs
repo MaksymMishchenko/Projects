@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer.Query.Internal;
 using SportsStore.Domain.Interfaces;
 using SportsStore.WebUI.Models;
 using System.Diagnostics;
@@ -20,23 +19,12 @@ namespace SportsStore.WebUI.Controllers
             _repository = repository;
         }
 
-        public async Task<IActionResult> List(int page = 1)
+        public IActionResult List(int page = 1)
         {
-            var model = new ProductsListViewModel
-            {
-                Products = await _repository.Products
+            return View(_repository.Products
             .OrderBy(p => p.ProductId)
             .Skip((page - 1) * PageSize)
-            .Take(PageSize).ToListAsync(),
-                PagingInfo = new PagingInfo
-                {
-                    CurrentPage = page,
-                    ItemsPerPage = PageSize,
-                    TotalItems = _repository.Products.Count()
-                }
-            };
-
-            return View(model);
+            .Take(PageSize));
         }
 
         public IActionResult Privacy()
