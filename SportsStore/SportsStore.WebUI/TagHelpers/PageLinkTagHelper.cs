@@ -18,7 +18,6 @@ namespace SportsStore.WebUI.TagHelpers
             for (int i = 1; i <= pageCount; i++)
             {
                 var tag = new TagBuilder("a");
-                //var url = $"{PageAction}?page={i}";
                 var url = $"?page={i}";
 
                 tag.Attributes["href"] = url;
