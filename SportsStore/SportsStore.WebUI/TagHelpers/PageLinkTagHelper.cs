@@ -13,7 +13,7 @@ namespace SportsStore.WebUI.TagHelpers
         {
             output.TagName = "div";
 
-            var pageCount = PageModel.TotalPages;
+            var pageCount = PageModel?.TotalPages;
 
             for (int i = 1; i <= pageCount; i++)
             {
@@ -24,7 +24,7 @@ namespace SportsStore.WebUI.TagHelpers
                 tag.Attributes["href"] = url;
                 tag.InnerHtml.Append(i.ToString());
 
-                if (i == PageModel.CurrentPage)
+                if (i == PageModel?.CurrentPage)
                 {
                     tag.AddCssClass("selected");
                 }
