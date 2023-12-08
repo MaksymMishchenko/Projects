@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsStore.Domain", "SportsStore.Domain\SportsStore.Domain.csproj", "{A8478747-6E6D-4C1F-9AA2-0622AB1D1946}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportsStore.Domain", "SportsStore.Domain\SportsStore.Domain.csproj", "{A8478747-6E6D-4C1F-9AA2-0622AB1D1946}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsStore.WebUI", "SportsStore.WebUI\SportsStore.WebUI.csproj", "{3CB7F3AE-07B0-4981-9724-EB8080AA7597}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SportsStore.WebUI", "SportsStore.WebUI\SportsStore.WebUI.csproj", "{3CB7F3AE-07B0-4981-9724-EB8080AA7597}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsStore.UnitTests", "SportsStore.UnitTests\SportsStore.UnitTests.csproj", "{F8D1C4DA-184B-425F-B9DE-159F95C1F61C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportsStore.UnitTests", "SportsStore.UnitTests\SportsStore.UnitTests.csproj", "{0EDEE555-8E43-4B89-9BB8-365AF2DFA345}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{3CB7F3AE-07B0-4981-9724-EB8080AA7597}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CB7F3AE-07B0-4981-9724-EB8080AA7597}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CB7F3AE-07B0-4981-9724-EB8080AA7597}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F8D1C4DA-184B-425F-B9DE-159F95C1F61C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F8D1C4DA-184B-425F-B9DE-159F95C1F61C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F8D1C4DA-184B-425F-B9DE-159F95C1F61C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F8D1C4DA-184B-425F-B9DE-159F95C1F61C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EDEE555-8E43-4B89-9BB8-365AF2DFA345}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EDEE555-8E43-4B89-9BB8-365AF2DFA345}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EDEE555-8E43-4B89-9BB8-365AF2DFA345}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EDEE555-8E43-4B89-9BB8-365AF2DFA345}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
