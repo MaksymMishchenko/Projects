@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SportsStore.Domain.Interfaces;
 using SportsStore.WebUI.Models;
 using System.Diagnostics;
@@ -21,10 +20,21 @@ namespace SportsStore.WebUI.Controllers
 
         public IActionResult List(int page = 1)
         {
-            return View(_repository.Products
+            var model = new ProductsListViewModel
+            {
+                Products = _repository.Products
             .OrderBy(p => p.ProductId)
             .Skip((page - 1) * PageSize)
-            .Take(PageSize));
+            .Take(PageSize),
+                PagingInfo = new PagingInfo
+                {
+                    CurrentPage = page,
+                    ItemsPerPage = PageSize,
+                    TotalItems = _repository.Products.Count()
+                }
+            };
+
+            return View(model);
         }
 
         public IActionResult Privacy()
