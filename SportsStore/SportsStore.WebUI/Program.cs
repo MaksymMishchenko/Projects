@@ -35,7 +35,16 @@ namespace SportsStore.WebUI
 
             app.UseRouting();
 
-            app.UseAuthorization();           
+            app.UseAuthorization();
+
+            app.MapControllerRoute(
+                name: null,
+                pattern: "{controller}/{action}/Page{page}",
+                defaults: new
+                {
+                    controller = "Product",
+                    action = "List"
+                });
 
             app.MapControllerRoute(
                 name: "default",
