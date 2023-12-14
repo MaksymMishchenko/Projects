@@ -38,21 +38,53 @@ namespace SportsStore.WebUI
             app.UseAuthorization();
 
             app.MapControllerRoute(
-                name: null,
-                pattern: "{controller}/{action}/Page{page}",
-                defaults: new
-                {
-                    controller = "Product",
-                    action = "List"
-                });
+              name: null!,
+              pattern: "",
+              new
+              {
+                  controller = "Product",
+                  action = "List",
+                  category = (string?)null,
+                  page = 1, 
+              });
+
 
             app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller}/{action}/{id?}",
-                defaults: new { 
+               name: null!,
+               pattern: "Page{page}",
+               new
+               {
+                   controller = "Product",
+                   action = "List",
+                   category = (string?)null,
+               },
+               new { page = @"\d+" });
+
+            app.MapControllerRoute(
+                name: null!,
+                pattern: "{category}",
+                new { controller = "Product", action = "List", page = 1 });
+
+            app.MapControllerRoute(
+                name: null!,
+                pattern: "{category}/Page/{page}",
+                new { 
                 controller = "Product",
                 action = "List"
-                });
+                },
+                new { page = @"\d+"});
+
+            app.MapControllerRoute(null!, "{controller}/{action}");
+
+
+            //app.MapControllerRoute(
+            //   name: null,
+            //   pattern: "{controller}/{action}/{id?}",
+            //   defaults: new
+            //   {
+            //       controller = "Product",
+            //       action = "List"
+            //   });
 
             app.Run();
         }

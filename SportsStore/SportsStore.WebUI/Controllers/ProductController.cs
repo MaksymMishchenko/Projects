@@ -7,14 +7,12 @@ namespace SportsStore.WebUI.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly ILogger<ProductController> _logger;
         private readonly IProductRepository _repository;
         public int PageSize = 4;
 
 
-        public ProductController(ILogger<ProductController> logger, IProductRepository repository)
-        {
-            _logger = logger;
+        public ProductController(IProductRepository repository)
+        {      
             _repository = repository;
         }
 
@@ -31,7 +29,9 @@ namespace SportsStore.WebUI.Controllers
                 {
                     CurrentPage = page,
                     ItemsPerPage = PageSize,
-                    TotalItems = _repository.Products.Count()
+                    TotalItems = category == null ?
+                    _repository.Products.Count() :
+                    _repository.Products.Where(e => e.Category == category).Count()
                 },
                 CurrentCategory = category
             };
