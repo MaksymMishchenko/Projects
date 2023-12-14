@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Razor.TagHelpers;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Moq;
 using SportsStore.Domain.Entities;
 using SportsStore.Domain.Interfaces;
 using SportsStore.WebUI.Controllers;
+using SportsStore.WebUI.HtmlHelpers;
 using SportsStore.WebUI.Models;
-using SportsStore.WebUI.TagHelpers;
 
 namespace SportsStore.UnitTests
 {
@@ -31,7 +31,7 @@ namespace SportsStore.UnitTests
             }.AsQueryable());
 
             // Act
-            var controller = new ProductController(null!, mock.Object);
+            var controller = new ProductController(mock.Object);
             controller.PageSize = 3;
 
             var getViewResult = controller.List(null!, 2) as ViewResult;
@@ -47,35 +47,25 @@ namespace SportsStore.UnitTests
         [Test]
         public void Can_Generate_Page_Links()
         {
+            var htmlHelper = new Mock<IHtmlHelper>();
             // Arrange
-            var tagHelper = new PaginationTagHelper
+            PagingInfo info = new PagingInfo
             {
-                PageModel = new PagingInfo
-                {
-                    TotalItems = 10,
-                    ItemsPerPage = 2,
-                    CurrentPage = 1
-                }
+                CurrentPage = 2,
+                TotalItems = 28,
+                ItemsPerPage = 10
             };
 
-            var tagHelperContext = new TagHelperContext(
-                new TagHelperAttributeList(),
-                new Dictionary<object, object>(),
-                Guid.NewGuid().ToString("N"));
-
-            var tagHelperOutput = new TagHelperOutput(
-                "div",
-                new TagHelperAttributeList(),
-                (_, __) => Task.FromResult<TagHelperContent>(new DefaultTagHelperContent()));
+            Func<int, string> pageUrl = x => $"/Page/{x}";
 
             // Act
-            tagHelper.Process(tagHelperContext, tagHelperOutput);
+            var result = PagingHelpers.PagingLinks(htmlHelper.Object, info, pageUrl);
 
             // Assert
-            var content = tagHelperOutput.Content.GetContent();
-            Assert.That(content, Is.Not.Empty);
-            Assert.That(content, Contains.Substring("<a class=\"selected\" href=\"?page=1\">1</a>"));
-            Assert.That(content, Contains.Substring("<a href=\"?page=2\">2</a>"));
+
+            Assert.That(result != null);
+            Assert.AreEqual("<div><a href='/Page/1'>1</a><a href='/Page/2' class='selected'>2</a><a href='/Page/3'>3</a></div>", result.ToString());
+            //Assert.That(result.ToString(), Contains.Substring("@\"<div>\" + @\"<a href=\"\"Page1\"\">1</a>\"\r\n               + @\"<a class=\"\"selected\"\" href=\"\"Page2\"\">2</a>\"\r\n               + @\"<a href=\"\"Page3\"\">3</a>\" + @\"</div>\""));
         }
 
         [Test]
@@ -91,7 +81,7 @@ namespace SportsStore.UnitTests
                 new Product { ProductId = 5, Name = "P5" }
             }.AsQueryable());
 
-            var controller = new ProductController(null!, mock.Object);
+            var controller = new ProductController(mock.Object);
             controller.PageSize = 3;
 
             // Act
@@ -119,7 +109,7 @@ namespace SportsStore.UnitTests
                 new Product { ProductId = 5, Name = "P5", Category = "Cat3" }
             }.AsQueryable());
 
-            var controller = new ProductController(null!, mock.Object);
+            var controller = new ProductController(mock.Object);
             controller.PageSize = 3;
 
             // Action
@@ -131,6 +121,63 @@ namespace SportsStore.UnitTests
             Assert.That(prodArray?.Length == 2);
             Assert.That(prodArray[0].Name == "P2" && prodArray[0].Category == "Cat2");
             Assert.That(prodArray[1].Name == "P4" && prodArray[1].Category == "Cat2");
+        }
+
+        [Test]
+        public void Can_Create_Categories()
+        {
+            Mock<IProductRepository> mock = new Mock<IProductRepository>();
+            mock.Setup(m => m.Products).Returns(new Product[] {
+                 new Product { ProductId = 1, Name = "P1", Category = "Apples"},
+                 new Product { ProductId = 2, Name = "P2", Category = "Apples" },
+                 new Product { ProductId = 3, Name = "P3", Category = "Plums" },
+                 new Product { ProductId = 4, Name = "P4", Category = "Oranges" },
+            }.AsQueryable());
+
+            var target = new NavController(mock.Object);
+
+            string[] results = ((IEnumerable<string>)target.Menu().Model!).ToArray();
+
+            Assert.That(results?.Length == 3);
+            Assert.That(results[0], Is.EqualTo("Apples"));
+            Assert.That(results[1], Is.EqualTo("Oranges"));
+            Assert.That(results[2], Is.EqualTo("Plums"));
+        }
+
+        [Test]
+        public void Generate_Category_Specific_Product_Count()
+        {
+            // Arrange
+            Mock<IProductRepository> mock = new Mock<IProductRepository>();
+            mock.Setup(m => m.Products).Returns(new Product[] {
+            new Product{ ProductId = 1, Name = "P1", Category = "Cat1" },
+            new Product{ ProductId = 2, Name = "P2", Category = "Cat2" },
+            new Product{ ProductId = 3, Name = "P3", Category = "Cat1" },
+            new Product{ ProductId = 4, Name = "P4", Category = "Cat2" },
+            new Product{ ProductId = 5, Name = "P5", Category = "Cat3" },
+            }.AsQueryable());
+
+            var controller = new ProductController(mock.Object);
+            controller.PageSize = 3;
+
+            // Act
+            var data1 = controller.List("Cat1") as ViewResult;
+            var res1 = ((ProductsListViewModel)data1!.ViewData.Model!).PagingInfo!.TotalItems;
+
+            var data2 = controller.List("Cat2") as ViewResult;
+            var res2 = ((ProductsListViewModel)data2!.ViewData.Model!).PagingInfo!.TotalItems;
+
+            var data3 = controller.List("Cat3") as ViewResult;
+            var res3 = ((ProductsListViewModel)data3!.ViewData.Model!).PagingInfo!.TotalItems;
+
+            var dataAll = controller.List(null!) as ViewResult;
+            var resAll = ((ProductsListViewModel)dataAll!.ViewData.Model!).PagingInfo!.TotalItems;
+
+            // Assert
+            Assert.That(res1, Is.EqualTo(2));
+            Assert.That(res2, Is.EqualTo(2));
+            Assert.That(res3, Is.EqualTo(1));
+            Assert.That(resAll, Is.EqualTo(5));
         }
     }
 }

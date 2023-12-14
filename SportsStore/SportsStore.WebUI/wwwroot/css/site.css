@@ -88,3 +88,27 @@ div.pager {
             background-color: #353535;
             color: white;
         }
+
+div.categories a {
+    font-family: Arial;
+    font-weight: bold;
+    font-size: 1.1em;
+    display: block;
+    text-decoration: none;
+    padding: .6em;
+    color: black;
+    border-bottom: 1px solid silver;
+}
+
+    div.categories a.selected {
+        background-color: #666;
+        color: white;
+    }
+
+    div.categories a:hover {
+        background-color: #ccc;        
+    }
+
+    div.categories a.selected:hover {
+        background-color: #666;
+    }

@@ -1,13 +1,22 @@
-﻿@model SportsStore.WebUI.Models.ProductsListViewModel
+﻿@using SportsStore.WebUI.HtmlHelpers
+@model SportsStore.WebUI.Models.ProductsListViewModel
 
 @{
     ViewData["Title"] = "Product List";
 }
 
-@foreach (var product in Model.Products)
+@foreach (var product in Model.Products!)
 {
-    Html.RenderPartial("ProductSummary", product);
+    <div class="item">
+        <h3 class="item">@product.Name</h3>
+        @product.Description
+        <h4>@product.Price?.ToString("c")</h4>
+    </div>
 }
 
-<div page-model="@Model.PagingInfo" action="" class="pager"></div>
+<div class="pager">
+    @Html.PagingLinks(Model.PagingInfo!, x => Url.Action("List", new { page = x, category = Model.CurrentCategory })!)
+</div>
+
+
 
