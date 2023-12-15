@@ -7,11 +7,7 @@
 
 @foreach (var product in Model.Products!)
 {
-    <div class="item">
-        <h3 class="item">@product.Name</h3>
-        @product.Description
-        <h4>@product.Price?.ToString("c")</h4>
-    </div>
+   await Html.RenderPartialAsync("_ProductSummary", product);
 }
 
 <div class="pager">

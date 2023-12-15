@@ -13,11 +13,11 @@ namespace SportsStore.WebUI.Controllers
 
         public ProductController(IProductRepository repository)
         {      
-            _repository = repository;
+            _repository = repository;      
         }
 
         public IActionResult List(string category, int page = 1)
-        {
+        {       
             var model = new ProductsListViewModel
             {
                 Products = _repository.Products
