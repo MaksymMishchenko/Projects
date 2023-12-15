@@ -13,7 +13,9 @@
         <h1 class="title">Sports store</h1>
     </header>
 
-    <div class="categories"></div>
+    <div class="categories">
+        @await Component.InvokeAsync("NavPartial")
+    </div>
 
     <div class="container">
         <main role="main">

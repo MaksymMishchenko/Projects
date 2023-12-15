@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Moq;
 using SportsStore.Domain.Entities;
 using SportsStore.Domain.Interfaces;
+using SportsStore.WebUI.Components;
 using SportsStore.WebUI.Controllers;
 using SportsStore.WebUI.HtmlHelpers;
 using SportsStore.WebUI.Models;
@@ -126,6 +128,7 @@ namespace SportsStore.UnitTests
         [Test]
         public void Can_Create_Categories()
         {
+            // Arrange
             Mock<IProductRepository> mock = new Mock<IProductRepository>();
             mock.Setup(m => m.Products).Returns(new Product[] {
                  new Product { ProductId = 1, Name = "P1", Category = "Apples"},
@@ -134,14 +137,19 @@ namespace SportsStore.UnitTests
                  new Product { ProductId = 4, Name = "P4", Category = "Oranges" },
             }.AsQueryable());
 
-            var target = new NavController(mock.Object);
+            var target = new NavPartialViewComponent(mock.Object);
 
-            string[] results = ((IEnumerable<string>)target.Menu().Model!).ToArray();
+            // Act
+            var result = target.Invoke() as ViewViewComponentResult;
+            var categories = (result?.ViewData?.Model as IEnumerable<string>)?.ToArray();
 
-            Assert.That(results?.Length == 3);
-            Assert.That(results[0], Is.EqualTo("Apples"));
-            Assert.That(results[1], Is.EqualTo("Oranges"));
-            Assert.That(results[2], Is.EqualTo("Plums"));
+            // Assert
+            Assert.IsNotNull(categories);
+            Assert.That(result?.ViewName, Is.EqualTo("_Menu"));
+            Assert.That(categories?.Count() == 3);
+            Assert.That(categories[0], Is.EqualTo("Apples"));
+            Assert.That(categories[1], Is.EqualTo("Oranges"));
+            Assert.That(categories[2], Is.EqualTo("Plums"));
         }
 
         [Test]
