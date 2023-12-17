@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SportsStore.Domain.Entities;
 using SportsStore.Domain.Interfaces;
+using SportsStore.WebUI.Extensions;
 using SportsStore.WebUI.Models;
 
 namespace SportsStore.WebUI.Controllers
@@ -15,7 +16,8 @@ namespace SportsStore.WebUI.Controllers
 
         public IActionResult Index(string returnUrl)
         {
-            return View(new CartIndexViewModel { Cart = GetCart(), ReturnUrl = returnUrl });
+            var model = new CartIndexViewModel { Cart = GetCart(), ReturnUrl = returnUrl };
+            return View(model);
         }
 
         public IActionResult AddToCart(int productId, string returnUrl)
@@ -24,7 +26,20 @@ namespace SportsStore.WebUI.Controllers
 
             if (product != null)
             {
-                GetCart().AddItem(product, 1);
+                var getCart = HttpContext.Session.Get<Cart>("Cart");
+
+                if (getCart == null)
+                {
+                    var newCart = new Cart();
+                    newCart.AddItem(product, 1);
+                    HttpContext.Session.Set("Cart", newCart);
+                }
+                else
+                {
+                    Cart? existCart = getCart;
+                    existCart?.AddItem(product, 1);
+                    HttpContext.Session.Set("Cart", existCart);
+                }
             }
 
             return RedirectToAction("Index", new { returnUrl });
@@ -33,19 +48,18 @@ namespace SportsStore.WebUI.Controllers
         public IActionResult RemoveFromCart(int productId, string returnUrl)
         {
             var product = _repository.Products.FirstOrDefault(p => p.ProductId == productId);
-
+        
             if (product != null)
             {
-                GetCart().RemoveLine(product);
+                GetCart()?.RemoveLine(product);
             }
-
+        
             return RedirectToAction("Index", new { returnUrl });
         }
 
-        private Cart GetCart()
+        private Cart? GetCart()
         {
-            var cart = new Cart();
-            return cart;
+            return HttpContext.Session.Get<Cart>("Cart");
         }
     }
 }

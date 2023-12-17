@@ -22,9 +22,8 @@
                 <td align="center">@line.Quantity</td>
                 <td align="left">@line.Product?.Name</td>
                 <td align="right">@line.Product?.Price?.ToString("c")</td>
-                <td align="right">((@line.Quantity * @line.Product?.Price).ToString("c"))</td>
+                <td align="right">@((line.Quantity * line.Product?.Price ?? 0).ToString("c"))</td>
             </tr>
-
         }
     </tbody>
     <tfoot>
