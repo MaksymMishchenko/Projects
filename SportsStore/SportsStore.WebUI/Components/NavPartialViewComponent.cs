@@ -13,8 +13,7 @@ namespace SportsStore.WebUI.Components
 
         public IViewComponentResult Invoke(string? category)
         {
-            ViewData["SelectedCategory"] = category;
-            //ViewData["SelectedCategory"] = RouteData.Values["category"]?.ToString();
+            ViewData["SelectedCategory"] = category;            
             var categories = _repository.Products.Select(p => p.Category).Distinct().OrderBy(c => c);
             return View("_Menu", categories);
         }
