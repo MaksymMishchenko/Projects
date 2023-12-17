@@ -10,9 +10,11 @@ namespace SportsStore.WebUI.Components
         {
             _repository = repo;
         }
-        public IViewComponentResult Invoke()
+
+        public IViewComponentResult Invoke(string? category)
         {
-            //ViewBag.SelectedCategory = category;
+            ViewData["SelectedCategory"] = category;
+            //ViewData["SelectedCategory"] = RouteData.Values["category"]?.ToString();
             var categories = _repository.Products.Select(p => p.Category).Distinct().OrderBy(c => c);
             return View("_Menu", categories);
         }

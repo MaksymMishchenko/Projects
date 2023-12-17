@@ -14,7 +14,7 @@
     </header>
 
     <div class="categories">
-        @await Component.InvokeAsync("NavPartial")
+        @await Component.InvokeAsync("NavPartial", new { category = ViewContext.RouteData.Values["category"] })
     </div>
 
     <div class="container">

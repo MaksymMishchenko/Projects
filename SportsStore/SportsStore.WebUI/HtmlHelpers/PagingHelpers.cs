@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using NuGet.Protocol;
 using SportsStore.WebUI.Models;
-using System.Text;
 
 namespace SportsStore.WebUI.HtmlHelpers
 {
