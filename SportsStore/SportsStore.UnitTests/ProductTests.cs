@@ -140,7 +140,7 @@ namespace SportsStore.UnitTests
             var target = new NavPartialViewComponent(mock.Object);
 
             // Act
-            var result = target.Invoke() as ViewViewComponentResult;
+            var result = target.Invoke(null) as ViewViewComponentResult;
             var categories = (result?.ViewData?.Model as IEnumerable<string>)?.ToArray();
 
             // Assert
@@ -150,6 +150,28 @@ namespace SportsStore.UnitTests
             Assert.That(categories[0], Is.EqualTo("Apples"));
             Assert.That(categories[1], Is.EqualTo("Oranges"));
             Assert.That(categories[2], Is.EqualTo("Plums"));
+        }
+
+        [Test]
+        public void Indicates_Selected_Category()
+        {
+            // Arrange
+            var mock = new Mock<IProductRepository>();
+            mock.Setup(m => m.Products).Returns(new Product[] {
+                new Product{ ProductId = 1, Name = "P1", Category = "Apples"},
+                new Product{ ProductId = 4, Name = "P2", Category = "Oranges"},
+            }.AsQueryable());
+
+            var navComponent = new NavPartialViewComponent(mock.Object);
+
+            string categoryToSelect = "Apples";
+
+            // Act
+            var result = (navComponent?.Invoke(categoryToSelect) as ViewViewComponentResult)?.ViewData?["SelectedCategory"];
+
+            // Assert
+            Assert.That(result != null);
+            Assert.That(categoryToSelect, Is.EqualTo(result));
         }
 
         [Test]

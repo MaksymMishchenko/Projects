@@ -44,9 +44,8 @@ namespace SportsStore.WebUI
                   controller = "Product",
                   action = "List",
                   category = (string?)null,
-                  page = 1,
-              });
-
+                  page = 1
+              });            
 
             app.MapControllerRoute(
                name: null!,
@@ -66,7 +65,7 @@ namespace SportsStore.WebUI
 
             app.MapControllerRoute(
                 name: null!,
-                pattern: "{category}/Page/{page}",
+                pattern: "{category}/Page{page}",
                 new
                 {
                     controller = "Product",
@@ -74,17 +73,7 @@ namespace SportsStore.WebUI
                 },
                 new { page = @"\d+" });
 
-            app.MapControllerRoute(null!, "{controller}/{action}");
-
-
-            //app.MapControllerRoute(
-            //   name: null,
-            //   pattern: "{controller}/{action}/{id?}",
-            //   defaults: new
-            //   {
-            //       controller = "Product",
-            //       action = "List"
-            //   });
+            app.MapControllerRoute(null!, "{controller}/{action}");            
 
             app.Run();
         }
