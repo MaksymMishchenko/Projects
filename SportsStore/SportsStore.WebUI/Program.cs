@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SportsStore.Domain.Concrete;
 using SportsStore.Domain.Interfaces;
+using SportsStore.WebUI.Binders;
 
 namespace SportsStore.WebUI
 {
@@ -18,13 +19,18 @@ namespace SportsStore.WebUI
                 options.UseSqlServer(connectionString));
 
             builder.Services.AddTransient<IProductRepository, ProductRepository>();
-            builder.Services.AddDistributedMemoryCache();   
+            builder.Services.AddDistributedMemoryCache();
 
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(20);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+            });
+
+            builder.Services.AddMvc(options =>
+            {
+                options.ModelBinderProviders.Insert(0, new CartModelBinderProvider());
             });
 
             var app = builder.Build();
@@ -54,7 +60,7 @@ namespace SportsStore.WebUI
                   action = "List",
                   category = (string?)null,
                   page = 1
-              });            
+              });
 
             app.MapControllerRoute(
                name: null!,
@@ -82,7 +88,7 @@ namespace SportsStore.WebUI
                 },
                 new { page = @"\d+" });
 
-            app.MapControllerRoute(null!, "{controller}/{action}");            
+            app.MapControllerRoute(null!, "{controller}/{action}");
 
             app.Run();
         }
