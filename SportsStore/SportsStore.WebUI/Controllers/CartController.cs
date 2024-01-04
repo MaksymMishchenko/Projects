@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SportsStore.Domain.Entities;
 using SportsStore.Domain.Interfaces;
+using SportsStore.WebUI.Binders;
 using SportsStore.WebUI.Extensions;
 using SportsStore.WebUI.Models;
 
@@ -14,52 +15,35 @@ namespace SportsStore.WebUI.Controllers
             _repository = repo;
         }
 
-        public IActionResult Index(string returnUrl)
+        public IActionResult Index([ModelBinder(typeof(CartModelBinder))] Cart cart, string returnUrl)
         {
-            var model = new CartIndexViewModel { Cart = GetCart(), ReturnUrl = returnUrl };
+            var model = new CartIndexViewModel { Cart = cart, ReturnUrl = returnUrl };
             return View(model);
         }
 
-        public IActionResult AddToCart(int productId, string returnUrl)
+        public IActionResult AddToCart([ModelBinder(typeof(CartModelBinder))] Cart cart, int productId, string returnUrl)
         {
             var product = _repository.Products.FirstOrDefault(p => p.ProductId == productId);
 
             if (product != null)
             {
-                var getCart = HttpContext.Session.Get<Cart>("Cart");
-
-                if (getCart == null)
-                {
-                    var newCart = new Cart();
-                    newCart.AddItem(product, 1);
-                    HttpContext.Session.Set("Cart", newCart);
-                }
-                else
-                {
-                    Cart? existCart = getCart;
-                    existCart?.AddItem(product, 1);
-                    HttpContext.Session.Set("Cart", existCart);
-                }
+                cart.AddItem(product, 1);
+                HttpContext.Session.Set("Cart", cart);
             }
 
             return RedirectToAction("Index", new { returnUrl });
         }
 
-        public IActionResult RemoveFromCart(int productId, string returnUrl)
+        public IActionResult RemoveFromCart(Cart cart, int productId, string returnUrl)
         {
             var product = _repository.Products.FirstOrDefault(p => p.ProductId == productId);
-        
+
             if (product != null)
             {
-                GetCart()?.RemoveLine(product);
+                cart.RemoveLine(product);
             }
-        
-            return RedirectToAction("Index", new { returnUrl });
-        }
 
-        private Cart? GetCart()
-        {
-            return HttpContext.Session.Get<Cart>("Cart");
+            return RedirectToAction("Index", new { returnUrl });
         }
     }
 }
