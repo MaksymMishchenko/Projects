@@ -1,7 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
+using MoviesTelegramBotApp.Services;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -11,12 +14,13 @@ namespace MoviesTelegramBotApp
 {
     internal class Program
     {
+        private static CancellationTokenSource _cts;
         private static IHost _host;
-        private static CancellationTokenSource _cts;       
 
-        public static async Task Main(string[] args)
-        {      
-            _host = Startup.CreateHostBuilder(args).Build();
+        public static void Main()
+        {
+            _host = CreateHostBuilder().Build();
+
             _cts = new CancellationTokenSource();
 
             var botService = _host.Services.GetRequiredService<IBotService>();
@@ -35,9 +39,30 @@ namespace MoviesTelegramBotApp
 
             Console.ReadLine();
             _cts.Cancel();
-
-            await Task.Delay(1000);
         }
+
+        public static IHostBuilder CreateHostBuilder() =>
+        Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services.AddDbContext<ApplicationDbContext>(options =>
+                    options.UseSqlServer(context.Configuration.GetConnectionString("DefaultConnection")));
+
+                var apiKey = context.Configuration["TelegramBot:ApiKey"];
+                services.AddSingleton(new TelegramBotClient(apiKey));
+
+                services.AddTransient<IMovieService, MovieService>();
+                services.AddSingleton<IBotService, BotService>();
+                //services.AddTransient<IMovieService, MovieService>();
+                services.AddScoped<UpdateHandler>();
+                services.AddLogging(configure => configure.AddConsole());
+            })
+            .ConfigureAppConfiguration((hostingContext, config) =>
+            {
+                config.SetBasePath(Directory.GetCurrentDirectory());
+                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                config.AddEnvironmentVariables();
+            });
 
         private static Task HandleErrorAsync(ITelegramBotClient bot, Exception ex, CancellationToken cts)
         {
@@ -49,7 +74,7 @@ namespace MoviesTelegramBotApp
                 $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}"
             };
 
-            logger.LogError(errorMessage);
+            //logger.LogError(errorMessage);
             return Task.CompletedTask;
         }
     }
