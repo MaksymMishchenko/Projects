@@ -10,8 +10,14 @@ namespace MoviesTelegramBotApp.Services
         private ApplicationDbContext _dbContext;
         public MovieService(ApplicationDbContext dbContext)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
+
+        public async Task<List<Movie>> GetAllMoviesAsync()
+        {
+            return await _dbContext.Movies.Include(m => m.Genre).ToListAsync();
+        }
+
         public string BuildMoviesResponse(List<Movie> movies)
         {
             var response = new StringBuilder();
@@ -30,16 +36,11 @@ namespace MoviesTelegramBotApp.Services
                 response.AppendLine($"Genre: {movie.Genre}");
                 response.AppendLine($"Trailer: {movie.MovieUrl}");
                 response.AppendLine($"Interest facts: {movie.InterestFactsUrl}");
-                response.AppendLine($"Interest facts: {movie.BehindTheScene}");
+                response.AppendLine($"Behind the scene: {movie.BehindTheScene}");
                 response.AppendLine();
             }
 
             return response.ToString();
-        }
-
-        public List<Movie> GetMovies()
-        {
-            return _dbContext.Movies.ToList();
         }
     }
 }

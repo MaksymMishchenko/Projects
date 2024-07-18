@@ -7,7 +7,7 @@
         public string? Description { get; set; }
 
         public string? Country { get; set; }
-        public decimal Budget { get; set; }
+        public string? Budget { get; set; }
         public string? ImageUrl { get; set; }
         public string? MovieUrl { get; set; }
         public string? InterestFactsUrl { get; set; }

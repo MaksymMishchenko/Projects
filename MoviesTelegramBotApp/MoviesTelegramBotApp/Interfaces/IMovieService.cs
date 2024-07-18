@@ -4,7 +4,7 @@ namespace MoviesTelegramBotApp.Interfaces
 {
     internal interface IMovieService
     {
-        List<Movie> GetMovies();
+        Task<List<Movie>> GetAllMoviesAsync();
         string BuildMoviesResponse(List<Movie> movies);
     }
 }
