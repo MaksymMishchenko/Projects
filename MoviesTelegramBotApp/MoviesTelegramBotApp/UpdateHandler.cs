@@ -94,7 +94,9 @@ internal class UpdateHandler
                 break;
 
             case "Previous":
-                //todo: functionality in progress
+                DecrementPage();
+                await SendMoviesAsync(chatId, cancellationToken);
+                await MoviesMenu(chatId, cancellationToken);
                 break;
 
             case "Next":
@@ -105,6 +107,7 @@ internal class UpdateHandler
 
             default:
                 await _botService.SendTextMessageAsync(chatId, "The command is not recognized");
+                //todo: need to add Main menu button
                 break;
         }
     }
