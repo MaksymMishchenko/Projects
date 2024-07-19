@@ -5,7 +5,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace MoviesTelegramBotApp.Interfaces
 {
-    internal interface IBotService
+    public interface IBotService
     {
         Task SendTextMessageAsync(long chatId, string response);
         Task SendTextMessageAsync(long chatId, string response, CancellationToken cancellationToken);
