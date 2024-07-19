@@ -52,13 +52,12 @@ namespace MoviesTelegramBotApp.Tests
             var movieService = new MovieService(dbContext);
 
             // Act
-            var result = await movieService.GetAllMoviesAsync();
+            var result = await movieService.GetAllMoviesAsync(2);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Single(result);
-            //Assert.Equal(1, result.Count);
-            Assert.Equal("Die hard", result.First().Title);
+            Assert.Single(result);            
+            Assert.Equal("The Mask", result.First().Title);
         }
     }
 }
