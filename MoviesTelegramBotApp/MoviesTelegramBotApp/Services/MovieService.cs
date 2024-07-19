@@ -16,7 +16,8 @@ namespace MoviesTelegramBotApp.Services
 
         public async Task<List<Movie>> GetAllMoviesAsync(int moviePage = 1)
         {
-            return await _dbContext.Movies
+            return await _dbContext.Movies.
+                Include(m => m.Genre)
                 .OrderBy(m => m.Id)
                 .Skip((moviePage - 1) * PageSize)
                 .Take(PageSize)
