@@ -5,7 +5,7 @@ using System.Text;
 
 namespace MoviesTelegramBotApp.Services
 {
-    internal class MovieService : IMovieService
+    public class MovieService : IMovieService
     {
         private ApplicationDbContext _dbContext;
         public MovieService(ApplicationDbContext dbContext)
@@ -15,7 +15,14 @@ namespace MoviesTelegramBotApp.Services
 
         public async Task<List<Movie>> GetAllMoviesAsync()
         {
-            return await _dbContext.Movies.Include(m => m.Genre).ToListAsync();
+            int pageSize = 1;
+            int moviePage = 1;
+            return await _dbContext.Movies
+                .Include(m => m.Genre)
+                .OrderBy(m => m.GenreId)
+                .Skip((moviePage - 1) * pageSize)
+                .Take(pageSize)
+            .ToListAsync();
         }
 
         public string BuildMoviesResponse(List<Movie> movies)

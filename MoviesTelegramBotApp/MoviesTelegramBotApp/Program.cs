@@ -12,7 +12,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace MoviesTelegramBotApp
 {
-    internal class Program
+    public class Program
     {
         private static CancellationTokenSource _cts;
         private static IHost _host;

@@ -3,7 +3,7 @@ using MoviesTelegramBotApp.Models;
 
 namespace MoviesTelegramBotApp
 {
-    internal class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : DbContext
     {
         public DbSet<Movie> Movies { get; set; }
         public DbSet<Genre> Genres { get; set; }
