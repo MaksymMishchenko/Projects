@@ -63,7 +63,7 @@ internal class UpdateHandler
         switch (messageText)
         {
             case "Movies":
-                await SendMoviesAsync(chatId, cancellationToken);
+                //await SendMoviesAsync(chatId, cancellationToken);
                 break;
             case "Cartoons":
                 //todo: functionality in progress
@@ -75,33 +75,33 @@ internal class UpdateHandler
         }
     }
 
-    private async Task SendMoviesAsync(long chatId, CancellationToken cancellationToken)
-    {
-        var movies = await _movieService.GetAllMoviesAsync();
-        var response = _movieService.BuildMoviesResponse(movies);
-
-        foreach (var movie in movies)
-        {
-            if (!string.IsNullOrEmpty(movie.ImageUrl))
-            {
-                await _botService.SendPhotoWithInlineButtonUrlAsync(
-                    chatId,
-                    photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
-                    caption: $"<strong>Title:</strong> {movie.Title}\n" +
-                    $"<strong>Genre:</strong> {movie.Genre.Name}\n" +
-                    $"<strong>Description:</strong> {movie.Description}\n" +
-                    $"<strong>Country:</strong> {movie.Country}\n" +
-                    $"<strong>Budget:</strong> {movie.Budget}\n" +
-                    $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
-                    $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
-                    parseMode: ParseMode.Html,
-                    replyMarkup: new InlineKeyboardMarkup(
-            InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)));
-            }
-            else
-            {
-                await _botService.SendTextMessageAsync(chatId, response, cancellationToken);
-            }
-        }
-    }
+    //private async Task SendMoviesAsync(long chatId, CancellationToken cancellationToken)
+    //{
+    //    var movies = await _movieService.GetAllMoviesAsync();
+    //    var response = _movieService.BuildMoviesResponse(movies);
+    //
+    //    foreach (var movie in movies)
+    //    {
+    //        if (!string.IsNullOrEmpty(movie.ImageUrl))
+    //        {
+    //            await _botService.SendPhotoWithInlineButtonUrlAsync(
+    //                chatId,
+    //                photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
+    //                caption: $"<strong>Title:</strong> {movie.Title}\n" +
+    //                $"<strong>Genre:</strong> {movie.Genre.Name}\n" +
+    //                $"<strong>Description:</strong> {movie.Description}\n" +
+    //                $"<strong>Country:</strong> {movie.Country}\n" +
+    //                $"<strong>Budget:</strong> {movie.Budget}\n" +
+    //                $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
+    //                $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
+    //                parseMode: ParseMode.Html,
+    //                replyMarkup: new InlineKeyboardMarkup(
+    //        InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)));
+    //        }
+    //        else
+    //        {
+    //            await _botService.SendTextMessageAsync(chatId, response, cancellationToken);
+    //        }
+    //    }
+    //}
 }

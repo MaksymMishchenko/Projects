@@ -8,20 +8,18 @@ namespace MoviesTelegramBotApp.Services
     public class MovieService : IMovieService
     {
         private ApplicationDbContext _dbContext;
+        public int PageSize = 1;
         public MovieService(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<List<Movie>> GetAllMoviesAsync()
+        public async Task<List<Movie>> GetAllMoviesAsync(int moviePage = 1)
         {
-            int pageSize = 1;
-            int moviePage = 1;
             return await _dbContext.Movies
-                .Include(m => m.Genre)
-                .OrderBy(m => m.GenreId)
-                .Skip((moviePage - 1) * pageSize)
-                .Take(pageSize)
+                .OrderBy(m => m.Id)
+                .Skip((moviePage - 1) * PageSize)
+                .Take(PageSize)
             .ToListAsync();
         }
 
