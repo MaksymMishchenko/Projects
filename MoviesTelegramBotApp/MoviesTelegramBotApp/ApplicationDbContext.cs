@@ -91,6 +91,50 @@ namespace MoviesTelegramBotApp
                     BehindTheScene = "https://www.youtube.com/watch?v=MBShyOajLcg",
                     GenreId = 1
                 });
+
+            modelBuilder.Entity<Cartoon>()
+                .HasOne(g => g.Genre)
+                .WithMany(g => g.Cartoons)
+                .HasForeignKey(m => m.CartoonGenreId);
+
+            modelBuilder.Entity<CartoonGenre>().HasData(
+                new Genre { Id = 1, Name = "Slapstick Comedy" },
+                new Genre { Id = 2, Name = "Children's Film" },
+                new Genre { Id = 3, Name = "Adventure" }
+                );
+
+            modelBuilder.Entity<Cartoon>().HasData(
+                new Cartoon
+                {
+                    Id = 1,
+                    Title = "MYKITA KOZHUMYAKA",
+                    Description = "Tom and Jerry is a classic cartoon about a never-ending battle between a cat named Tom and a mischievous mouse named Jerry.",
+                    Budget = "1000000",
+                    ImageUrl = "https://i.pinimg.com/236x/4d/6c/28/4d6c285286e59e8c4c6e4c30470db86f.jpg",
+                    CartoonUrl = "https://www.youtube.com/watch?v=t0Q2otsqC4I",
+                    CartoonGenreId = 1
+                },
+                new Cartoon
+                {
+                    Id = 2,
+                    Title = "Oggy and the Cockroaches",
+                    Description = "Oggy and the Cockroaches is a French animated series that follows the chaotic life of a blue cat named Oggy.",
+                    Budget = "2000000",
+                    ImageUrl = "https://i.pinimg.com/736x/5d/cb/ac/5dcbac34552629b0bb4963d0223f0166.jpg",
+                    CartoonUrl = "https://www.youtube.com/watch?v=kGngZN_savE",
+                    CartoonGenreId = 2
+                },
+                new Cartoon
+                {
+                    Id = 3,
+                    Title = "Doraemon",
+                    Description = "Doraemon is a beloved children's series about a robotic cat named Doraemon who travels back in time from the 22nd century.",
+                    Budget = "3000000",
+                    ImageUrl = "https://i.pinimg.com/236x/4e/de/d4/4eded44f271d6409be1850646ec382ae.jpg",
+                    CartoonUrl = "https://www.youtube.com/watch?v=IbeOYixloT0",
+                    CartoonGenreId = 3
+                }
+                );
         }
     }
 }
