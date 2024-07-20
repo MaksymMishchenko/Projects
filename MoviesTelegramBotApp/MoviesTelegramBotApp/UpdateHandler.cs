@@ -42,15 +42,7 @@ internal class UpdateHandler
 
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[]
-        {
-
-            new KeyboardButton[] { "Movies", "Cartoons"}
-
-        })
-        {
-            ResizeKeyboard = true
-        };
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons"} }) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -125,8 +117,7 @@ internal class UpdateHandler
                 break;
 
             default:
-                await _botService.SendTextMessageAsync(chatId, "The command is not recognized");
-                //todo: need to add Main menu button
+                await _botService.SendTextMessageAsync(chatId, "The command is not recognized");                
                 break;
         }
     }
