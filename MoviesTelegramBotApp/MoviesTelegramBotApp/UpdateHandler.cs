@@ -1,8 +1,10 @@
 ﻿using MoviesTelegramBotApp.Interfaces;
+using MoviesTelegramBotApp.Models;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using static System.Net.Mime.MediaTypeNames;
 
 internal class UpdateHandler
 {
@@ -58,61 +60,44 @@ internal class UpdateHandler
     private async Task SendMoviesNavAsync(long chatId, CancellationToken cts)
     {
         var totalMovies = await _movieService.Count;
-
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies;
 
-        var buttons = new List<KeyboardButton[]>();
-
-        if (showPrevious && showNext)
-        {
-            buttons.Add(new KeyboardButton[] { "Prev Movie", "Next Movie" });
-            buttons.Add(new KeyboardButton[] { "Go Back" });
-        }
-        else if (showPrevious)
-        {
-            buttons.Add(new KeyboardButton[] { "Prev Movie" });
-            buttons.Add(new KeyboardButton[] { "Go Back" });
-        }
-        else if (showNext)
-        {
-            buttons.Add(new KeyboardButton[] { "Next Movie" });
-            buttons.Add(new KeyboardButton[] { "Go Back" });
-        }
-
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
-
-        await _botService.SendTextMessageAsync(
-            chatId,
-            "Choose an option:",
-            parseMode: ParseMode.Html,
-            replyKeyBoardMarkup,
-            cancellationToken: cts);
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go Back", "Prev Movie", "Next Movie");    
     }
 
     private async Task SendCartoonsNavAsync(long chatId, CancellationToken cts)
     {
         var totalCartoons = await _cartoonService.Count;
-
         bool showPrevious = _cartoonPage > 1;
         bool showNext = _cartoonPage < totalCartoons;
 
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go Back", "Prev Cartoon", "Next Cartoon");
+    }
+
+    private async Task SendNavigationAsync(long chatId,
+        CancellationToken cts,
+        bool showPrevious,
+        bool showNext, string backButtonText,
+        string previousButtonText,
+        string nextButtonText)
+    {
         var buttons = new List<KeyboardButton[]>();
 
         if (showPrevious && showNext)
         {
-            buttons.Add(new KeyboardButton[] { "Prev Cartoon", "Next Cartoon" });
-            buttons.Add(new KeyboardButton[] { "Go Back" });
+            buttons.Add(new KeyboardButton[] { previousButtonText, nextButtonText });
+            buttons.Add(new KeyboardButton[] { backButtonText });
         }
         else if (showPrevious)
         {
-            buttons.Add(new KeyboardButton[] { "Prev Cartoon" });
-            buttons.Add(new KeyboardButton[] { "Go Back" });
+            buttons.Add(new KeyboardButton[] { previousButtonText });
+            buttons.Add(new KeyboardButton[] { backButtonText });
         }
         else if (showNext)
         {
-            buttons.Add(new KeyboardButton[] { "Next Cartoon" });
-            buttons.Add(new KeyboardButton[] { "Go Back" });
+            buttons.Add(new KeyboardButton[] { nextButtonText });
+            buttons.Add(new KeyboardButton[] { backButtonText });
         }
 
         var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
@@ -175,9 +160,9 @@ internal class UpdateHandler
 
     // <summary>
     /// Sends movies with details and inline buttons in Telegram bot.
-    /// Fetches all cartoons asynchronously, then sends each cartoon's details and image concurrently.
+    /// Fetches all movies asynchronously, then sends each movie's details and image concurrently.
     /// </summary>
-    /// <param name="chatId">The chat ID to which the cartoons are sent.</param>
+    /// <param name="chatId">The chat ID to which the movies are sent.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SendMoviesAsync(long chatId, CancellationToken cancellationToken)
