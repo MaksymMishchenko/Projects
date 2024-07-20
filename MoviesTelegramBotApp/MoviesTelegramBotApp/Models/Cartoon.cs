@@ -1,6 +1,6 @@
 ﻿namespace MoviesTelegramBotApp.Models
 {
-    internal class Cartoon
+    public class Cartoon
     {
         public int Id { get; set; }
         public string? Title { get; set; }

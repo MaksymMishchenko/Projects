@@ -7,6 +7,8 @@ namespace MoviesTelegramBotApp
     {
         public DbSet<Movie> Movies { get; set; }
         public DbSet<Genre> Genres { get; set; }
+        public DbSet<Cartoon> Cartoons { get; set; }
+        public DbSet<CartoonGenre> CartoonGenre { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -98,16 +100,16 @@ namespace MoviesTelegramBotApp
                 .HasForeignKey(m => m.CartoonGenreId);
 
             modelBuilder.Entity<CartoonGenre>().HasData(
-                new Genre { Id = 1, Name = "Slapstick Comedy" },
-                new Genre { Id = 2, Name = "Children's Film" },
-                new Genre { Id = 3, Name = "Adventure" }
+                new CartoonGenre { Id = 1, Genre = "Slapstick Comedy" },
+                new CartoonGenre { Id = 2, Genre = "Children's Film" },
+                new CartoonGenre { Id = 3, Genre = "Adventure" }
                 );
 
             modelBuilder.Entity<Cartoon>().HasData(
                 new Cartoon
                 {
                     Id = 1,
-                    Title = "MYKITA KOZHUMYAKA",
+                    Title = "Tom and Jerry",
                     Description = "Tom and Jerry is a classic cartoon about a never-ending battle between a cat named Tom and a mischievous mouse named Jerry.",
                     Budget = "1000000",
                     ImageUrl = "https://i.pinimg.com/236x/4d/6c/28/4d6c285286e59e8c4c6e4c30470db86f.jpg",
