@@ -8,12 +8,14 @@ internal class UpdateHandler
 {
     private readonly IBotService _botService;
     private readonly IMovieService _movieService;
+    private readonly ICartoonService _cartoonService;
     private int _moviePage = 1;
 
-    public UpdateHandler(IBotService botService, IMovieService movieService)
+    public UpdateHandler(IBotService botService, IMovieService movieService, ICartoonService cartoonService)
     {
         _botService = botService;
         _movieService = movieService;
+        _cartoonService = cartoonService;
     }
 
     public async Task HandleUpdateAsync(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
@@ -42,7 +44,7 @@ internal class UpdateHandler
 
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons"} }) { ResizeKeyboard = true };
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons" } }) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -97,7 +99,7 @@ internal class UpdateHandler
 
                 break;
             case "Cartoons":
-                //todo: functionality in progress
+                SendCartoonsAsync(chatId, cancellationToken);
                 break;
 
             case "Next":
@@ -117,7 +119,7 @@ internal class UpdateHandler
                 break;
 
             default:
-                await _botService.SendTextMessageAsync(chatId, "The command is not recognized");                
+                await _botService.SendTextMessageAsync(chatId, "The command is not recognized");
                 break;
         }
     }
@@ -135,7 +137,7 @@ internal class UpdateHandler
                     chatId,
                     photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
                     caption: $"<strong>Title:</strong> {movie.Title}\n" +
-                    $"<strong>Genre:</strong> {movie.Genre.Name}\n" +
+                    $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
                     $"<strong>Description:</strong> {movie.Description}\n" +
                     $"<strong>Country:</strong> {movie.Country}\n" +
                     $"<strong>Budget:</strong> {movie.Budget}\n" +
@@ -149,6 +151,25 @@ internal class UpdateHandler
             {
                 await _botService.SendTextMessageAsync(chatId, response, cancellationToken);
             }
+        }
+    }
+
+    private async Task SendCartoonsAsync(long chatId, CancellationToken cancellationToken)
+    {
+        var cartoons = await _cartoonService.GetAllCartoonsAsync(_moviePage);
+
+        foreach (var cartoon in cartoons)
+        {
+            await _botService.SendPhotoWithInlineButtonUrlAsync(
+                chatId,
+                photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(cartoon.ImageUrl),
+                caption: $"<strong>Title:</strong> {cartoon.Title}\n" +
+                $"<strong>Genre:</strong> {cartoon?.Genre?.Genre}\n" +
+                $"<strong>Description:</strong> {cartoon?.Description}\n" +
+                $"<strong>Budget:</strong> {cartoon?.Budget}\n",
+                parseMode: ParseMode.Html,
+                replyMarkup: new InlineKeyboardMarkup(
+        InlineKeyboardButton.WithUrl("Check out the cartoon", cartoon.CartoonUrl)));
         }
     }
 
