@@ -1,30 +1,47 @@
-﻿using MoviesTelegramBotApp.Interfaces;
+﻿using Microsoft.EntityFrameworkCore;
+using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MoviesTelegramBotApp.Services
 {
     internal class CartoonService : ICartoonService
     {
         private readonly ApplicationDbContext _dbContext;
+        private readonly int _pageSize = 1;
         public CartoonService(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
         }
-        public Task<int> Count => throw new NotImplementedException();
+        public Task<int> Count => _dbContext.Cartoons.CountAsync();
 
-        public Task<List<Cartoon>> GetAllCartoonsAsync(int cartoonPage)
+        public async Task<List<Cartoon>> GetAllCartoonsAsync(int cartoonPage = 1)
         {
-            throw new NotImplementedException();
+            return await _dbContext.Cartoons
+                .Include(c => c.Genre)
+                .OrderBy(c => c.Id)
+                .Skip((cartoonPage - 1) * _pageSize)
+                .Take(_pageSize)
+                .ToListAsync();
         }
 
-        public Task<List<Cartoon>> GetCartoonsByGenre(string genre)
+        public async Task<Cartoon> GetCartoonById(int id)
         {
-            throw new NotImplementedException();
+            var foundCartoon = await _dbContext.Cartoons.FindAsync(id);
+
+            if (foundCartoon == null)
+            {
+                throw new KeyNotFoundException($"Cartoon with ID {id} not found.");
+            }
+
+            return foundCartoon;
+        }
+
+        public async Task<List<Cartoon>> GetCartoonsByGenre(string genre)
+        {
+            return await _dbContext.Cartoons
+                .Include(c => c.Genre)
+                .OrderBy(c => c.Id)
+                .ToListAsync();
         }
     }
 }
