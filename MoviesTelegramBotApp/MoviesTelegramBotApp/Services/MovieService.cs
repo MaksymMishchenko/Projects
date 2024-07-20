@@ -9,6 +9,9 @@ namespace MoviesTelegramBotApp.Services
     {
         private ApplicationDbContext _dbContext;
         public int PageSize = 1;
+
+        public Task<int> Count => _dbContext.Movies.CountAsync();
+
         public MovieService(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));

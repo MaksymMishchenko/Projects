@@ -30,6 +30,7 @@ internal class UpdateHandler
                 var botDetails = await _botService.GetBotDetailsAsync();
                 var response = $"<strong>Lights, Camera, Action!</strong>\nWelcome to <em><strong>{botDetails.FirstName}</strong></em>, the hottest Telegram hangout for movie lovers! Whether you're a die-hard cinephile or just enjoy a good popcorn flick, this is your spot to discuss all things film.";
                 await _botService.SendTextMessageAsync(chatId, response, ParseMode.Html);
+                // Movies, Cartoons menu
                 await SendMenuAsync(chatId, cancellationToken);
             }
             else
@@ -53,28 +54,42 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "Choose an option",
+            "Choose an option:",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
     }
 
-    private async Task MoviesMenu(long chatId, CancellationToken cts)
+    private async Task SendMoviesNavAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[]
-        {
+        var totalMovies = await _movieService.Count;
 
-            new KeyboardButton[] { "Previous", "Next"}
-            //new KeyboardButton[] { "Main Menu"}
+        bool showPrevious = _moviePage > 1;
+        bool showNext = _moviePage < totalMovies;
 
-        })
+        var buttons = new List<KeyboardButton[]>();
+
+        if (showPrevious && showNext)
         {
-            ResizeKeyboard = true
-        };
+            buttons.Add(new KeyboardButton[] { "Previous", "Next" });
+            buttons.Add(new KeyboardButton[] { "Go Back" });
+        }
+        else if (showPrevious)
+        {
+            buttons.Add(new KeyboardButton[] { "Previous" });
+            buttons.Add(new KeyboardButton[] { "Go Back" });
+        }
+        else if (showNext)
+        {
+            buttons.Add(new KeyboardButton[] { "Next" });
+            buttons.Add(new KeyboardButton[] { "Go Back" });
+        }
+
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons);
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "Click Previous or Next",
+            "Choose an option:",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -86,23 +101,27 @@ internal class UpdateHandler
         {
             case "Movies":
                 await SendMoviesAsync(chatId, cancellationToken);
-                await MoviesMenu(chatId, cancellationToken);
+                await SendMoviesNavAsync(chatId, cancellationToken);
 
                 break;
             case "Cartoons":
                 //todo: functionality in progress
                 break;
 
-            case "Previous":
-                DecrementPage();
-                await SendMoviesAsync(chatId, cancellationToken);
-                await MoviesMenu(chatId, cancellationToken);
-                break;
-
             case "Next":
                 IncrementPage();
                 await SendMoviesAsync(chatId, cancellationToken);
-                await MoviesMenu(chatId, cancellationToken);
+                await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Previous":
+                DecrementPage();
+                await SendMoviesAsync(chatId, cancellationToken);
+                await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Go Back":
+                await SendMenuAsync(chatId, cancellationToken);
                 break;
 
             default:
