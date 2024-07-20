@@ -52,6 +52,7 @@ namespace MoviesTelegramBotApp
                 services.AddSingleton(new TelegramBotClient(apiKey));
 
                 services.AddTransient<IMovieService, MovieService>();
+                services.AddTransient<ICartoonService, CartoonService>();
                 services.AddSingleton<IBotService, BotService>();
                 //services.AddTransient<IMovieService, MovieService>();
                 services.AddScoped<UpdateHandler>();
@@ -74,7 +75,7 @@ namespace MoviesTelegramBotApp
                 $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}"
             };
 
-            //logger.LogError(errorMessage);
+            logger.LogError(errorMessage);
             return Task.CompletedTask;
         }
     }
