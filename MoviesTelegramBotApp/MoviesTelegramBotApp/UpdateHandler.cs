@@ -173,53 +173,80 @@ internal class UpdateHandler
         }
     }
 
+    // <summary>
+    /// Sends movies with details and inline buttons in Telegram bot.
+    /// Fetches all cartoons asynchronously, then sends each cartoon's details and image concurrently.
+    /// </summary>
+    /// <param name="chatId">The chat ID to which the cartoons are sent.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SendMoviesAsync(long chatId, CancellationToken cancellationToken)
     {
         var movies = await _movieService.GetAllMoviesAsync(_moviePage);
         var response = _movieService.BuildMoviesResponse(movies);
 
+        var tasks = new List<Task>();
+
         foreach (var movie in movies)
         {
             if (!string.IsNullOrEmpty(movie.ImageUrl))
             {
-                await _botService.SendPhotoWithInlineButtonUrlAsync(
-                    chatId,
-                    photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
-                    caption: $"<strong>Title:</strong> {movie.Title}\n" +
-                    $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
-                    $"<strong>Description:</strong> {movie.Description}\n" +
-                    $"<strong>Country:</strong> {movie.Country}\n" +
-                    $"<strong>Budget:</strong> {movie.Budget}\n" +
-                    $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
-                    $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
-                    parseMode: ParseMode.Html,
-                    replyMarkup: new InlineKeyboardMarkup(
-            InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)));
+                var task = _botService.SendPhotoWithInlineButtonUrlAsync(
+                     chatId,
+                     photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
+                     caption: $"<strong>Title:</strong> {movie.Title}\n" +
+                     $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
+                     $"<strong>Description:</strong> {movie.Description}\n" +
+                     $"<strong>Country:</strong> {movie.Country}\n" +
+                     $"<strong>Budget:</strong> {movie.Budget}\n" +
+                     $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
+                     $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
+                     parseMode: ParseMode.Html,
+                     replyMarkup: new InlineKeyboardMarkup(
+             InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)));
+                tasks.Add(task);
             }
-            else
-            {
-                await _botService.SendTextMessageAsync(chatId, response, cancellationToken);
-            }
+        }
+
+        if (tasks.Count == 0)
+        {
+            await _botService.SendTextMessageAsync(chatId, response, cancellationToken);
+        }
+        else
+        {
+            await Task.WhenAll(tasks);
         }
     }
 
+    // <summary>
+    /// Sends cartoons with details and inline buttons in Telegram bot.
+    /// Fetches all cartoons asynchronously, then sends each cartoon's details and image concurrently.
+    /// </summary>
+    /// <param name="chatId">The chat ID to which the cartoons are sent.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SendCartoonsAsync(long chatId, CancellationToken cancellationToken)
     {
         var cartoons = await _cartoonService.GetAllCartoonsAsync(_cartoonPage);
+        var tasks = new List<Task>();
 
         foreach (var cartoon in cartoons)
         {
-            await _botService.SendPhotoWithInlineButtonUrlAsync(
-                chatId,
-                photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(cartoon.ImageUrl),
-                caption: $"<strong>Title:</strong> {cartoon.Title}\n" +
-                $"<strong>Genre:</strong> {cartoon?.Genre?.Genre}\n" +
-                $"<strong>Description:</strong> {cartoon?.Description}\n" +
-                $"<strong>Budget:</strong> {cartoon?.Budget}\n",
-                parseMode: ParseMode.Html,
-                replyMarkup: new InlineKeyboardMarkup(
-        InlineKeyboardButton.WithUrl("Check out the cartoon", cartoon.CartoonUrl)));
+            var task = _botService.SendPhotoWithInlineButtonUrlAsync(
+                 chatId,
+                 photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(cartoon.ImageUrl),
+                 caption: $"<strong>Title:</strong> {cartoon.Title}\n" +
+                 $"<strong>Genre:</strong> {cartoon?.Genre?.Genre}\n" +
+                 $"<strong>Description:</strong> {cartoon?.Description}\n" +
+                 $"<strong>Budget:</strong> {cartoon?.Budget}\n",
+                 parseMode: ParseMode.Html,
+                 replyMarkup: new InlineKeyboardMarkup(
+         InlineKeyboardButton.WithUrl("Check out the cartoon", cartoon.CartoonUrl)));
+
+            tasks.Add(task);
         }
+
+        await Task.WhenAll(tasks);
     }
 
     private void IncrementMoviePage() => ++_moviePage;
