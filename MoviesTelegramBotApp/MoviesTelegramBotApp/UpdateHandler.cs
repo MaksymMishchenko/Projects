@@ -10,6 +10,7 @@ internal class UpdateHandler
     private readonly IMovieService _movieService;
     private readonly ICartoonService _cartoonService;
     private int _moviePage = 1;
+    private int _cartoonPage = 1;
 
     public UpdateHandler(IBotService botService, IMovieService movieService, ICartoonService cartoonService)
     {
@@ -65,21 +66,56 @@ internal class UpdateHandler
 
         if (showPrevious && showNext)
         {
-            buttons.Add(new KeyboardButton[] { "Previous", "Next" });
+            buttons.Add(new KeyboardButton[] { "Prev Movie", "Next Movie" });
             buttons.Add(new KeyboardButton[] { "Go Back" });
         }
         else if (showPrevious)
         {
-            buttons.Add(new KeyboardButton[] { "Previous" });
+            buttons.Add(new KeyboardButton[] { "Prev Movie" });
             buttons.Add(new KeyboardButton[] { "Go Back" });
         }
         else if (showNext)
         {
-            buttons.Add(new KeyboardButton[] { "Next" });
+            buttons.Add(new KeyboardButton[] { "Next Movie" });
             buttons.Add(new KeyboardButton[] { "Go Back" });
         }
 
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons);
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
+
+        await _botService.SendTextMessageAsync(
+            chatId,
+            "Choose an option:",
+            parseMode: ParseMode.Html,
+            replyKeyBoardMarkup,
+            cancellationToken: cts);
+    }
+
+    private async Task SendCartoonsNavAsync(long chatId, CancellationToken cts)
+    {
+        var totalCartoons = await _cartoonService.Count;
+
+        bool showPrevious = _cartoonPage > 1;
+        bool showNext = _cartoonPage < totalCartoons;
+
+        var buttons = new List<KeyboardButton[]>();
+
+        if (showPrevious && showNext)
+        {
+            buttons.Add(new KeyboardButton[] { "Prev Cartoon", "Next Cartoon" });
+            buttons.Add(new KeyboardButton[] { "Go Back" });
+        }
+        else if (showPrevious)
+        {
+            buttons.Add(new KeyboardButton[] { "Prev Cartoon" });
+            buttons.Add(new KeyboardButton[] { "Go Back" });
+        }
+        else if (showNext)
+        {
+            buttons.Add(new KeyboardButton[] { "Next Cartoon" });
+            buttons.Add(new KeyboardButton[] { "Go Back" });
+        }
+
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -96,22 +132,35 @@ internal class UpdateHandler
             case "Movies":
                 await SendMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
-
                 break;
+
             case "Cartoons":
-                SendCartoonsAsync(chatId, cancellationToken);
+                await SendCartoonsAsync(chatId, cancellationToken);
+                await SendCartoonsNavAsync(chatId, cancellationToken);
                 break;
 
-            case "Next":
-                IncrementPage();
+            case "Next Movie":
+                IncrementMoviePage();
                 await SendMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
-            case "Previous":
-                DecrementPage();
+            case "Prev Movie":
+                DecrementMoviePage();
                 await SendMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Next Cartoon":
+                IncrementCartoonPage();
+                await SendCartoonsAsync(chatId, cancellationToken);
+                await SendCartoonsNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Prev Cartoon":
+                DecrementCartoonPage();
+                await SendCartoonsAsync(chatId, cancellationToken);
+                await SendCartoonsNavAsync(chatId, cancellationToken);
                 break;
 
             case "Go Back":
@@ -156,7 +205,7 @@ internal class UpdateHandler
 
     private async Task SendCartoonsAsync(long chatId, CancellationToken cancellationToken)
     {
-        var cartoons = await _cartoonService.GetAllCartoonsAsync(_moviePage);
+        var cartoons = await _cartoonService.GetAllCartoonsAsync(_cartoonPage);
 
         foreach (var cartoon in cartoons)
         {
@@ -173,7 +222,11 @@ internal class UpdateHandler
         }
     }
 
-    private void IncrementPage() => ++_moviePage;
+    private void IncrementMoviePage() => ++_moviePage;
 
-    private void DecrementPage() => --_moviePage;
+    private void DecrementMoviePage() => --_moviePage;
+
+    private void IncrementCartoonPage() => ++_cartoonPage;
+
+    private void DecrementCartoonPage() => --_cartoonPage;
 }
