@@ -1,10 +1,9 @@
 ﻿using MoviesTelegramBotApp.Interfaces;
-using MoviesTelegramBotApp.Models;
+using System.Collections.Concurrent;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using static System.Net.Mime.MediaTypeNames;
 
 internal class UpdateHandler
 {
@@ -13,12 +12,16 @@ internal class UpdateHandler
     private readonly ICartoonService _cartoonService;
     private int _moviePage = 1;
     private int _cartoonPage = 1;
+    private readonly ConcurrentDictionary<long, string> _userStates;
+
+    private const string StateAwaitingMovieSearch = "awaiting_movie_search";
 
     public UpdateHandler(IBotService botService, IMovieService movieService, ICartoonService cartoonService)
     {
         _botService = botService;
         _movieService = movieService;
         _cartoonService = cartoonService;
+        _userStates = new ConcurrentDictionary<long, string>();
     }
 
     public async Task HandleUpdateAsync(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
@@ -27,6 +30,14 @@ internal class UpdateHandler
         {
             var chatId = update.Message.Chat.Id;
             var messageText = update.Message.Text;
+
+            if (_userStates.TryGetValue(chatId, out var state) && state == StateAwaitingMovieSearch)
+            {
+                // Handle the movie search
+                await GetFoundMovieAsync(messageText!, chatId, cancellationToken);
+                await SendMenuAsync(chatId, cancellationToken);
+                _userStates.TryRemove(chatId, out _);
+            }
 
             var startKeyBoard = new ReplyKeyboardMarkup(new KeyboardButton("Start")) { ResizeKeyboard = true };
 
@@ -47,7 +58,7 @@ internal class UpdateHandler
 
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons" } }) { ResizeKeyboard = true };
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons", "Search" } }) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -63,7 +74,7 @@ internal class UpdateHandler
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go Back", "Prev Movie", "Next Movie");    
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go Back", "Prev Movie", "Next Movie");
     }
 
     private async Task SendCartoonsNavAsync(long chatId, CancellationToken cts)
@@ -146,6 +157,13 @@ internal class UpdateHandler
                 DecrementCartoonPage();
                 await SendCartoonsAsync(chatId, cancellationToken);
                 await SendCartoonsNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Search":
+                await _botService.SendTextMessageAsync(chatId, "Please enter a movie you want to find\nFor example: 'The Mask'", ParseMode.Html);
+                _userStates[chatId] = StateAwaitingMovieSearch;
+                //await GetFoundMovieAsync(messageText, chatId);
+                //await SendMenuAsync(chatId, cancellationToken);
                 break;
 
             case "Go Back":
@@ -232,6 +250,60 @@ internal class UpdateHandler
         }
 
         await Task.WhenAll(tasks);
+    }
+
+    //private async Task GetFoundMovieAsync(string searchString, long chatId)
+    //{
+    //    if (!string.IsNullOrEmpty(searchString))
+    //    {
+    //        var movies = await _movieService.FindMovieByTitleAsync(searchString);
+
+    //        foreach (var movie in movies)
+    //        {
+    //            await _botService.SendPhotoWithInlineButtonUrlAsync(
+    //             chatId,
+    //                     photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
+    //                     caption: $"<strong>Title:</strong> {movie.Title}\n" +
+    //                     $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
+    //                     $"<strong>Description:</strong> {movie.Description}\n" +
+    //                     $"<strong>Country:</strong> {movie.Country}\n" +
+    //                     $"<strong>Budget:</strong> {movie.Budget}\n" +
+    //                     $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
+    //                     $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
+    //                     parseMode: ParseMode.Html,
+    //                     replyMarkup: new InlineKeyboardMarkup(
+    //             InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl))
+    //            );
+    //        }            
+    //    }
+
+    //    await _botService.SendTextMessageAsync(chatId, "Please enter movie title");
+    //}
+
+    private async Task GetFoundMovieAsync(string searchString, long chatId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var movies = await _movieService.FindMovieByTitleAsync(searchString);
+            if (movies != null && movies.Any())
+            {
+                var response = _movieService.BuildMoviesResponse(movies);
+                await _botService.SendTextMessageAsync(chatId, response, cancellationToken: cancellationToken);
+            }
+            else
+            {
+                await _botService.SendTextMessageAsync(chatId, "No movies found with the given search term.", cancellationToken: cancellationToken);
+            }
+        }
+        catch (KeyNotFoundException ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, ex.Message, cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "An error occurred while searching for movies.", cancellationToken: cancellationToken);
+            // Need to Log the exception
+        }
     }
 
     private void IncrementMoviePage() => ++_moviePage;

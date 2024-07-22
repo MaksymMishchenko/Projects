@@ -51,5 +51,17 @@ namespace MoviesTelegramBotApp.Services
 
             return response.ToString();
         }
+
+        public async Task<List<Movie>> FindMovieByTitleAsync(string searchString)
+        {
+            var foundMovie = await _dbContext.Movies.Include(g => g.Genre).Where(m => m.Title.Contains(searchString)).ToListAsync();
+
+            if (foundMovie == null || !foundMovie.Any())
+            {
+                throw new KeyNotFoundException($"Movie with a key {searchString} does not found");
+            }
+
+            return foundMovie;
+        }
     }
 }
