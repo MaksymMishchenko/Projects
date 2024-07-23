@@ -19,14 +19,27 @@ namespace MoviesTelegramBotApp.Services
             return await _botClient.GetMeAsync();
         }
 
-        public async Task SendTextMessageAsync(long chatId, string message, ParseMode parseMode, ReplyKeyboardMarkup replyMarkup, CancellationToken cancellationToken)
+        public async Task SendTextMessageAsync(
+            long chatId,
+            string message,
+            ParseMode parseMode,
+            ReplyKeyboardMarkup replyMarkup,
+            CancellationToken cancellationToken)
         {
-            await _botClient.SendTextMessageAsync(chatId, message, parseMode, replyMarkup: replyMarkup, cancellationToken: cancellationToken);
+            await _botClient.SendTextMessageAsync(
+                chatId,
+                message,
+                parseMode,
+                replyMarkup: replyMarkup,
+                cancellationToken: cancellationToken);
         }
 
         public async Task SendTextMessageAsync(long chatId, string response, ParseMode parseMode)
         {
-            await _botClient.SendTextMessageAsync(chatId, response, parseMode);
+            await _botClient.SendTextMessageAsync(
+                chatId,
+                response,
+                parseMode);
         }
 
         public async Task SendTextMessageAsync(long chatId, string response)
@@ -39,9 +52,21 @@ namespace MoviesTelegramBotApp.Services
             await _botClient.SendTextMessageAsync(chatId, response, cancellationToken: cancellationToken);
         }
 
-        public async Task SendPhotoWithInlineButtonUrlAsync(long chatId, InputOnlineFile photoUrl, string caption, ParseMode parseMode, InlineKeyboardMarkup replyMarkup)
+        public async Task SendPhotoWithInlineButtonUrlAsync(
+            long chatId,
+            InputOnlineFile photoUrl,
+            string caption,
+            ParseMode parseMode,
+            InlineKeyboardMarkup replyMarkup,
+            CancellationToken cancellationToken)
         {
-            await _botClient.SendPhotoAsync(chatId: chatId, photo: photoUrl, caption: caption, parseMode: parseMode, replyMarkup: replyMarkup);
+            await _botClient.SendPhotoAsync(
+                chatId: chatId,
+                photo: photoUrl,
+                caption: caption,
+                parseMode: parseMode,
+                replyMarkup: replyMarkup,
+                cancellationToken: cancellationToken);
         }
     }
 }

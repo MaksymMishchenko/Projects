@@ -1,4 +1,6 @@
-﻿using MoviesTelegramBotApp.Interfaces;
+﻿using Microsoft.Extensions.Logging;
+using MoviesTelegramBotApp.Interfaces;
+using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -10,18 +12,24 @@ internal class UpdateHandler
     private readonly IBotService _botService;
     private readonly IMovieService _movieService;
     private readonly ICartoonService _cartoonService;
+    private ILogger<UpdateHandler> _logger;
     private int _moviePage = 1;
     private int _cartoonPage = 1;
     private readonly ConcurrentDictionary<long, string> _userStates;
 
     private const string StateAwaitingMovieSearch = "awaiting_movie_search";
 
-    public UpdateHandler(IBotService botService, IMovieService movieService, ICartoonService cartoonService)
+    public UpdateHandler(
+        IBotService botService,
+        IMovieService movieService,
+        ICartoonService cartoonService,
+        ILogger<UpdateHandler> logger)
     {
         _botService = botService;
         _movieService = movieService;
         _cartoonService = cartoonService;
         _userStates = new ConcurrentDictionary<long, string>();
+        _logger = logger;
     }
 
     public async Task HandleUpdateAsync(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
@@ -34,7 +42,7 @@ internal class UpdateHandler
             if (_userStates.TryGetValue(chatId, out var state) && state == StateAwaitingMovieSearch)
             {
                 // Handle the movie search
-                await GetFoundMovieAsync(messageText!, chatId, cancellationToken);
+                await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
                 await SendMenuAsync(chatId, cancellationToken);
                 _userStates.TryRemove(chatId, out _);
             }
@@ -62,7 +70,7 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "Choose an option:",
+            "Choose an option, please:",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -115,7 +123,7 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "Choose an option:",
+            "Click Prev or Next to navigate",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -126,7 +134,7 @@ internal class UpdateHandler
         switch (messageText)
         {
             case "Movies":
-                await SendMoviesAsync(chatId, cancellationToken);
+                await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
@@ -137,13 +145,13 @@ internal class UpdateHandler
 
             case "Next Movie":
                 IncrementMoviePage();
-                await SendMoviesAsync(chatId, cancellationToken);
+                await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
             case "Prev Movie":
                 DecrementMoviePage();
-                await SendMoviesAsync(chatId, cancellationToken);
+                await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
@@ -161,17 +169,11 @@ internal class UpdateHandler
 
             case "Search":
                 await _botService.SendTextMessageAsync(chatId, "Please enter a movie you want to find\nFor example: 'The Mask'", ParseMode.Html);
-                _userStates[chatId] = StateAwaitingMovieSearch;
-                //await GetFoundMovieAsync(messageText, chatId);
-                //await SendMenuAsync(chatId, cancellationToken);
+                _userStates[chatId] = StateAwaitingMovieSearch;                
                 break;
 
             case "Go Back":
                 await SendMenuAsync(chatId, cancellationToken);
-                break;
-
-            default:
-                await _botService.SendTextMessageAsync(chatId, "The command is not recognized");
                 break;
         }
     }
@@ -183,40 +185,43 @@ internal class UpdateHandler
     /// <param name="chatId">The chat ID to which the movies are sent.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task SendMoviesAsync(long chatId, CancellationToken cancellationToken)
+    private async Task GetMoviesAsync(long chatId, CancellationToken cancellationToken)
     {
-        var movies = await _movieService.GetAllMoviesAsync(_moviePage);
-        var response = _movieService.BuildMoviesResponse(movies);
+        try
+        {
+            var movies = await _movieService.GetAllMoviesAsync(_moviePage);
+            await SendMoviesAsync(movies, chatId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex.Message);
+            var exResponse = "We are sorry. Service is unavailable. We do our best to fix it";
+            await _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken);
+        }
+    }
 
+    private async Task SendMoviesAsync(List<Movie> movies, long chatId, CancellationToken cancellationToken)
+    {
         var tasks = new List<Task>();
 
         foreach (var movie in movies)
         {
-            if (!string.IsNullOrEmpty(movie.ImageUrl))
-            {
-                var task = _botService.SendPhotoWithInlineButtonUrlAsync(
-                     chatId,
-                     photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
-                     caption: $"<strong>Title:</strong> {movie.Title}\n" +
-                     $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
-                     $"<strong>Description:</strong> {movie.Description}\n" +
-                     $"<strong>Country:</strong> {movie.Country}\n" +
-                     $"<strong>Budget:</strong> {movie.Budget}\n" +
-                     $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
-                     $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
-                     parseMode: ParseMode.Html,
-                     replyMarkup: new InlineKeyboardMarkup(
-             InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)));
-                tasks.Add(task);
-            }
-        }
+            var task = _botService.SendPhotoWithInlineButtonUrlAsync(
+                 chatId,
+                 photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
+                 caption: $"<strong>Title:</strong> {movie.Title}\n" +
+                 $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
+                 $"<strong>Description:</strong> {movie.Description}\n" +
+                 $"<strong>Country:</strong> {movie.Country}\n" +
+                 $"<strong>Budget:</strong> {movie.Budget}\n" +
+                 $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
+                 $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
+                 parseMode: ParseMode.Html,
+                 replyMarkup: new InlineKeyboardMarkup(
+         InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)),
+                 cancellationToken);
 
-        if (tasks.Count == 0)
-        {
-            await _botService.SendTextMessageAsync(chatId, response, cancellationToken);
-        }
-        else
-        {
+            tasks.Add(task);
             await Task.WhenAll(tasks);
         }
     }
@@ -244,7 +249,8 @@ internal class UpdateHandler
                  $"<strong>Budget:</strong> {cartoon?.Budget}\n",
                  parseMode: ParseMode.Html,
                  replyMarkup: new InlineKeyboardMarkup(
-         InlineKeyboardButton.WithUrl("Check out the cartoon", cartoon.CartoonUrl)));
+         InlineKeyboardButton.WithUrl("Check out the cartoon", cartoon.CartoonUrl)),
+                 cancellationToken);
 
             tasks.Add(task);
         }
@@ -252,57 +258,26 @@ internal class UpdateHandler
         await Task.WhenAll(tasks);
     }
 
-    //private async Task GetFoundMovieAsync(string searchString, long chatId)
-    //{
-    //    if (!string.IsNullOrEmpty(searchString))
-    //    {
-    //        var movies = await _movieService.FindMovieByTitleAsync(searchString);
-
-    //        foreach (var movie in movies)
-    //        {
-    //            await _botService.SendPhotoWithInlineButtonUrlAsync(
-    //             chatId,
-    //                     photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
-    //                     caption: $"<strong>Title:</strong> {movie.Title}\n" +
-    //                     $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
-    //                     $"<strong>Description:</strong> {movie.Description}\n" +
-    //                     $"<strong>Country:</strong> {movie.Country}\n" +
-    //                     $"<strong>Budget:</strong> {movie.Budget}\n" +
-    //                     $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
-    //                     $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
-    //                     parseMode: ParseMode.Html,
-    //                     replyMarkup: new InlineKeyboardMarkup(
-    //             InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl))
-    //            );
-    //        }            
-    //    }
-
-    //    await _botService.SendTextMessageAsync(chatId, "Please enter movie title");
-    //}
-
-    private async Task GetFoundMovieAsync(string searchString, long chatId, CancellationToken cancellationToken)
+    private async Task GetFoundMoviesAsync(string searchString, long chatId, CancellationToken cancellationToken)
     {
         try
         {
-            var movies = await _movieService.FindMovieByTitleAsync(searchString);
+            var movies = await _movieService.FindMoviesByTitleAsync(searchString);
+
             if (movies != null && movies.Any())
             {
-                var response = _movieService.BuildMoviesResponse(movies);
-                await _botService.SendTextMessageAsync(chatId, response, cancellationToken: cancellationToken);
-            }
-            else
-            {
-                await _botService.SendTextMessageAsync(chatId, "No movies found with the given search term.", cancellationToken: cancellationToken);
+                await SendMoviesAsync(movies, chatId, cancellationToken);
             }
         }
         catch (KeyNotFoundException ex)
         {
             await _botService.SendTextMessageAsync(chatId, ex.Message, cancellationToken: cancellationToken);
+            _logger.LogInformation($"User chat id: {chatId} does not found a movies with a title: {searchString}");
         }
         catch (Exception ex)
         {
             await _botService.SendTextMessageAsync(chatId, "An error occurred while searching for movies.", cancellationToken: cancellationToken);
-            // Need to Log the exception
+            _logger.LogInformation($"Application has an other mistkes like: {ex.Message}");
         }
     }
 
