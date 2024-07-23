@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
-using System.Text;
 
 namespace MoviesTelegramBotApp.Services
 {
@@ -19,46 +19,28 @@ namespace MoviesTelegramBotApp.Services
 
         public async Task<List<Movie>> GetAllMoviesAsync(int moviePage = 1)
         {
-            return await _dbContext.Movies.
+            var movies = await _dbContext.Movies.
                 Include(m => m.Genre)
                 .OrderBy(m => m.Id)
                 .Skip((moviePage - 1) * PageSize)
                 .Take(PageSize)
-            .ToListAsync();
-        }
+            .ToListAsync();            
 
-        public string BuildMoviesResponse(List<Movie> movies)
-        {
-            var response = new StringBuilder();
-
-            if (!movies.Any())
+            if (movies == null || !movies.Any())
             {
-                return "No movies found!";
+                throw new ArgumentNullException($"Couldn't connect to database");
             }
 
-            foreach (var movie in movies)
-            {
-                response.AppendLine($"Title: {movie.Title}");
-                response.AppendLine($"Description: {movie.Description}");
-                response.AppendLine($"Country: {movie.Country}");
-                response.AppendLine($"Budget: {movie.Budget}");
-                response.AppendLine($"Genre: {movie.Genre}");
-                response.AppendLine($"Trailer: {movie.MovieUrl}");
-                response.AppendLine($"Interest facts: {movie.InterestFactsUrl}");
-                response.AppendLine($"Behind the scene: {movie.BehindTheScene}");
-                response.AppendLine();
-            }
-
-            return response.ToString();
+            return movies;
         }
 
-        public async Task<List<Movie>> FindMovieByTitleAsync(string searchString)
+        public async Task<List<Movie>> FindMoviesByTitleAsync(string searchString)
         {
             var foundMovie = await _dbContext.Movies.Include(g => g.Genre).Where(m => m.Title.Contains(searchString)).ToListAsync();
 
             if (foundMovie == null || !foundMovie.Any())
             {
-                throw new KeyNotFoundException($"Movie with a key {searchString} does not found");
+                throw new KeyNotFoundException($"We couldn't find '{searchString}'.\n Would you like to try searching with a different title?");
             }
 
             return foundMovie;
