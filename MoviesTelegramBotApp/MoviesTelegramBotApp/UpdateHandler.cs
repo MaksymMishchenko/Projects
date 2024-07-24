@@ -2,6 +2,7 @@
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -43,7 +44,8 @@ internal class UpdateHandler
             {
                 // Handle the movie search
                 await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
-                await SendMenuAsync(chatId, cancellationToken);
+                // Send navigation async navigate by found movies
+                //await SendNavigationAsync(chatId, cancellationToken, showPrevious, showNext, "Go Back", "Prev Movie", "Next Movie"); (chatId, cancellationToken);
                 _userStates.TryRemove(chatId, out _);
             }
 
@@ -169,7 +171,7 @@ internal class UpdateHandler
 
             case "Search":
                 await _botService.SendTextMessageAsync(chatId, "Please enter a movie you want to find\nFor example: 'The Mask'", ParseMode.Html);
-                _userStates[chatId] = StateAwaitingMovieSearch;                
+                _userStates[chatId] = StateAwaitingMovieSearch;
                 break;
 
             case "Go Back":
@@ -187,16 +189,24 @@ internal class UpdateHandler
     /// <returns>A task representing the asynchronous operation.</returns>
     private async Task GetMoviesAsync(long chatId, CancellationToken cancellationToken)
     {
+        var tasks = new List<Task>();
+
         try
         {
-            var movies = await _movieService.GetAllMoviesAsync(_moviePage);
-            await SendMoviesAsync(movies, chatId, cancellationToken);
+            var getAllMoviesAsync = await _movieService.GetAllMoviesAsync(_moviePage);
+            var sendMoviesAsync = SendMoviesAsync(getAllMoviesAsync, chatId, cancellationToken);
+            tasks.Add(sendMoviesAsync);
         }
         catch (Exception ex)
         {
             _logger.LogCritical(ex.Message);
             var exResponse = "We are sorry. Service is unavailable. We do our best to fix it";
-            await _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken);
+            var sendErrorMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken);
+            tasks.Add(sendErrorMessageAsync);
+        }
+        finally
+        {
+            await Task.WhenAll(tasks);
         }
     }
 
