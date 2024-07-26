@@ -2,7 +2,6 @@
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -13,12 +12,14 @@ internal class UpdateHandler
     private readonly IBotService _botService;
     private readonly IMovieService _movieService;
     private readonly ICartoonService _cartoonService;
-    private ILogger<UpdateHandler> _logger;
+    private readonly ConcurrentDictionary<long, (string state, string searchString)> _userStates;
+    private readonly ILogger<UpdateHandler> _logger;
     private int _moviePage = 1;
+    private int _moviePageByTitle = 1;
     private int _cartoonPage = 1;
-    private readonly ConcurrentDictionary<long, string> _userStates;
 
     private const string StateAwaitingMovieSearch = "awaiting_movie_search";
+    private const string StateNavigatingMovies = "navigating_movies";
 
     public UpdateHandler(
         IBotService botService,
@@ -29,7 +30,7 @@ internal class UpdateHandler
         _botService = botService;
         _movieService = movieService;
         _cartoonService = cartoonService;
-        _userStates = new ConcurrentDictionary<long, string>();
+        _userStates = new ConcurrentDictionary<long, (string state, string searchString)>();
         _logger = logger;
     }
 
@@ -40,28 +41,48 @@ internal class UpdateHandler
             var chatId = update.Message.Chat.Id;
             var messageText = update.Message.Text;
 
-            if (_userStates.TryGetValue(chatId, out var state) && state == StateAwaitingMovieSearch)
+            if (_userStates.TryGetValue(chatId, out var userState))
             {
-                // Handle the movie search
-                await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
-                // Send navigation async navigate by found movies
-                //await SendNavigationAsync(chatId, cancellationToken, showPrevious, showNext, "Go Back", "Prev Movie", "Next Movie"); (chatId, cancellationToken);
-                _userStates.TryRemove(chatId, out _);
-            }
-
-            var startKeyBoard = new ReplyKeyboardMarkup(new KeyboardButton("Start")) { ResizeKeyboard = true };
-
-            if (messageText?.ToLower() == "/start")
-            {
-                var botDetails = await _botService.GetBotDetailsAsync();
-                var response = $"<strong>Lights, Camera, Action!</strong>\nWelcome to <em><strong>{botDetails.FirstName}</strong></em>, the hottest Telegram hangout for movie lovers! Whether you're a die-hard cinephile or just enjoy a good popcorn flick, this is your spot to discuss all things film.";
-                await _botService.SendTextMessageAsync(chatId, response, ParseMode.Html);
-                // Movies, Cartoons menu
-                await SendMenuAsync(chatId, cancellationToken);
+                if (userState.state == StateAwaitingMovieSearch)
+                {
+                    await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
+                    _userStates[chatId] = (StateNavigatingMovies, messageText!);
+                }
+                else if (userState.state == StateNavigatingMovies)
+                {
+                    if (messageText == "Next")
+                    {
+                        IncrementMoviePageByTitle();
+                        await GetFoundMoviesAsync(userState.searchString, chatId, cancellationToken);
+                    }
+                    else if (messageText == "Prev")
+                    {
+                        DecrementMoviePageByTitle();
+                        await GetFoundMoviesAsync(userState.searchString, chatId, cancellationToken);
+                    }
+                    else if (messageText == "Go Back")
+                    {
+                        await SendMenuAsync(chatId, cancellationToken);
+                    }
+                    else
+                    {
+                        await _botService.SendTextMessageAsync(chatId, "Please use the navigation buttons.", cancellationToken: cancellationToken);
+                    }
+                }
             }
             else
             {
-                await HandleMenuResponseAsync(chatId, messageText!, cancellationToken);
+                if (messageText?.ToLower() == "/start")
+                {
+                    var botDetails = await _botService.GetBotDetailsAsync();
+                    var response = $"<strong>Lights, Camera, Action!</strong>\nWelcome to <em><strong>{botDetails.FirstName}</strong></em>, the hottest Telegram hangout for movie lovers! Whether you're a die-hard cinephile or just enjoy a good popcorn flick, this is your spot to discuss all things film.";
+                    await _botService.SendTextMessageAsync(chatId, response, ParseMode.Html);
+                    await SendMenuAsync(chatId, cancellationToken);
+                }
+                else
+                {
+                    await HandleMenuResponseAsync(chatId, messageText!, cancellationToken);
+                }
             }
         }
     }
@@ -85,6 +106,15 @@ internal class UpdateHandler
         bool showNext = _moviePage < totalMovies;
 
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go Back", "Prev Movie", "Next Movie");
+    }
+
+    private async Task SendMoviesByTitleNavAsync(string searchString, long chatId, CancellationToken cts)
+    {
+        var totalMovies = await _movieService.GetMoviesByTitleCountAsync(searchString);
+        bool showPrevious = _moviePageByTitle > 1;
+        bool showNext = _moviePageByTitle < totalMovies;
+
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go Back", "Prev", "Next");
     }
 
     private async Task SendCartoonsNavAsync(long chatId, CancellationToken cts)
@@ -155,7 +185,7 @@ internal class UpdateHandler
                 DecrementMoviePage();
                 await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
-                break;
+                break;            
 
             case "Next Cartoon":
                 IncrementCartoonPage();
@@ -171,7 +201,7 @@ internal class UpdateHandler
 
             case "Search":
                 await _botService.SendTextMessageAsync(chatId, "Please enter a movie you want to find\nFor example: 'The Mask'", ParseMode.Html);
-                _userStates[chatId] = StateAwaitingMovieSearch;
+                _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
                 break;
 
             case "Go Back":
@@ -180,13 +210,6 @@ internal class UpdateHandler
         }
     }
 
-    // <summary>
-    /// Sends movies with details and inline buttons in Telegram bot.
-    /// Fetches all movies asynchronously, then sends each movie's details and image concurrently.
-    /// </summary>
-    /// <param name="chatId">The chat ID to which the movies are sent.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task GetMoviesAsync(long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
@@ -200,17 +223,15 @@ internal class UpdateHandler
         catch (Exception ex)
         {
             _logger.LogCritical(ex.Message);
-            var exResponse = "We are sorry. Service is unavailable. We do our best to fix it";
-            var sendErrorMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken);
-            tasks.Add(sendErrorMessageAsync);
+            var exResponse = "We are sorry. Service is unavailable. We do our best to resolve this mistake.";
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken: cancellationToken);
+            tasks.Add(sendTextMessageAsync);
         }
-        finally
-        {
-            await Task.WhenAll(tasks);
-        }
+
+        await Task.WhenAll(tasks);
     }
 
-    private async Task SendMoviesAsync(List<Movie> movies, long chatId, CancellationToken cancellationToken)
+    private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
 
@@ -220,7 +241,7 @@ internal class UpdateHandler
                  chatId,
                  photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
                  caption: $"<strong>Title:</strong> {movie.Title}\n" +
-                 $"<strong>Genre:</strong> {movie?.Genre?.Name}\n" +
+                 $"<strong>Genre:</strong> {movie.Genre.Name}\n" +
                  $"<strong>Description:</strong> {movie.Description}\n" +
                  $"<strong>Country:</strong> {movie.Country}\n" +
                  $"<strong>Budget:</strong> {movie.Budget}\n" +
@@ -232,17 +253,11 @@ internal class UpdateHandler
                  cancellationToken);
 
             tasks.Add(task);
-            await Task.WhenAll(tasks);
         }
+
+        await Task.WhenAll(tasks);
     }
 
-    // <summary>
-    /// Sends cartoons with details and inline buttons in Telegram bot.
-    /// Fetches all cartoons asynchronously, then sends each cartoon's details and image concurrently.
-    /// </summary>
-    /// <param name="chatId">The chat ID to which the cartoons are sent.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task SendCartoonsAsync(long chatId, CancellationToken cancellationToken)
     {
         var cartoons = await _cartoonService.GetAllCartoonsAsync(_cartoonPage);
@@ -270,30 +285,37 @@ internal class UpdateHandler
 
     private async Task GetFoundMoviesAsync(string searchString, long chatId, CancellationToken cancellationToken)
     {
+        var tasks = new List<Task>();
         try
         {
-            var movies = await _movieService.FindMoviesByTitleAsync(searchString);
+            var movies = await _movieService.GetMoviesByTitleAsync(searchString, _moviePageByTitle);
 
             if (movies != null && movies.Any())
             {
                 await SendMoviesAsync(movies, chatId, cancellationToken);
+                await SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken);
             }
         }
         catch (KeyNotFoundException ex)
         {
-            await _botService.SendTextMessageAsync(chatId, ex.Message, cancellationToken: cancellationToken);
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, ex.Message, cancellationToken: cancellationToken);
             _logger.LogInformation($"User chat id: {chatId} does not found a movies with a title: {searchString}");
+            tasks.Add(sendTextMessageAsync);
         }
         catch (Exception ex)
         {
             await _botService.SendTextMessageAsync(chatId, "An error occurred while searching for movies.", cancellationToken: cancellationToken);
-            _logger.LogInformation($"Application has an other mistkes like: {ex.Message}");
+            _logger.LogInformation($"Application has an other mistakes like: {ex.Message}");
         }
     }
 
     private void IncrementMoviePage() => ++_moviePage;
 
     private void DecrementMoviePage() => --_moviePage;
+
+    private void IncrementMoviePageByTitle() => ++_moviePageByTitle;
+
+    private void DecrementMoviePageByTitle() => --_moviePageByTitle;
 
     private void IncrementCartoonPage() => ++_cartoonPage;
 

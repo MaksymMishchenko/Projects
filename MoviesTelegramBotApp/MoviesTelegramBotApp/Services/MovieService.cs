@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 
@@ -24,7 +23,7 @@ namespace MoviesTelegramBotApp.Services
                 .OrderBy(m => m.Id)
                 .Skip((moviePage - 1) * PageSize)
                 .Take(PageSize)
-            .ToListAsync();            
+            .ToListAsync();
 
             if (movies == null || !movies.Any())
             {
@@ -34,9 +33,15 @@ namespace MoviesTelegramBotApp.Services
             return movies;
         }
 
-        public async Task<List<Movie>> FindMoviesByTitleAsync(string searchString)
+        public async Task<List<Movie>> GetMoviesByTitleAsync(string searchString, int moviePage = 1)
         {
-            var foundMovie = await _dbContext.Movies.Include(g => g.Genre).Where(m => m.Title.Contains(searchString)).ToListAsync();
+            var foundMovie = await _dbContext.Movies
+                .Include(g => g.Genre)
+                .Where(m => m.Title!.Contains(searchString))
+                .OrderBy(m => m.Id)
+                .Skip((moviePage - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
 
             if (foundMovie == null || !foundMovie.Any())
             {
@@ -44,6 +49,13 @@ namespace MoviesTelegramBotApp.Services
             }
 
             return foundMovie;
+        }
+
+        public async Task<int> GetMoviesByTitleCountAsync(string searchString)
+        {
+            return await _dbContext.Movies
+            .Where(m => m.Title!.Contains(searchString))
+            .CountAsync();
         }
     }
 }
