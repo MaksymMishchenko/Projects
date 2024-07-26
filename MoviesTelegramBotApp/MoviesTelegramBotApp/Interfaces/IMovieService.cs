@@ -6,6 +6,7 @@ namespace MoviesTelegramBotApp.Interfaces
     {
         Task<int> Count { get; }
         Task<List<Movie>> GetAllMoviesAsync(int moviePage = 1);
-        Task<List<Movie>> FindMoviesByTitleAsync(string searchString);       
+        Task<List<Movie>> GetMoviesByTitleAsync(string searchString, int moviePage);
+        Task<int> GetMoviesByTitleCountAsync(string searchString);
     }
 }
