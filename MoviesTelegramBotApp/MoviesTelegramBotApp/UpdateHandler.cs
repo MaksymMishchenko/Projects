@@ -89,7 +89,7 @@ internal class UpdateHandler
 
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons", "Search" } }) { ResizeKeyboard = true };
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "Movies", "Cartoons", "Surprise Me", "Search" } }) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -173,7 +173,7 @@ internal class UpdateHandler
             case "Cartoons":
                 await SendCartoonsAsync(chatId, cancellationToken);
                 await SendCartoonsNavAsync(chatId, cancellationToken);
-                break;
+                break;            
 
             case "Next Movie":
                 IncrementMoviePage();
@@ -185,7 +185,7 @@ internal class UpdateHandler
                 DecrementMoviePage();
                 await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
-                break;            
+                break;
 
             case "Next Cartoon":
                 IncrementCartoonPage();
@@ -229,7 +229,7 @@ internal class UpdateHandler
         }
 
         await Task.WhenAll(tasks);
-    }
+    }   
 
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
     {

@@ -10,13 +10,15 @@ namespace MoviesTelegramBotApp.Services
     public class MovieService : IMovieService
     {
         private ApplicationDbContext _dbContext;
+        private readonly Random _random;
         public int PageSize = 1;
 
         public Task<int> Count => _dbContext.Movies.CountAsync();
 
-        public MovieService(ApplicationDbContext dbContext)
+        public MovieService(ApplicationDbContext dbContext, Random random)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _random = random;
         }
 
         /// <summary>
@@ -90,21 +92,22 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Retrieves a movie by it's ID
+        /// Asynchronously retrieves a random movie from the collection of all movies.
         /// </summary>
-        /// <param name="id">The Id of the movie to retrieve</param>
-        /// <returns>The movie with specified ID, if found</returns>
-        /// <exception cref="NullReferenceException">Thrown when no movie with the specified ID is found</exception>
-        public async Task<Movie> GetMovieById(int id)
+        /// <returns>A task representing the asynchronous operation, containing a randomly selected <see cref="Movie"/> object.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if no movies are available in the collection.</exception>
+        public async Task<Movie> GetRandomMovie()
         {
-            var movie = await _dbContext.Movies.FindAsync(id);
+            var movies = await GetAllMoviesAsync();
 
-            if (movie == null)
+            if (movies == null && !movies.Any())
             {
-                throw new NullReferenceException($"Movie with {id} was not found");
+                throw new InvalidOperationException($"No movies available");
             }
 
-            return movie;
+            int randomIndex = _random.Next(movies.Count);
+
+            return movies[randomIndex];
         }
     }
 }
