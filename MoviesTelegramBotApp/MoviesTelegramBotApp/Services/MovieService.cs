@@ -32,7 +32,7 @@ namespace MoviesTelegramBotApp.Services
                 .Include(m => m.Genre)
                 .ToListAsync();
 
-            if (movies == null) //!movies.Any()
+            if (movies == null || !movies.Any())
             {
                 throw new InvalidOperationException($"No movies available or couldn't retrieve movies from the database.");
             }

@@ -45,6 +45,12 @@ internal class UpdateHandler
             {
                 if (userState.state == StateAwaitingMovieSearch)
                 {
+                    if (messageText == "🔎 Search")
+                    {
+                        await _botService.SendTextMessageAsync(chatId, "Please, enter a title of movie", cancellationToken);
+
+                        return;
+                    }
                     await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
                     _userStates[chatId] = (StateNavigatingMovies, messageText!);
                 }
@@ -93,7 +99,7 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "Choose an option, please: 🙂",
+            "Choose an option, please: 🔽",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -204,7 +210,7 @@ internal class UpdateHandler
                 break;
 
             case "🔎 Search":
-                await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find\nFor example: 'The Mask'", ParseMode.Html);
+                await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find\n  For example: 'The Mask'", ParseMode.Html);
                 _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
                 break;
 
