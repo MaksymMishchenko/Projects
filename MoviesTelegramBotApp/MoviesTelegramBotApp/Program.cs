@@ -52,9 +52,9 @@ namespace MoviesTelegramBotApp
                 services.AddSingleton(new TelegramBotClient(apiKey));
 
                 services.AddTransient<IMovieService, MovieService>();
+                services.AddTransient<Random>();
                 services.AddTransient<ICartoonService, CartoonService>();
-                services.AddSingleton<IBotService, BotService>();
-                //services.AddTransient<IMovieService, MovieService>();
+                services.AddSingleton<IBotService, BotService>();                
                 services.AddScoped<UpdateHandler>();
                 services.AddLogging(configure => configure.AddConsole());
             })

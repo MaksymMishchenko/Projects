@@ -66,7 +66,7 @@ internal class UpdateHandler
                     }
                     else
                     {
-                        await _botService.SendTextMessageAsync(chatId, "Please use the navigation buttons.", cancellationToken: cancellationToken);
+                        await HandleMenuResponseAsync(chatId, messageText, cancellationToken);
                     }
                 }
             }
@@ -101,7 +101,7 @@ internal class UpdateHandler
 
     private async Task SendMoviesNavAsync(long chatId, CancellationToken cts)
     {
-        var totalMovies = await _movieService.Count;
+        var totalMovies = await _movieService.CountAsync;
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies;
 
@@ -155,7 +155,7 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "Click Prev or Next to navigate",
+            "Click Prev or Next to navigate the Movie",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -173,7 +173,7 @@ internal class UpdateHandler
             case "Cartoons":
                 await SendCartoonsAsync(chatId, cancellationToken);
                 await SendCartoonsNavAsync(chatId, cancellationToken);
-                break;            
+                break;
 
             case "Next Movie":
                 IncrementMoviePage();
@@ -185,6 +185,10 @@ internal class UpdateHandler
                 DecrementMoviePage();
                 await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Surprise Me":
+                await GetRandomMovieAsync(chatId, cancellationToken);
                 break;
 
             case "Next Cartoon":
@@ -229,7 +233,28 @@ internal class UpdateHandler
         }
 
         await Task.WhenAll(tasks);
-    }   
+    }
+
+    private async Task GetRandomMovieAsync(long chatId, CancellationToken cts)
+    {
+        var tasks = new List<Task>();
+
+        try
+        {
+            var rndMovie = await _movieService.GetRandomMovieAsync();
+            await SendMoviesAsync(rndMovie, chatId, cts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogCritical(ex.Message);
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available");
+            tasks.Add(sendTextMessageAsync);
+        }
+        finally
+        {
+            await Task.WhenAll(tasks);
+        }
+    }
 
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
     {
@@ -254,6 +279,30 @@ internal class UpdateHandler
 
             tasks.Add(task);
         }
+
+        await Task.WhenAll(tasks);
+    }
+
+    private async Task SendMoviesAsync(Movie movie, long chatId, CancellationToken cancellationToken)
+    {
+        var tasks = new List<Task>();
+
+        var task = _botService.SendPhotoWithInlineButtonUrlAsync(
+             chatId,
+             photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
+             caption: $"<strong>Title:</strong> {movie.Title}\n" +
+             $"<strong>Genre:</strong> {movie.Genre.Name}\n" +
+             $"<strong>Description:</strong> {movie.Description}\n" +
+             $"<strong>Country:</strong> {movie.Country}\n" +
+             $"<strong>Budget:</strong> {movie.Budget}\n" +
+             $"<strong>Interest facts:</strong> {movie.InterestFactsUrl}\n" +
+             $"<strong>Behind the scene:</strong> {movie.BehindTheScene}\n",
+             parseMode: ParseMode.Html,
+             replyMarkup: new InlineKeyboardMarkup(
+     InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)),
+             cancellationToken);
+
+        tasks.Add(task);
 
         await Task.WhenAll(tasks);
     }
@@ -305,6 +354,7 @@ internal class UpdateHandler
         catch (Exception ex)
         {
             await _botService.SendTextMessageAsync(chatId, "An error occurred while searching for movies.", cancellationToken: cancellationToken);
+            await SendMoviesNavAsync(chatId, cancellationToken);
             _logger.LogInformation($"Application has an other mistakes like: {ex.Message}");
         }
     }
