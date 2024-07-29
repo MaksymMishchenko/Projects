@@ -184,7 +184,7 @@ internal class UpdateHandler
         var buttons = new List<KeyboardButton[]>();
 
         buttons.Add(new KeyboardButton[] { "Action", "Comedy", "Drama" });
-        buttons.Add(new KeyboardButton[] { "Go Top" });
+        buttons.Add(new KeyboardButton[] { "Go Top 🔝" });
         var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
@@ -260,6 +260,11 @@ internal class UpdateHandler
             case "🔎 Search":
                 await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find\n  For example: 'The Mask'", ParseMode.Html);
                 _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
+                break;
+
+            case "Go Top 🔝":
+                await GetMoviesAsync(chatId, cancellationToken);
+                await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
             case "Main Menu 🔝":
