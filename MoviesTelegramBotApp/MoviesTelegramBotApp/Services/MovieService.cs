@@ -13,7 +13,7 @@ namespace MoviesTelegramBotApp.Services
         private readonly Random _random;
         public int PageSize = 1;
 
-        public Task<int> CountAsync => _dbContext.Movies.CountAsync();
+        public Task<int> CountAsync => _dbContext.Movies.CountAsync();        
 
         public MovieService(ApplicationDbContext dbContext, Random random)
         {
