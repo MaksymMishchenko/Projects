@@ -366,6 +366,41 @@ internal class UpdateHandler
         }
     }
 
+    /// <summary>
+    /// Asynchronously retrieves all movies of a specified genre and sends a message to a chat.
+    /// </summary>
+    /// <param name="genre">The genre of the movies to retrieve.</param>
+    /// <param name="chatId">The chat ID to send messages to.</param>
+    /// <param name="cts">A cancellation token for the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if the genre is null or empty.</exception>
+    /// <exception cref="KeyNotFoundException">Thrown if no movies are found for the specified genre.</exception>
+    private async Task GetAllMoviesByGenre(string genre, long chatId, CancellationToken cts)
+    {
+        var tasks = new List<Task>();
+
+        try
+        {
+            var moviesByGenre = _movieService.GetMoviesByGenreAsync(genre);
+            tasks.Add(moviesByGenre);
+        }
+        catch (ArgumentNullException ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Please, enter a movies genre");
+            _logger.LogWarning($"There is an acception: {ex.Message}");
+        }
+        catch (KeyNotFoundException ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genre} is not available 😟.");
+            _logger.LogError(ex.Message);
+
+        }
+        finally
+        {
+            await Task.WhenAll(tasks);
+        }
+    }
+
     private void IncrementMoviePage() => ++_moviePage;
 
     private void DecrementMoviePage() => --_moviePage;
