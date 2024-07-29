@@ -2,6 +2,8 @@
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -179,20 +181,58 @@ internal class UpdateHandler
             cancellationToken: cts);
     }
 
+    /// <summary>
+    /// Asynchronously sends a message with buttons for each movie genre to a specified chat.
+    /// </summary>
+    /// <param name="chatId">The ID of the chat to send the message to.</param>
+    /// <param name="cts">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method retrieves all movie genres from the movie service and creates a keyboard with buttons for each genre. 
+    /// It also includes a "Go Top 🔝" button. If the genres are unavailable, an error message is sent.
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">Thrown if there is an issue retrieving genres from the database.</exception>
     private async Task SendMoviesGenresButtons(long chatId, CancellationToken cts)
     {
-        var buttons = new List<KeyboardButton[]>();
+        var tasks = new List<Task>();
 
-        buttons.Add(new KeyboardButton[] { "Action", "Comedy", "Drama" });
-        buttons.Add(new KeyboardButton[] { "Go Top 🔝" });
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
+        try
+        {
+            var genres = await _movieService.GetAllGenresAsync();
 
-        await _botService.SendTextMessageAsync(
-            chatId,
-            "<b>Сhoose a movie genre, please 🔽</b>",
-            parseMode: ParseMode.Html,
-            replyKeyBoardMarkup,
-            cancellationToken: cts);
+            var buttons = new List<KeyboardButton>();
+
+            foreach (var genre in genres)
+            {
+                var button = new KeyboardButton(genre.Name);
+
+                buttons.Add(button);
+            }
+
+            buttons.Add(new KeyboardButton("Go Top 🔝"));
+
+            KeyboardButton[] buttonArray = buttons.ToArray();
+            var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
+
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(
+                chatId,
+                "<b>Сhoose a movie genre, please 🔽</b>",
+                parseMode: ParseMode.Html,
+                replyKeyBoardMarkup,
+                cancellationToken: cts);
+            tasks.Add(sendTextMessageAsync);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogCritical(ex.Message);
+            var exResponse = "Sorry, the genres are not available 😟";
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken: cts);
+            tasks.Add(sendTextMessageAsync);
+        }
+        finally
+        {
+            await Task.WhenAll(tasks);
+        }
     }
 
     private async Task HandleMenuResponseAsync(long chatId, string messageText, CancellationToken cancellationToken)
@@ -314,6 +354,27 @@ internal class UpdateHandler
             await Task.WhenAll(tasks);
         }
     }
+
+    //private async Task<List<Genre>> GetAllMovieGenresAsync(long chatId, CancellationToken cts)
+    //{
+    //    var tasks = new List<Task>();
+    //
+    //    try
+    //    {
+    //        return await _movieService.GetAllGenresAsync();
+    //        
+    //    }
+    //    catch (InvalidOperationException ex)
+    //    {           
+    //        var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, "Sorry, the genres are not available 😟");
+    //        tasks.Add(sendTextMessageAsync);
+    //        _logger.LogCritical(ex.Message);
+    //    }
+    //    finally
+    //    {
+    //        await Task.WhenAll(tasks);
+    //    }
+    //}
 
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
     {

@@ -13,7 +13,7 @@ namespace MoviesTelegramBotApp.Services
         private readonly Random _random;
         public int PageSize = 1;
 
-        public Task<int> CountAsync => _dbContext.Movies.CountAsync();        
+        public Task<int> CountAsync => _dbContext.Movies.CountAsync();
 
         public MovieService(ApplicationDbContext dbContext, Random random)
         {
@@ -156,6 +156,28 @@ namespace MoviesTelegramBotApp.Services
             }
 
             return moviesByGenre;
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves a distinct list of all genres from the movies in the database.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation, containing a list of unique <see cref="Genre"/> objects.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if no genres are found in the database.</exception>
+        public async Task<List<Genre>> GetAllGenresAsync()
+        {
+
+            var movieGenres = await _dbContext.Movies
+            .Include(m => m.Genre)
+            .Select(m => m.Genre)
+            .Distinct()
+            .ToListAsync() ?? new List<Genre>();
+
+            if (movieGenres == null || !movieGenres.Any())
+            {
+                throw new InvalidOperationException("No genres found");
+            }
+
+            return movieGenres;
         }
     }
 }
