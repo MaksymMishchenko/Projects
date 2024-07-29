@@ -13,7 +13,7 @@ namespace MoviesTelegramBotApp.Services
         private readonly Random _random;
         public int PageSize = 1;
 
-        public Task<int> Count => _dbContext.Movies.CountAsync();
+        public Task<int> CountAsync => _dbContext.Movies.CountAsync();
 
         public MovieService(ApplicationDbContext dbContext, Random random)
         {
@@ -22,11 +22,30 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
+        /// Asynchronously retrieves all movies from the database, including their genres.
+        /// </summary>
+        /// <returns>A task representing the asynchronous operation, containing a list of <see cref="Movie"/> objects.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if no movies are available or if there was an issue retrieving movies from the database.</exception>
+        private async Task<List<Movie>> GetAllMoviesAsync()
+        {
+            var movies = await _dbContext.Movies
+                .Include(m => m.Genre)
+                .ToListAsync();
+
+            if (movies == null) //!movies.Any()
+            {
+                throw new InvalidOperationException($"No movies available or couldn't retrieve movies from the database.");
+            }
+
+            return movies;
+        }
+
+        /// <summary>
         /// Retrieves a paginated list of all movies from the database, including their genres.
         /// </summary>
         /// <param name="moviePage">The page number to retrieve. Defaults to 1.</param>
         /// <returns>A list of movies from the specified page.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the database connection fails or no movies are found.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the database connection fails or no movies are found.</exception>
         public async Task<List<Movie>> GetAllMoviesAsync(int moviePage = 1)
         {
             var movies = await _dbContext.Movies.
@@ -38,7 +57,7 @@ namespace MoviesTelegramBotApp.Services
 
             if (movies == null || !movies.Any())
             {
-                throw new ArgumentNullException($"Couldn't connect to database");
+                throw new InvalidOperationException($"No movies available or couldn't retrieve movies from the database.");
             }
 
             return movies;
@@ -96,18 +115,19 @@ namespace MoviesTelegramBotApp.Services
         /// </summary>
         /// <returns>A task representing the asynchronous operation, containing a randomly selected <see cref="Movie"/> object.</returns>
         /// <exception cref="InvalidOperationException">Thrown if no movies are available in the collection.</exception>
-        public async Task<Movie> GetRandomMovie()
+        public async Task<Movie> GetRandomMovieAsync()
         {
-            var movies = await GetAllMoviesAsync();
-
-            if (movies == null && !movies.Any())
+            try
             {
-                throw new InvalidOperationException($"No movies available");
+                var movies = await GetAllMoviesAsync();
+                int randomIndex = _random.Next(1, movies.Count);
+
+                return movies[randomIndex];
             }
-
-            int randomIndex = _random.Next(movies.Count);
-
-            return movies[randomIndex];
+            catch (Exception)
+            {
+                throw;
+            }
         }
     }
 }
