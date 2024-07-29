@@ -111,8 +111,17 @@ internal class UpdateHandler
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "⏮️ Prev Movie", "Next Movie ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "Genres", "⏮️ Prev Movie", "Next Movie ⏭️");
     }
+
+    //private async Task SendMoviesGenresNavAsync(long chatId, CancellationToken cts)
+    //{
+    //    var totalMovies = await _movieService.CountAsync;
+    //    bool showPrevious = _moviePage > 1;
+    //    bool showNext = _moviePage < totalMovies;
+    //
+    //    await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "Genre", "⏮️ Prev Movie", "Next Movie ⏭️");
+    //}
 
     private async Task SendMoviesByTitleNavAsync(string searchString, long chatId, CancellationToken cts)
     {
@@ -120,7 +129,7 @@ internal class UpdateHandler
         bool showPrevious = _moviePageByTitle > 1;
         bool showNext = _moviePageByTitle < totalMovies;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "⏮️ Prev", "Next ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev", "Next ⏭️");
     }
 
     private async Task SendCartoonsNavAsync(long chatId, CancellationToken cts)
@@ -129,13 +138,13 @@ internal class UpdateHandler
         bool showPrevious = _cartoonPage > 1;
         bool showNext = _cartoonPage < totalCartoons;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "⏮️ Prev Cartoon", "Next Cartoon ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev Cartoon", "Next Cartoon ⏭️");
     }
 
     private async Task SendNavigationAsync(long chatId,
         CancellationToken cts,
         bool showPrevious,
-        bool showNext, string backButtonText,
+        bool showNext, string backButtonText, string genre,
         string previousButtonText,
         string nextButtonText)
     {
@@ -144,16 +153,19 @@ internal class UpdateHandler
         if (showPrevious && showNext)
         {
             buttons.Add(new KeyboardButton[] { previousButtonText, nextButtonText });
+            buttons.Add(new KeyboardButton[] { genre });
             buttons.Add(new KeyboardButton[] { backButtonText });
         }
         else if (showPrevious)
         {
             buttons.Add(new KeyboardButton[] { previousButtonText });
+            buttons.Add(new KeyboardButton[] { genre });
             buttons.Add(new KeyboardButton[] { backButtonText });
         }
         else if (showNext)
         {
             buttons.Add(new KeyboardButton[] { nextButtonText });
+            buttons.Add(new KeyboardButton[] { genre });
             buttons.Add(new KeyboardButton[] { backButtonText });
         }
 
@@ -161,7 +173,23 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "<b>Click ⏮️ Prev or Next ⏭️ to navigate</b>",
+            "<b>Click ⏮️ Prev or Next ⏭️ to navigate or choose a movie genre</b>",
+            parseMode: ParseMode.Html,
+            replyKeyBoardMarkup,
+            cancellationToken: cts);
+    }
+
+    private async Task SendMoviesGenresButtons(long chatId, CancellationToken cts)
+    {
+        var buttons = new List<KeyboardButton[]>();
+
+        buttons.Add(new KeyboardButton[] { "Action", "Comedy", "Drama" });
+        buttons.Add(new KeyboardButton[] { "Go Top" });
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
+
+        await _botService.SendTextMessageAsync(
+            chatId,
+            "<b>Сhoose a movie genre, please 🔽</b>",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -174,6 +202,26 @@ internal class UpdateHandler
             case "🎥 Movies":
                 await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            // genres
+            case "Genres":
+                await SendMoviesGenresButtons(chatId, cancellationToken);
+                break;
+
+            case "Action":
+                await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+                //await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Comedy":
+                await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+                //await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
+            case "Drama":
+                await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+                //await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
             case "🎞️ Cartoons":
