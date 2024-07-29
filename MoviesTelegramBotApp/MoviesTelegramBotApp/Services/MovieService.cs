@@ -41,7 +41,7 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Retrieves a paginated list of all movies from the database, including their genres.
+        /// Asyncronously retrieves a paginated list of all movies from the database, including their genres.
         /// </summary>
         /// <param name="moviePage">The page number to retrieve. Defaults to 1.</param>
         /// <returns>A list of movies from the specified page.</returns>
@@ -64,7 +64,7 @@ namespace MoviesTelegramBotApp.Services
         }
 
         // <summary>
-        /// Retrieves a paginated list of movies whose titles contain the specified search string.
+        /// Asyncronously retrieves a paginated list of movies whose titles contain the specified search string.
         /// </summary>
         /// <param name="searchString">The string to search for within movie titles.</param>
         /// <param name="moviePage">The page number to retrieve. Defaults to 1.</param>
@@ -82,7 +82,7 @@ namespace MoviesTelegramBotApp.Services
 
             if (foundMovie == null || !foundMovie.Any())
             {
-                throw new KeyNotFoundException($"We couldn't find '{searchString}'.\n Would you like to try searching with a different title?");
+                throw new KeyNotFoundException($"Couldn't find the movie by'{searchString}'.");
             }
 
             return foundMovie;
@@ -102,7 +102,7 @@ namespace MoviesTelegramBotApp.Services
         {
             if (string.IsNullOrEmpty(searchString))
             {
-                throw new ArgumentNullException(nameof(searchString), "Search string cannot be null or empty.");
+                throw new ArgumentNullException(nameof(searchString), "Search string is null or empty.");
             }
 
             return await _dbContext.Movies
@@ -128,6 +128,34 @@ namespace MoviesTelegramBotApp.Services
             {
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Asynchronously retrieves a list of movies that belong to a specified genre.
+        /// </summary>
+        /// <param name="genre">The genre to search for movies.</param>
+        /// <returns>A task representing the asynchronous operation, containing a list of <see cref="Movie"/> objects that match the specified genre.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if the genre string is null or empty.</exception>
+        /// <exception cref="KeyNotFoundException">Thrown if no movies are found for the specified genre.</exception>
+        public async Task<List<Movie>> GetMoviesByGenreAsync(string genre)
+        {
+            if (string.IsNullOrEmpty(genre))
+            {
+                throw new ArgumentNullException(nameof(genre), "Search genre string is null or empty.");
+            }
+
+            var moviesByGenre = await _dbContext.Movies
+                  .Include(m => m.Genre)
+                  .Where(m => m.Genre.Name == genre)
+                  .OrderBy(m => m.Id)
+                  .ToListAsync();
+
+            if (moviesByGenre == null || !moviesByGenre.Any())
+            {
+                throw new KeyNotFoundException($"Сouldn't find movies by genre: '{genre}'.");
+            }
+
+            return moviesByGenre;
         }
     }
 }

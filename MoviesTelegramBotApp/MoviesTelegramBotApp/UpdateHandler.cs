@@ -353,13 +353,14 @@ internal class UpdateHandler
         }
         catch (KeyNotFoundException ex)
         {
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, ex.Message, cancellationToken: cancellationToken);
+            string errMessage = $"Couldn't find '{searchString}'.\nWould you like to try searching with a another title?";
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, errMessage, cancellationToken: cancellationToken);
             _logger.LogInformation($"User chat id: {chatId} does not found a movies with a title: {searchString}");
             tasks.Add(sendTextMessageAsync);
         }
         catch (Exception ex)
         {
-            await _botService.SendTextMessageAsync(chatId, "An error occurred while searching for movies.", cancellationToken: cancellationToken);
+            await _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available 😟.", cancellationToken: cancellationToken);
             await SendMoviesNavAsync(chatId, cancellationToken);
             _logger.LogInformation($"Application has an other mistakes like: {ex.Message}");
         }
