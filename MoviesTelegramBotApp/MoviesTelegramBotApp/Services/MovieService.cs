@@ -131,18 +131,23 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Asynchronously retrieves a list of movies that belong to a specified genre.
+        /// Asynchronously retrieves a paginated list of movies by genre and the total count of movies in that genre.
         /// </summary>
-        /// <param name="genre">The genre to search for movies.</param>
-        /// <returns>A task representing the asynchronous operation, containing a list of <see cref="Movie"/> objects that match the specified genre.</returns>
+        /// <param name="genre">The genre to search for.</param>
+        /// <param name="moviePage">The page number for pagination. Default is 1.</param>
+        /// <returns>A task representing the asynchronous operation, containing a tuple with a list of movies and the total count of movies in that genre.</returns>
         /// <exception cref="ArgumentNullException">Thrown if the genre string is null or empty.</exception>
         /// <exception cref="KeyNotFoundException">Thrown if no movies are found for the specified genre.</exception>
-        public async Task<List<Movie>> GetMoviesByGenreAsync(string genre)
+        public async Task<(List<Movie> Movies, int Count)> GetMoviesByGenreAsync(string genre, int moviePage = 1)
         {
             if (string.IsNullOrEmpty(genre))
             {
                 throw new ArgumentNullException(nameof(genre), "Search genre string is null or empty.");
             }
+
+            var movieQuery = _dbContext.Movies.Include(m => m.Genre).Where(m => m.Genre.Name == genre);
+
+            var totalCount = await movieQuery.CountAsync();
 
             var moviesByGenre = await _dbContext.Movies
                   .Include(m => m.Genre)
@@ -155,7 +160,7 @@ namespace MoviesTelegramBotApp.Services
                 throw new KeyNotFoundException($"Сouldn't find movies by genre: '{genre}'.");
             }
 
-            return moviesByGenre;
+            return (Movies: moviesByGenre, Count: totalCount);
         }
 
         /// <summary>

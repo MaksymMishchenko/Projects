@@ -2,8 +2,6 @@
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -18,6 +16,7 @@ internal class UpdateHandler
     private readonly ILogger<UpdateHandler> _logger;
     private int _moviePage = 1;
     private int _moviePageByTitle = 1;
+    private int _moviePageByGenre = 1;
     private int _cartoonPage = 1;
 
     private const string StateAwaitingMovieSearch = "awaiting_movie_search";
@@ -116,6 +115,16 @@ internal class UpdateHandler
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "Genres", "⏮️ Prev Movie", "Next Movie ⏭️");
     }
 
+    private async Task SendMoviesNavByGenreAsync(string genre, long chatId, CancellationToken cts)
+    {
+        var totalMovies = await _movieService.GetMoviesByGenreAsync(genre, _moviePageByGenre);
+
+        bool showPrevious = _moviePage > 1;
+        bool showNext = _moviePage < totalMovies.Count;
+
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go To Movies 🔝", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
+    }
+
     //private async Task SendMoviesGenresNavAsync(long chatId, CancellationToken cts)
     //{
     //    var totalMovies = await _movieService.CountAsync;
@@ -175,7 +184,7 @@ internal class UpdateHandler
 
         await _botService.SendTextMessageAsync(
             chatId,
-            "<b>Click ⏮️ Prev or Next ⏭️ to navigate or choose a movie genre</b>",
+            "<b>Click ⏮️ Prev or Next ⏭️ to navigate</b>",
             parseMode: ParseMode.Html,
             replyKeyBoardMarkup,
             cancellationToken: cts);
@@ -251,6 +260,7 @@ internal class UpdateHandler
 
             case "Action":
                 await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+                await SendMoviesNavByGenreAsync(messageText, chatId, cancellationToken);
                 //await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
@@ -354,27 +364,6 @@ internal class UpdateHandler
             await Task.WhenAll(tasks);
         }
     }
-
-    //private async Task<List<Genre>> GetAllMovieGenresAsync(long chatId, CancellationToken cts)
-    //{
-    //    var tasks = new List<Task>();
-    //
-    //    try
-    //    {
-    //        return await _movieService.GetAllGenresAsync();
-    //        
-    //    }
-    //    catch (InvalidOperationException ex)
-    //    {           
-    //        var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, "Sorry, the genres are not available 😟");
-    //        tasks.Add(sendTextMessageAsync);
-    //        _logger.LogCritical(ex.Message);
-    //    }
-    //    finally
-    //    {
-    //        await Task.WhenAll(tasks);
-    //    }
-    //}
 
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
     {
@@ -495,8 +484,8 @@ internal class UpdateHandler
 
         try
         {
-            var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genre);
-            var sendMoviesAsync = SendMoviesAsync(moviesByGenre, chatId, cts);
+            var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genre, _moviePageByGenre);
+            var sendMoviesAsync = SendMoviesAsync(moviesByGenre.Movies, chatId, cts);
             tasks.Add(sendMoviesAsync);
         }
         catch (ArgumentNullException ex)
