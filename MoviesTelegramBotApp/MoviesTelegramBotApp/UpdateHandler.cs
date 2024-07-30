@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
@@ -13,10 +14,10 @@ internal class UpdateHandler
     private readonly IMovieService _movieService;
     private readonly ICartoonService _cartoonService;
     private readonly ConcurrentDictionary<long, (string state, string searchString)> _userStates;
+    private readonly ConcurrentDictionary<long, UserState> _userGenreState;
     private readonly ILogger<UpdateHandler> _logger;
     private int _moviePage = 1;
     private int _moviePageByTitle = 1;
-    private int _moviePageByGenre = 1;
     private int _cartoonPage = 1;
 
     private const string StateAwaitingMovieSearch = "awaiting_movie_search";
@@ -30,6 +31,7 @@ internal class UpdateHandler
     {
         _botService = botService;
         _movieService = movieService;
+        _userGenreState = new ConcurrentDictionary<long, UserState>();
         _cartoonService = cartoonService;
         _userStates = new ConcurrentDictionary<long, (string state, string searchString)>();
         _logger = logger;
@@ -115,15 +117,33 @@ internal class UpdateHandler
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "Genres", "⏮️ Prev Movie", "Next Movie ⏭️");
     }
 
+    /// <summary>
+    /// Asynchronously sends navigation buttons for movies of a specified genre to the user.
+    /// </summary>
+    /// <param name="genre">The genre of movies to navigate.</param>
+    /// <param name="chatId">The chat identifier where the navigation buttons will be sent.</param>
+    /// <param name="cts">CancellationToken to observe while waiting for the task to complete.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method retrieves the total number of movies for the user's current genre and page. 
+    /// It then determines whether to show previous and next navigation buttons based on the current page and total number of movies.
+    /// Finally, it sends the navigation buttons to the user.
+    /// </remarks>
     private async Task SendMoviesNavByGenreAsync(string genre, long chatId, CancellationToken cts)
     {
-        var totalMovies = await _movieService.GetMoviesByGenreAsync(genre, _moviePageByGenre);
+        if (_userGenreState.TryGetValue(chatId, out var userGenreState))
+        {
+            if (!string.IsNullOrEmpty(userGenreState.CurrentGenre))
+            {
+                var totalMovies = await _movieService.GetMoviesByGenreAsync(userGenreState.CurrentGenre, userGenreState.CurrentPage);
 
-        bool showPrevious = _moviePage > 1;
-        bool showNext = _moviePage < totalMovies.Count;
+                bool showPrevious = userGenreState.CurrentPage > 1;
+                bool showNext = userGenreState.CurrentPage < totalMovies.Count;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Genres", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
-    }    
+                await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Genres", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
+            }
+        }
+    }
 
     private async Task SendMoviesByTitleNavAsync(string searchString, long chatId, CancellationToken cts)
     {
@@ -250,20 +270,49 @@ internal class UpdateHandler
                 break;
 
             case "Action":
-                await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
-                await SendMoviesNavByGenreAsync(messageText, chatId, cancellationToken);
-                //await SendMoviesNavAsync(chatId, cancellationToken);
+
+                if (!_userGenreState.ContainsKey(chatId))
+                {
+                    _userGenreState[chatId] = new UserState();
+                }
+
+                _userGenreState[chatId].CurrentGenre = "Action";
+                _userGenreState[chatId].CurrentPage = 1;
+                await GetAllMoviesByGenre("Action", chatId, cancellationToken);
+                await SendMoviesNavByGenreAsync("Action", chatId, cancellationToken);
                 break;
 
             case "Comedy":
                 await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
-                //await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
             case "Drama":
                 await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
-                //await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
+
+            case "Show Next ⏭️":
+                //IncrementMoviePageByTitle();
+                if (_userGenreState.TryGetValue(chatId, out var userGenreState))
+                {
+                    if (!string.IsNullOrEmpty(userGenreState.CurrentGenre))
+                    {
+                        userGenreState.CurrentPage++;
+                        await GetAllMoviesByGenre(userGenreState.CurrentGenre, chatId, cancellationToken);
+                        await SendMoviesNavByGenreAsync(userGenreState.CurrentGenre, chatId, cancellationToken);
+                    }
+                }
+                else
+                {
+                    await _botService.SendTextMessageAsync(chatId, "Please, select a genre first", cancellationToken);
+                }
+
+                break;
+
+            //case "⏮️ Show Prev":
+            //    DecrementMoviePageByTitle();
+            //    await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+            //    await SendMoviesNavAsync(chatId, cancellationToken);
+            //    break;                         
 
             case "🎞️ Cartoons":
                 await SendCartoonsAsync(chatId, cancellationToken);
@@ -310,7 +359,7 @@ internal class UpdateHandler
 
             case "Main Menu 🔝":
                 await SendMenuAsync(chatId, cancellationToken);
-                break;            
+                break;
         }
     }
 
@@ -461,38 +510,48 @@ internal class UpdateHandler
     }
 
     /// <summary>
-    /// Asynchronously retrieves all movies of a specified genre and sends a message to a chat.
+    /// Asynchronously retrieves and sends a list of movies by genre for a specified user and chat.
     /// </summary>
-    /// <param name="genre">The genre of the movies to retrieve.</param>
-    /// <param name="chatId">The chat ID to send messages to.</param>
-    /// <param name="cts">A cancellation token for the asynchronous operation.</param>
+    /// <param name="genre">The genre of movies to retrieve.</param>
+    /// <param name="chatId">The chat identifier where the movies will be sent.</param>
+    /// <param name="cts">CancellationToken to observe while waiting for the task to complete.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     /// <exception cref="ArgumentNullException">Thrown if the genre is null or empty.</exception>
     /// <exception cref="KeyNotFoundException">Thrown if no movies are found for the specified genre.</exception>
+    /// <remarks>
+    /// This method retrieves the user's current page for the specified genre and attempts to send the list of movies. 
+    /// If an error occurs, appropriate messages are sent to the user and logged.
+    /// </remarks>
     private async Task GetAllMoviesByGenre(string genre, long chatId, CancellationToken cts)
     {
-        var tasks = new List<Task>();
+        if (_userGenreState.TryGetValue(chatId, out var genreUserState))
+        {
+            if (!string.IsNullOrEmpty(genreUserState.CurrentGenre))
+            {
+                var tasks = new List<Task>();
 
-        try
-        {
-            var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genre, _moviePageByGenre);
-            var sendMoviesAsync = SendMoviesAsync(moviesByGenre.Movies, chatId, cts);
-            tasks.Add(sendMoviesAsync);
-        }
-        catch (ArgumentNullException ex)
-        {
-            await _botService.SendTextMessageAsync(chatId, "Please, enter a movies genre");
-            _logger.LogWarning($"There is an acception: {ex.Message}");
-        }
-        catch (KeyNotFoundException ex)
-        {
-            await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genre} is not available 😟.");
-            _logger.LogError(ex.Message);
+                try
+                {
+                    var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genre, genreUserState.CurrentPage);
+                    var sendMoviesAsync = SendMoviesAsync(moviesByGenre.Movies, chatId, cts);
+                    tasks.Add(sendMoviesAsync);
+                }
+                catch (ArgumentNullException ex)
+                {
+                    await _botService.SendTextMessageAsync(chatId, "Please, enter a movies genre");
+                    _logger.LogWarning($"There is an acception: {ex.Message}");
+                }
+                catch (KeyNotFoundException ex)
+                {
+                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genre} is not available 😟.");
+                    _logger.LogError(ex.Message);
 
-        }
-        finally
-        {
-            await Task.WhenAll(tasks);
+                }
+                finally
+                {
+                    await Task.WhenAll(tasks);
+                }
+            }
         }
     }
 

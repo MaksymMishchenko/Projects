@@ -153,6 +153,8 @@ namespace MoviesTelegramBotApp.Services
                   .Include(m => m.Genre)
                   .Where(m => m.Genre.Name == genre)
                   .OrderBy(m => m.Id)
+                  .Skip((moviePage - 1) * PageSize)
+                  .Take(PageSize)
                   .ToListAsync();
 
             if (moviesByGenre == null || !moviesByGenre.Any())
