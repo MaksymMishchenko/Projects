@@ -495,8 +495,9 @@ internal class UpdateHandler
 
         try
         {
-            var moviesByGenre = _movieService.GetMoviesByGenreAsync(genre);
-            tasks.Add(moviesByGenre);
+            var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genre);
+            var sendMoviesAsync = SendMoviesAsync(moviesByGenre, chatId, cts);
+            tasks.Add(sendMoviesAsync);
         }
         catch (ArgumentNullException ex)
         {
