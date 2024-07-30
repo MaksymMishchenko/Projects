@@ -122,17 +122,8 @@ internal class UpdateHandler
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies.Count;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Go To Movies 🔝", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
-    }
-
-    //private async Task SendMoviesGenresNavAsync(long chatId, CancellationToken cts)
-    //{
-    //    var totalMovies = await _movieService.CountAsync;
-    //    bool showPrevious = _moviePage > 1;
-    //    bool showNext = _moviePage < totalMovies;
-    //
-    //    await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "Genre", "⏮️ Prev Movie", "Next Movie ⏭️");
-    //}
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Genres", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
+    }    
 
     private async Task SendMoviesByTitleNavAsync(string searchString, long chatId, CancellationToken cts)
     {
@@ -218,7 +209,7 @@ internal class UpdateHandler
                 buttons.Add(button);
             }
 
-            buttons.Add(new KeyboardButton("Go Top 🔝"));
+            buttons.Add(new KeyboardButton("🎥 Movies"));
 
             KeyboardButton[] buttonArray = buttons.ToArray();
             var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
@@ -319,7 +310,7 @@ internal class UpdateHandler
 
             case "Main Menu 🔝":
                 await SendMenuAsync(chatId, cancellationToken);
-                break;
+                break;            
         }
     }
 
