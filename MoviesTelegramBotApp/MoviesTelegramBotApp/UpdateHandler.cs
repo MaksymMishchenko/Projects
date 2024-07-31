@@ -1,13 +1,20 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
+using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
+/// <summary>
+/// Handles incoming updates from Telegram by processing user messages and updating their state accordingly.
+/// </summary>
+/// <remarks>
+/// The class is responsible for managing different user states, such as awaiting movie search or navigating through movie results.
+/// It interacts with the Telegram bot client to send messages and updates based on user input and state.
+/// </remarks>
 internal class UpdateHandler
 {
     private readonly IBotService _botService;
@@ -37,6 +44,19 @@ internal class UpdateHandler
         _logger = logger;
     }
 
+    /// <summary>
+    /// Asynchronously handles incoming updates from Telegram, processing user messages based on their state.
+    /// </summary>
+    /// <param name="bot">The Telegram bot client used to interact with the user.</param>
+    /// <param name="update">The update received from Telegram, containing message information.</param>
+    /// <param name="cancellationToken">A token to observe while waiting for the task to complete.</param>
+    /// <remarks>
+    /// This method processes user messages based on their current state:
+    /// - If the user is awaiting movie search, it prompts for a movie title or performs a search based on the provided title.
+    /// - If the user is navigating movie results, it handles pagination ("Next" and "Previous") and menu navigation.
+    /// - If the user sends the "/start" command, it sends a welcome message and displays the main menu.
+    /// - For other messages, it handles menu responses accordingly.
+    /// </remarks>
     public async Task HandleUpdateAsync(ITelegramBotClient bot, Update update, CancellationToken cancellationToken)
     {
         if (update.Type == UpdateType.Message && update.Message!.Type == MessageType.Text)
@@ -96,6 +116,16 @@ internal class UpdateHandler
         }
     }
 
+    /// <summary>
+    /// Asynchronously sends a menu with options to the user in the specified chat.
+    /// </summary>
+    /// <param name="chatId">The ID of the chat where the menu will be sent.</param>
+    /// <param name="cts">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <remarks>
+    /// This method creates a reply keyboard with options such as "Movies," "Cartoons," "Surprise Me," and "Search." 
+    /// It then sends a message to the user with this menu, allowing them to choose from these options. 
+    /// The menu is displayed with a resizeable keyboard for ease of use.
+    /// </remarks>
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
         var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "🎥 Movies", "🎞️ Cartoons", "✨ Surprise Me", "🔎 Search" } }) { ResizeKeyboard = true };
@@ -108,6 +138,16 @@ internal class UpdateHandler
             cancellationToken: cts);
     }
 
+    /// <summary>
+    /// Asynchronously sends navigation buttons for movies based on the current page and total number of movies.
+    /// </summary>
+    /// <param name="chatId">The ID of the chat where the navigation buttons will be sent.</param>
+    /// <param name="cts">A cancellation token to observe while waiting for the task to complete.</param>
+    /// <remarks>
+    /// This method calculates whether to show "Previous" and "Next" buttons based on the current page and total movie count. 
+    /// It then invokes <see cref="SendNavigationAsync"/> to send the navigation options to the user, including buttons for 
+    /// returning to the main menu, viewing genres, and navigating to the previous or next movie.
+    /// </remarks>
     private async Task SendMoviesNavAsync(long chatId, CancellationToken cts)
     {
         var totalMovies = await _movieService.CountAsync;
@@ -145,6 +185,16 @@ internal class UpdateHandler
         }
     }
 
+    /// <summary>
+    /// Asynchronously sends navigation buttons for movies based on a search title to the user.
+    /// </summary>
+    /// <param name="searchString">The title used to search for movies.</param>
+    /// <param name="chatId">The chat identifier to send the message to.</param>
+    /// <param name="cts">A cancellation token to cancel the operation if needed.</param>
+    /// <remarks>
+    /// The method determines whether to show "Previous" and "Next" buttons based on the current page and the total number of movies found.
+    /// It then sends these navigation options to the user, allowing them to navigate through the list of movies that match the search title.
+    /// </remarks>
     private async Task SendMoviesByTitleNavAsync(string searchString, long chatId, CancellationToken cts)
     {
         var totalMovies = await _movieService.GetMoviesByTitleCountAsync(searchString);
@@ -163,6 +213,21 @@ internal class UpdateHandler
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev Cartoon", "Next Cartoon ⏭️");
     }
 
+    /// <summary>
+    /// Asynchronously sends a navigation keyboard to the user with buttons for navigating through a list, including options for previous and next items, a genre button, and a back button.
+    /// </summary>
+    /// <param name="chatId">The chat identifier to send the message to.</param>
+    /// <param name="cts">A cancellation token to cancel the operation if needed.</param>
+    /// <param name="showPrevious">Indicates whether the "Previous" button should be shown.</param>
+    /// <param name="showNext">Indicates whether the "Next" button should be shown.</param>
+    /// <param name="backButtonText">Text for the back button.</param>
+    /// <param name="genre">Text for the genre button.</param>
+    /// <param name="previousButtonText">Text for the previous button.</param>
+    /// <param name="nextButtonText">Text for the next button.</param>
+    /// <remarks>
+    /// The method constructs a list of buttons based on whether navigation options are available and sends this keyboard layout to the user.
+    /// It provides navigation controls for both the previous and next items, along with options to return to a genre selection or main menu.
+    /// </remarks>
     private async Task SendNavigationAsync(long chatId,
         CancellationToken cts,
         bool showPrevious,
@@ -255,6 +320,17 @@ internal class UpdateHandler
         }
     }
 
+    /// <summary>
+    /// Asynchronously handles user responses to menu options and navigates to the appropriate content based on the user's selection.
+    /// </summary>
+    /// <param name="chatId">The chat identifier where the response is being handled.</param>
+    /// <param name="messageText">The text of the user's message, indicating their menu choice.</param>
+    /// <param name="cancellationToken">A cancellation token to handle the cancellation of the operation if needed.</param>
+    /// <remarks>
+    /// The method processes different types of user responses related to movies and cartoons, including genre selections, navigation actions, and search requests. 
+    /// It updates the user's state accordingly and sends appropriate responses, such as lists of movies or cartoons, navigation buttons, or prompts for search input.
+    /// Specific actions include fetching movies or cartoons, updating pagination, and redirecting to the main menu or other menu options based on user input.
+    /// </remarks>
     private async Task HandleMenuResponseAsync(long chatId, string messageText, CancellationToken cancellationToken)
     {
         switch (messageText)
@@ -291,6 +367,7 @@ internal class UpdateHandler
                 break;
 
             case "Show Next ⏭️":
+                var tasks = new List<Task>();
                 if (_userGenreState.TryGetValue(chatId, out var userGenreState))
                 {
                     if (!string.IsNullOrEmpty(userGenreState.CurrentGenre))
@@ -373,13 +450,29 @@ internal class UpdateHandler
         }
     }
 
+    /// <summary>
+    /// Asynchronously retrieves a list of movies and sends them to the user.
+    /// </summary>
+    /// <param name="chatId">The chat identifier where the movies will be sent.</param>
+    /// <param name="cancellationToken">A cancellation token to handle the cancellation of the operation if needed.</param>
+    /// <remarks>
+    /// The method performs the following operations:
+    /// 1. Fetches movies for the current page from the movie service.
+    /// 2. Sends the retrieved movies to the user.
+    /// 3. Handles any exceptions that occur during the process by logging the error and notifying the user of the service unavailability.
+    /// It uses a list of tasks to manage the asynchronous operations and ensures all tasks are completed before finishing.
+    /// </remarks>
     private async Task GetMoviesAsync(long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
 
         try
         {
-            var getAllMoviesAsync = await _movieService.GetAllMoviesAsync(_moviePage);
+            var moviesTask = _movieService.GetAllMoviesAsync(_moviePage);
+            tasks.Add(moviesTask);
+
+            var getAllMoviesAsync = await moviesTask;
+
             var sendMoviesAsync = SendMoviesAsync(getAllMoviesAsync, chatId, cancellationToken);
             tasks.Add(sendMoviesAsync);
         }
@@ -394,14 +487,29 @@ internal class UpdateHandler
         await Task.WhenAll(tasks);
     }
 
+    /// <summary>
+    /// Asynchronously retrieves a random movie and sends it to the user.
+    /// </summary>
+    /// <param name="chatId">The chat identifier where the movie will be sent.</param>
+    /// <param name="cts">A cancellation token to handle the cancellation of the operation if needed.</param>
+    /// <remarks>
+    /// The method performs the following operations:
+    /// 1. Requests a random movie from the movie service.
+    /// 2. Sends the retrieved movie to the user.
+    /// 3. Handles any exceptions by logging the error and notifying the user that the movie is not available.
+    /// 4. Ensures all asynchronous operations are completed before finishing.
+    /// </remarks>
     private async Task GetRandomMovieAsync(long chatId, CancellationToken cts)
     {
         var tasks = new List<Task>();
 
         try
         {
-            var rndMovie = await _movieService.GetRandomMovieAsync();
-            await SendMoviesAsync(rndMovie, chatId, cts);
+            var rndMovieTask = _movieService.GetRandomMovieAsync();
+            tasks.Add(rndMovieTask);
+            var getRandomMovieAsync = await rndMovieTask;
+            var sendMoviesTask = SendMoviesAsync(getRandomMovieAsync, chatId, cts);
+            tasks.Add(sendMoviesTask);
         }
         catch (Exception ex)
         {
@@ -415,6 +523,13 @@ internal class UpdateHandler
         }
     }
 
+    /// <summary>
+    /// Asynchronously sends a list of movies to a user, including their details and an inline button for each movie.
+    /// </summary>
+    /// <param name="movies">The collection of movies to send.</param>
+    /// <param name="chatId">The chat ID of the user to whom the movies will be sent.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
@@ -439,9 +554,28 @@ internal class UpdateHandler
             tasks.Add(task);
         }
 
-        await Task.WhenAll(tasks);
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Sorry, something went wrong. Try again later.", cancellationToken);
+            _logger.LogCritical($"An exception '{ex.Message}' occurred during sending movies to user.");
+        }
+        finally
+        {
+            _logger.LogInformation("Finished processing movie send requests.");
+        }
     }
 
+    /// <summary>
+    /// Asynchronously sends a single movie's details to a user on Telegram, including an image, a detailed caption, and an inline button for a movie trailer.
+    /// </summary>
+    /// <param name="movie">The movie object containing details to be sent.</param>
+    /// <param name="chatId">The chat ID of the user to whom the movie will be sent.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     private async Task SendMoviesAsync(Movie movie, long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
@@ -463,7 +597,19 @@ internal class UpdateHandler
 
         tasks.Add(task);
 
-        await Task.WhenAll(tasks);
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Sorry, something went wrong. Try again later.", cancellationToken);
+            _logger.LogCritical($"An exception '{ex.Message}' occurred during sending movies to user.");
+        }
+        finally
+        {
+            _logger.LogInformation("Finished processing movie send requests.");
+        }
     }
 
     private async Task SendCartoonsAsync(long chatId, CancellationToken cancellationToken)
@@ -491,31 +637,63 @@ internal class UpdateHandler
         await Task.WhenAll(tasks);
     }
 
+    /// <summary>
+    /// Asynchronously retrieves movies based on a search string, sends the movie details to the specified chat, and handles any errors that occur during the process.
+    /// </summary>
+    /// <param name="searchString">The title of the movie to search for.</param>
+    /// <param name="chatId">The chat ID where the results will be sent.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation if needed.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     private async Task GetFoundMoviesAsync(string searchString, long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
+
         try
         {
-            var movies = await _movieService.GetMoviesByTitleAsync(searchString, _moviePageByTitle);
+            var moviesTask = _movieService.GetMoviesByTitleAsync(searchString, _moviePageByTitle);
+            tasks.Add(moviesTask);
+
+            var movies = await moviesTask;
 
             if (movies != null && movies.Any())
             {
-                await SendMoviesAsync(movies, chatId, cancellationToken);
-                await SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken);
+                var sendMoviesAsync = SendMoviesAsync(movies, chatId, cancellationToken);
+                tasks.Add(sendMoviesAsync);
+
+                var sendMoviesByTitleNavAsync = SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken);
+                tasks.Add(sendMoviesByTitleNavAsync);
             }
         }
         catch (KeyNotFoundException ex)
         {
-            string errMessage = $"Couldn't find '{searchString}'.\nWould you like to try searching with a another title?";
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, errMessage, cancellationToken: cancellationToken);
-            _logger.LogInformation($"User chat id: {chatId} does not found a movies with a title: {searchString}");
-            tasks.Add(sendTextMessageAsync);
+            string errMessage = $"Couldn't find movie by title: '{searchString}'.\nWould you like to try searching with another title?";
+            await _botService.SendTextMessageAsync(chatId, errMessage, cancellationToken: cancellationToken);
+
+            _logger.LogInformation($"{ex.Message}");
         }
         catch (Exception ex)
         {
             await _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available 😟.", cancellationToken: cancellationToken);
             await SendMoviesNavAsync(chatId, cancellationToken);
-            _logger.LogInformation($"Application has an other mistakes like: {ex.Message}");
+
+            _logger.LogInformation($"Application has other mistakes like: {ex.Message}");
+        }
+        finally
+        {          
+            foreach (var task in tasks)
+            {
+                try
+                {
+                    await task;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"An error occurred while processing a task: {ex.Message}");
+                    await _botService.SendTextMessageAsync(chatId, "An error occurred while processing your request. Please try again later.", cancellationToken);
+                }
+            }
+
+            _logger.LogInformation("Finished processing found movies request.");
         }
     }
 
@@ -542,38 +720,77 @@ internal class UpdateHandler
 
                 try
                 {
-                    var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genreUserState.CurrentGenre, genreUserState.CurrentPage);
+                    var getMoviesByGenre = _movieService.GetMoviesByGenreAsync(genreUserState.CurrentGenre, genreUserState.CurrentPage);
+                    tasks.Add(getMoviesByGenre);
+
+                    var moviesByGenre = await getMoviesByGenre;
+
                     var sendMoviesAsync = SendMoviesAsync(moviesByGenre.Movies, chatId, cts);
                     tasks.Add(sendMoviesAsync);
                 }
                 catch (ArgumentNullException ex)
                 {
-                    await _botService.SendTextMessageAsync(chatId, "Please, enter a movies genre");
-                    _logger.LogWarning($"There is an acception: {ex.Message}");
+                    await _botService.SendTextMessageAsync(chatId, "Please, enter a movies genre", cts);
+                    _logger.LogWarning($"ArgumentNullException: {ex.Message}");
                 }
                 catch (KeyNotFoundException ex)
                 {
-                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genreUserState.CurrentGenre} is not available 😟.");
-                    _logger.LogError(ex.Message);
-
+                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genreUserState.CurrentGenre} is not available 😟.", cts);
+                    _logger.LogError($"KeyNotFoundException: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    await _botService.SendTextMessageAsync(chatId, "An error occurred while processing your request. Please try again later.", cts);
+                    _logger.LogError($"Exception: {ex.Message}");
                 }
                 finally
-                {
-                    await Task.WhenAll(tasks);
+                {                   
+                    foreach (var task in tasks)
+                    {
+                        try
+                        {
+                            await task;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError($"An error occurred while processing a task: {ex.Message}");
+                            await _botService.SendTextMessageAsync(chatId, "An error occurred while processing your request. Please try again later.", cts);
+                        }
+                    }
+
+                    _logger.LogInformation("Finished processing movies by genre request.");
                 }
             }
         }
     }
 
+    /// <summary>
+    /// Increments the current page number for retrieving movies.
+    /// </summary>
     private void IncrementMoviePage() => ++_moviePage;
 
+    /// <summary>
+    /// Decrement the current page number for retrieving movies.
+    /// </summary>
     private void DecrementMoviePage() => --_moviePage;
 
+    /// <summary>
+    /// Increments the current page number by title for retrieving movies.
+    /// </summary>
     private void IncrementMoviePageByTitle() => ++_moviePageByTitle;
 
+    /// <summary>
+    /// Decrements the current page number by title for retrieving movies.
+    /// </summary>
     private void DecrementMoviePageByTitle() => --_moviePageByTitle;
 
+    /// <summary>
+    /// Increments the current page number for retrieving cartoons.
+    /// </summary>
     private void IncrementCartoonPage() => ++_cartoonPage;
 
+    /// <summary>
+    /// Decrements the current page number for retrieving cartoons.
+    /// </summary>
     private void DecrementCartoonPage() => --_cartoonPage;
 }
