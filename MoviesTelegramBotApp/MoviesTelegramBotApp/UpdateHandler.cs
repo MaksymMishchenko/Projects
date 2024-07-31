@@ -2,7 +2,6 @@
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
-using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -70,7 +69,7 @@ internal class UpdateHandler
                 {
                     if (messageText == "🔎 Search")
                     {
-                        await _botService.SendTextMessageAsync(chatId, "Please, enter a title of movie", cancellationToken);
+                        await _botService.SendTextMessageAsync(chatId, "🎬 Please, enter a title of movie", cancellationToken);
 
                         return;
                     }
@@ -154,7 +153,7 @@ internal class UpdateHandler
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "Genres", "⏮️ Prev Movie", "Next Movie ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "Next Movie ⏭️");
     }
 
     /// <summary>
@@ -180,7 +179,7 @@ internal class UpdateHandler
                 bool showPrevious = userGenreState.CurrentPage > 1;
                 bool showNext = userGenreState.CurrentPage < totalMovies.Count;
 
-                await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Genres", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
+                await SendNavigationAsync(chatId, cts, showPrevious, showNext, "🎬 Genres", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
             }
         }
     }
@@ -289,7 +288,7 @@ internal class UpdateHandler
 
             foreach (var genre in genres)
             {
-                var button = new KeyboardButton(genre.Name);
+                var button = new KeyboardButton($"{"🧾 " + genre.Name}");
 
                 buttons.Add(button);
             }
@@ -341,11 +340,11 @@ internal class UpdateHandler
                 break;
 
             // genres
-            case "Genres":
+            case "🎬 Genres":
                 await SendMoviesGenresButtons(chatId, cancellationToken);
                 break;
 
-            case "Action":
+            case "🧾 Action":
 
                 if (!_userGenreState.ContainsKey(chatId))
                 {
@@ -358,12 +357,28 @@ internal class UpdateHandler
                 await SendMoviesNavByGenreAsync("Action", chatId, cancellationToken);
                 break;
 
-            case "Comedy":
+            case "🧾 Comedy":
+                if (!_userGenreState.ContainsKey(chatId))
+                {
+                    _userGenreState[chatId] = new UserState();
+                }
+
+                _userGenreState[chatId].CurrentGenre = "Comedy";
+                _userGenreState[chatId].CurrentPage = 1;
                 await GetAllMoviesByGenre(chatId, cancellationToken);
+                await SendMoviesNavByGenreAsync("Comedy", chatId, cancellationToken);
                 break;
 
-            case "Drama":
+            case "🧾 Drama":
+                if (!_userGenreState.ContainsKey(chatId))
+                {
+                    _userGenreState[chatId] = new UserState();
+                }
+
+                _userGenreState[chatId].CurrentGenre = "Drama";
+                _userGenreState[chatId].CurrentPage = 1;
                 await GetAllMoviesByGenre(chatId, cancellationToken);
+                await SendMoviesNavByGenreAsync("Drama", chatId, cancellationToken);
                 break;
 
             case "Show Next ⏭️":
@@ -479,7 +494,7 @@ internal class UpdateHandler
         catch (Exception ex)
         {
             _logger.LogCritical(ex.Message);
-            var exResponse = "We are sorry. 😟\nService is unavailable. We do our best to resolve this mistake.";
+            var exResponse = "We are sorry.\nService is unavailable. We do our best to resolve this mistake. 😟";
             var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken: cancellationToken);
             tasks.Add(sendTextMessageAsync);
         }
@@ -514,7 +529,7 @@ internal class UpdateHandler
         catch (Exception ex)
         {
             _logger.LogCritical(ex.Message);
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available 😟");
+            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available. 😟");
             tasks.Add(sendTextMessageAsync);
         }
         finally
@@ -560,7 +575,7 @@ internal class UpdateHandler
         }
         catch (Exception ex)
         {
-            await _botService.SendTextMessageAsync(chatId, "Sorry, something went wrong. Try again later.", cancellationToken);
+            await _botService.SendTextMessageAsync(chatId, "Sorry, something went wrong. Try again later. 😟", cancellationToken);
             _logger.LogCritical($"An exception '{ex.Message}' occurred during sending movies to user.");
         }
         finally
@@ -679,7 +694,7 @@ internal class UpdateHandler
             _logger.LogInformation($"Application has other mistakes like: {ex.Message}");
         }
         finally
-        {          
+        {
             foreach (var task in tasks)
             {
                 try
@@ -744,7 +759,7 @@ internal class UpdateHandler
                     _logger.LogError($"Exception: {ex.Message}");
                 }
                 finally
-                {                   
+                {
                     foreach (var task in tasks)
                     {
                         try
