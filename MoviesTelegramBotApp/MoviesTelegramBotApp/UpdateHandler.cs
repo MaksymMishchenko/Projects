@@ -278,27 +278,43 @@ internal class UpdateHandler
 
                 _userGenreState[chatId].CurrentGenre = "Action";
                 _userGenreState[chatId].CurrentPage = 1;
-                await GetAllMoviesByGenre("Action", chatId, cancellationToken);
+                await GetAllMoviesByGenre(chatId, cancellationToken);
                 await SendMoviesNavByGenreAsync("Action", chatId, cancellationToken);
                 break;
 
             case "Comedy":
-                await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+                await GetAllMoviesByGenre(chatId, cancellationToken);
                 break;
 
             case "Drama":
-                await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
+                await GetAllMoviesByGenre(chatId, cancellationToken);
                 break;
 
             case "Show Next ⏭️":
-                //IncrementMoviePageByTitle();
                 if (_userGenreState.TryGetValue(chatId, out var userGenreState))
                 {
                     if (!string.IsNullOrEmpty(userGenreState.CurrentGenre))
                     {
                         userGenreState.CurrentPage++;
-                        await GetAllMoviesByGenre(userGenreState.CurrentGenre, chatId, cancellationToken);
+                        await GetAllMoviesByGenre(chatId, cancellationToken);
                         await SendMoviesNavByGenreAsync(userGenreState.CurrentGenre, chatId, cancellationToken);
+                    }
+                }
+                else
+                {
+                    await _botService.SendTextMessageAsync(chatId, "Please, select a genre first", cancellationToken);
+                }
+                break;
+
+            case "⏮️ Show Prev":
+
+                if (_userGenreState.TryGetValue(chatId, out var userGenState))
+                {
+                    if (!string.IsNullOrEmpty(userGenState.CurrentGenre))
+                    {
+                        userGenState.CurrentPage--;
+                        await GetAllMoviesByGenre(chatId, cancellationToken);
+                        await SendMoviesNavByGenreAsync(userGenState.CurrentGenre, chatId, cancellationToken);
                     }
                 }
                 else
@@ -307,12 +323,6 @@ internal class UpdateHandler
                 }
 
                 break;
-
-            //case "⏮️ Show Prev":
-            //    DecrementMoviePageByTitle();
-            //    await GetAllMoviesByGenre(messageText, chatId, cancellationToken);
-            //    await SendMoviesNavAsync(chatId, cancellationToken);
-            //    break;                         
 
             case "🎞️ Cartoons":
                 await SendCartoonsAsync(chatId, cancellationToken);
@@ -522,7 +532,7 @@ internal class UpdateHandler
     /// This method retrieves the user's current page for the specified genre and attempts to send the list of movies. 
     /// If an error occurs, appropriate messages are sent to the user and logged.
     /// </remarks>
-    private async Task GetAllMoviesByGenre(string genre, long chatId, CancellationToken cts)
+    private async Task GetAllMoviesByGenre(long chatId, CancellationToken cts)
     {
         if (_userGenreState.TryGetValue(chatId, out var genreUserState))
         {
@@ -532,7 +542,7 @@ internal class UpdateHandler
 
                 try
                 {
-                    var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genre, genreUserState.CurrentPage);
+                    var moviesByGenre = await _movieService.GetMoviesByGenreAsync(genreUserState.CurrentGenre, genreUserState.CurrentPage);
                     var sendMoviesAsync = SendMoviesAsync(moviesByGenre.Movies, chatId, cts);
                     tasks.Add(sendMoviesAsync);
                 }
@@ -543,7 +553,7 @@ internal class UpdateHandler
                 }
                 catch (KeyNotFoundException ex)
                 {
-                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genre} is not available 😟.");
+                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genreUserState.CurrentGenre} is not available 😟.");
                     _logger.LogError(ex.Message);
 
                 }
