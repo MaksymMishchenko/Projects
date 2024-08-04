@@ -455,8 +455,9 @@ internal class UpdateHandler
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
-            //todo: case "🎞️ Choices":                                
-            // break;
+            case "🎞️ Choices":
+                await GetListOfFavoriteMoviesAsync(chatId, cancellationToken);
+                break;
 
             case "🔎 Search":
                 await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find\n  For example: 'The Mask'", ParseMode.Html);
@@ -822,6 +823,45 @@ internal class UpdateHandler
         finally
         {
             await Task.WhenAll(taskList);
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously retrieves a list of favorite movies and sends them to a specified chat.
+    /// This method first fetches the list of favorite movies, then sends the list to the chat. 
+    /// It handles and logs exceptions if an error occurs during retrieval or sending of the movie list.
+    /// </summary>
+    /// <param name="chatId">The ID of the chat to which the movies will be sent.</param>
+    /// <param name="cts">A cancellation token to cancel the sending operation if needed.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    private async Task GetListOfFavoriteMoviesAsync(long chatId, CancellationToken cts)
+    {
+        var tasksList = new List<Task>();
+
+        try
+        {
+            var getAllFavoriteMovies = _movieService.GetListOfFavoriteMoviesAsync();
+            tasksList.Add(getAllFavoriteMovies);
+
+            var favMovies = await getAllFavoriteMovies;
+
+            var sendMovies = SendMoviesAsync(favMovies, chatId, cts);
+            tasksList.Add(sendMovies);
+        }
+        catch (ArgumentNullException ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while retrieving movies from favorite list", cts);
+            _logger.LogCritical($"An error occurred during retrieving movies from favorite list. See message: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while retrieving movies from favorite list", cts);
+            _logger.LogCritical($"An error occurred during retrieving movies from favorite list. See message: {ex.Message}");
+        }
+
+        finally
+        {
+            await Task.WhenAll(tasksList);
         }
     }
 
