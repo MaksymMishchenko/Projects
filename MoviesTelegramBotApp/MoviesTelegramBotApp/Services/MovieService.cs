@@ -186,5 +186,22 @@ namespace MoviesTelegramBotApp.Services
 
             return movieGenres;
         }
+
+        /// <summary>
+        /// Asynchronously updates the `IsFavorite` property of a movie in the database.
+        /// If the movie with the specified ID does not exist, an `ArgumentNullException` is thrown.
+        /// </summary>
+        /// <param name="movieId">The ID of the movie to update.</param>
+        /// <param name="isFavorite">The new favorite status to set for the movie.</param>
+        /// <exception cref="ArgumentNullException">Thrown when the movie with the specified ID is not found in the database.</exception>      
+        public async Task UpdateIsFavoriteAsync(int movieId, bool isFavorite)
+        {
+            var foundMovie = await _dbContext.Movies.FindAsync(movieId);
+
+            ArgumentNullException.ThrowIfNull(foundMovie);
+
+            foundMovie.IsFavorite = isFavorite;
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
