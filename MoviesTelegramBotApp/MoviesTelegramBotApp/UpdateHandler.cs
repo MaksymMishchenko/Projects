@@ -127,7 +127,7 @@ internal class UpdateHandler
     /// </remarks>
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "🎥 Movies", "🎞️ Cartoons", "✨ Surprise Me", "🔎 Search", "Choices" } }) { ResizeKeyboard = true };
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "🎥 Movies", "🎞️ Cartoons", "✨ Surprise Me", "🔎 Search", "🎞️ Choices" } }) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -155,7 +155,7 @@ internal class UpdateHandler
 
         // todo: here I need to check If I have a list of choosed items
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "Favorite", "Next Movie ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "➕ Favorite", "Next Movie ⏭️");
     }
 
     /// <summary>
@@ -450,7 +450,7 @@ internal class UpdateHandler
                 await SendCartoonsNavAsync(chatId, cancellationToken);
                 break;
 
-            //todo: case "Choices":                                
+            //todo: case "🎞️ Choices":                                
             // break;
 
             case "🔎 Search":
