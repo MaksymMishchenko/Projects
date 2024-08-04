@@ -127,7 +127,7 @@ internal class UpdateHandler
     /// </remarks>
     private async Task SendMenuAsync(long chatId, CancellationToken cts)
     {
-        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "🎥 Movies", "🎞️ Cartoons", "✨ Surprise Me", "🔎 Search" } }) { ResizeKeyboard = true };
+        var replyKeyBoardMarkup = new ReplyKeyboardMarkup(new[] { new KeyboardButton[] { "🎥 Movies", "🎞️ Cartoons", "✨ Surprise Me", "🔎 Search", "Choices" } }) { ResizeKeyboard = true };
 
         await _botService.SendTextMessageAsync(
             chatId,
@@ -153,7 +153,9 @@ internal class UpdateHandler
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "Next Movie ⏭️");
+        // todo: here I need to check If I have a list of choosed items
+
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "Favorite", "Next Movie ⏭️");
     }
 
     /// <summary>
@@ -179,7 +181,7 @@ internal class UpdateHandler
                 bool showPrevious = userGenreState.CurrentPage > 1;
                 bool showNext = userGenreState.CurrentPage < totalMovies.Count;
 
-                await SendNavigationAsync(chatId, cts, showPrevious, showNext, "🎬 Genres", string.Empty, "⏮️ Show Prev", "Show Next ⏭️");
+                await SendNavigationAsync(chatId, cts, showPrevious, showNext, "🎬 Genres", string.Empty, "⏮️ Show Prev", string.Empty, "Show Next ⏭️");
             }
         }
     }
@@ -200,7 +202,7 @@ internal class UpdateHandler
         bool showPrevious = _moviePageByTitle > 1;
         bool showNext = _moviePageByTitle < totalMovies;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev", "Next ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev", string.Empty, "Next ⏭️");
     }
 
     private async Task SendCartoonsNavAsync(long chatId, CancellationToken cts)
@@ -209,7 +211,7 @@ internal class UpdateHandler
         bool showPrevious = _cartoonPage > 1;
         bool showNext = _cartoonPage < totalCartoons;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev Cartoon", "Next Cartoon ⏭️");
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev Cartoon", string.Empty, "Next Cartoon ⏭️");
     }
 
     /// <summary>
@@ -231,26 +233,26 @@ internal class UpdateHandler
         CancellationToken cts,
         bool showPrevious,
         bool showNext, string backButtonText, string genre,
-        string previousButtonText,
+        string previousButtonText, string favorite,
         string nextButtonText)
     {
         var buttons = new List<KeyboardButton[]>();
 
         if (showPrevious && showNext)
         {
-            buttons.Add(new KeyboardButton[] { previousButtonText, nextButtonText });
+            buttons.Add(new KeyboardButton[] { previousButtonText, favorite, nextButtonText });
             buttons.Add(new KeyboardButton[] { genre });
             buttons.Add(new KeyboardButton[] { backButtonText });
         }
         else if (showPrevious)
         {
-            buttons.Add(new KeyboardButton[] { previousButtonText });
+            buttons.Add(new KeyboardButton[] { favorite, previousButtonText });
             buttons.Add(new KeyboardButton[] { genre });
             buttons.Add(new KeyboardButton[] { backButtonText });
         }
         else if (showNext)
         {
-            buttons.Add(new KeyboardButton[] { nextButtonText });
+            buttons.Add(new KeyboardButton[] { favorite, nextButtonText });
             buttons.Add(new KeyboardButton[] { genre });
             buttons.Add(new KeyboardButton[] { backButtonText });
         }
@@ -413,7 +415,6 @@ internal class UpdateHandler
                 {
                     await _botService.SendTextMessageAsync(chatId, "Please, select a genre first", cancellationToken);
                 }
-
                 break;
 
             case "🎞️ Cartoons":
@@ -448,6 +449,9 @@ internal class UpdateHandler
                 await SendCartoonsAsync(chatId, cancellationToken);
                 await SendCartoonsNavAsync(chatId, cancellationToken);
                 break;
+
+            //todo: case "Choices":                                
+            // break;
 
             case "🔎 Search":
                 await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find\n  For example: 'The Mask'", ParseMode.Html);
