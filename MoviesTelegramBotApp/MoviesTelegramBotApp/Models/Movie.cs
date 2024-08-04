@@ -11,6 +11,7 @@
         public string? MovieUrl { get; set; }
         public string? InterestFactsUrl { get; set; }
         public string? BehindTheScene { get; set; }
+        public bool IsFavorite { get; set; } = false;
 
         public int GenreId { get; set; }
         public Genre? Genre { get; set; }
