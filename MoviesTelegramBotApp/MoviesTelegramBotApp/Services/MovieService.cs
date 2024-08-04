@@ -11,7 +11,7 @@ namespace MoviesTelegramBotApp.Services
     {
         private ApplicationDbContext _dbContext;
         private readonly Random _random;
-        public int PageSize = 1;
+        public int PageSize = 1;        
 
         public Task<int> CountAsync => _dbContext.Movies.CountAsync();
 
@@ -198,7 +198,11 @@ namespace MoviesTelegramBotApp.Services
         {
             var foundMovie = await _dbContext.Movies.FindAsync(movieId);
 
-            ArgumentNullException.ThrowIfNull(foundMovie);
+            //ArgumentNullException.ThrowIfNull(foundMovie);
+            if (foundMovie == null)
+            {
+                throw new ArgumentNullException("An error occurred during finding the movie in database. Throw from MovieService in line 204");
+            }
 
             foundMovie.IsFavorite = isFavorite;
             await _dbContext.SaveChangesAsync();
@@ -209,16 +213,29 @@ namespace MoviesTelegramBotApp.Services
         /// Ensures that the result is not null by throwing an <see cref="ArgumentNullException"/> if the list is null.
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. The task result is a list of favorite movies with their associated genres.</returns>
-        public async Task<List<Movie>> GetListOfFavoriteMoviesAsync()
+        public async Task<(List<Movie> Movies, int Count)> GetListOfFavoriteMoviesAsync(int moviePage = 1)
         {
+            var moviesByTrueFavoriteProperty = _dbContext.Movies
+                .Include(m => m.Genre)
+                .Where(m => m.IsFavorite == true);
+
+            var count = await moviesByTrueFavoriteProperty.CountAsync();
+
             var favoriteMoviesList = await _dbContext.Movies
                 .Include(m => m.Genre)
                 .Where(m => m.IsFavorite == true)
+                .OrderBy(m => m.Id)
+                .Skip((moviePage - 1) * PageSize)
+                .Take(PageSize)
                 .ToListAsync();
 
-            ArgumentNullException.ThrowIfNull(favoriteMoviesList);
+            //ArgumentNullException.ThrowIfNull(favoriteMoviesList);
+            if (favoriteMoviesList == null)
+            {
+                throw new ArgumentNullException("An error occurred during finding the movies in database. Throw from MovieService in line 231");
+            }
 
-            return favoriteMoviesList;
+            return (Movies: favoriteMoviesList, Count: count);
         }
     }
 }
