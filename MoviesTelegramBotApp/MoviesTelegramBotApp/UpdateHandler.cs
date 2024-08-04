@@ -450,6 +450,11 @@ internal class UpdateHandler
                 await SendCartoonsNavAsync(chatId, cancellationToken);
                 break;
 
+            case "➕ Favorite":
+                await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePage, true);
+                await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
+
             //todo: case "🎞️ Choices":                                
             // break;
 
@@ -780,6 +785,43 @@ internal class UpdateHandler
                     _logger.LogInformation("Finished processing movies by genre request.");
                 }
             }
+        }
+    }
+
+    /// <summary>
+    /// Asynchronously updates the 'IsFavorite' status of a movie and sends a confirmation message to the specified chat.
+    /// Handles and logs errors if the update fails, sending an appropriate error message to the chat.
+    /// </summary>
+    /// <param name="chatId">The ID of the chat to send messages to.</param>
+    /// <param name="cts">The cancellation token to handle task cancellation.</param>
+    /// <param name="movieId">The ID of the movie to update.</param>
+    /// <param name="isFavorite">The new favorite status of the movie.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    private async Task UpdateIsFavoriteAsync(long chatId, CancellationToken cts, int movieId, bool isFavorite)
+    {
+        var taskList = new List<Task>();
+        try
+        {
+            var updateIsFavorite = _movieService.UpdateIsFavoriteAsync(movieId, isFavorite);
+            taskList.Add(updateIsFavorite);
+
+            await updateIsFavorite;
+
+            await _botService.SendTextMessageAsync(chatId, "The movie was added to Choices list", cts);
+        }
+        catch (ArgumentNullException ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while adding the movie to favorites", cts);
+            _logger.LogCritical($"An error occurred during finding the movie in database. See message: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while adding the movie to favorites", cts);
+            _logger.LogCritical($"There was an error updating the 'Is Favorite' property for this movie in the database. See message: {ex.Message}");
+        }
+        finally
+        {
+            await Task.WhenAll(taskList);
         }
     }
 
