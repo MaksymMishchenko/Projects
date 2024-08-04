@@ -203,5 +203,22 @@ namespace MoviesTelegramBotApp.Services
             foundMovie.IsFavorite = isFavorite;
             await _dbContext.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Asynchronously retrieves a list of all movies marked as favorites from the database, including their associated genres.
+        /// Ensures that the result is not null by throwing an <see cref="ArgumentNullException"/> if the list is null.
+        /// </summary>
+        /// <returns>A task that represents the asynchronous operation. The task result is a list of favorite movies with their associated genres.</returns>
+        public async Task<List<Movie>> GetListOfFavoriteMoviesAsync()
+        {
+            var favoriteMoviesList = await _dbContext.Movies
+                .Include(m => m.Genre)
+                .Where(m => m.IsFavorite == true)
+                .ToListAsync();
+
+            ArgumentNullException.ThrowIfNull(favoriteMoviesList);
+
+            return favoriteMoviesList;
+        }
     }
 }
