@@ -9,14 +9,15 @@ namespace MoviesTelegramBotApp.Services
 {
     internal class BotService : IBotService
     {
-        private TelegramBotClient _botClient;
-        public BotService(TelegramBotClient botClient)
+        public ITelegramBotClient Client { get; }
+
+        public BotService(string apiKey)
         {
-            _botClient = botClient;
+            Client = new TelegramBotClient(apiKey);
         }
         public async Task<User> GetBotDetailsAsync()
         {
-            return await _botClient.GetMeAsync();
+            return await Client.GetMeAsync();
         }
 
         public async Task SendTextMessageAsync(
@@ -26,7 +27,7 @@ namespace MoviesTelegramBotApp.Services
             ReplyKeyboardMarkup replyMarkup,
             CancellationToken cancellationToken)
         {
-            await _botClient.SendTextMessageAsync(
+            await Client.SendTextMessageAsync(
                 chatId,
                 message,
                 parseMode,
@@ -36,7 +37,7 @@ namespace MoviesTelegramBotApp.Services
 
         public async Task SendTextMessageAsync(long chatId, string response, ParseMode parseMode)
         {
-            await _botClient.SendTextMessageAsync(
+            await Client.SendTextMessageAsync(
                 chatId,
                 response,
                 parseMode);
@@ -44,12 +45,12 @@ namespace MoviesTelegramBotApp.Services
 
         public async Task SendTextMessageAsync(long chatId, string response)
         {
-            await _botClient.SendTextMessageAsync(chatId, response);
+            await Client.SendTextMessageAsync(chatId, response);
         }
 
         public async Task SendTextMessageAsync(long chatId, string response, CancellationToken cancellationToken)
         {
-            await _botClient.SendTextMessageAsync(chatId, response, cancellationToken: cancellationToken);
+            await Client.SendTextMessageAsync(chatId, response, cancellationToken: cancellationToken);
         }
 
         public async Task SendPhotoWithInlineButtonUrlAsync(
@@ -60,7 +61,7 @@ namespace MoviesTelegramBotApp.Services
             InlineKeyboardMarkup replyMarkup,
             CancellationToken cancellationToken)
         {
-            await _botClient.SendPhotoAsync(
+            await Client.SendPhotoAsync(
                 chatId: chatId,
                 photo: photoUrl,
                 caption: caption,

@@ -1,4 +1,5 @@
-﻿using Telegram.Bot.Types;
+﻿using Telegram.Bot;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -7,6 +8,7 @@ namespace MoviesTelegramBotApp.Interfaces
 {
     public interface IBotService
     {
+        ITelegramBotClient Client { get; }
         Task SendTextMessageAsync(
             long chatId, string response);
         Task SendTextMessageAsync(
