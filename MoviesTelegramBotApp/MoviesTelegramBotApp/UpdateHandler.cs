@@ -1,11 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
 using Telegram.Bot;
+using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
+using Telegram.Bot.Exceptions;
 
 /// <summary>
 /// Handles incoming updates from Telegram by processing user messages and updating their state accordingly.
@@ -14,7 +17,7 @@ using Telegram.Bot.Types.ReplyMarkups;
 /// The class is responsible for managing different user states, such as awaiting movie search or navigating through movie results.
 /// It interacts with the Telegram bot client to send messages and updates based on user input and state.
 /// </remarks>
-internal class UpdateHandler
+internal class UpdateHandler : IUpdateHandler
 {
     private readonly IBotService _botService;
     private readonly IMovieService _movieService;
@@ -69,7 +72,7 @@ internal class UpdateHandler
                 if (userState.state == StateAwaitingMovieSearch)
                 {
                     if (messageText == "🔎 Search")
-                    {
+                    {                        
                         await _botService.SendTextMessageAsync(chatId, "🎬 Please, enter a title of movie", cancellationToken);
 
                         return;
@@ -347,7 +350,7 @@ internal class UpdateHandler
     {
         switch (messageText)
         {
-            case "🎥 Movies":
+            case "🎥 Movies":                
                 await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
@@ -927,4 +930,17 @@ internal class UpdateHandler
     /// Decrements the current page number for retrieving cartoons.
     /// </summary>
     private void DecrementCartoonPage() => --_cartoonPage;
+
+    public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
+    {                
+        var errorMessage = exception switch
+        {
+            ApiRequestException apiRequestException =>
+            $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}"
+        };
+      
+        _logger.LogError(errorMessage);        
+
+        return Task.CompletedTask;
+    }
 }

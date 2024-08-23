@@ -11,7 +11,7 @@ namespace MoviesTelegramBotApp.Services
     {
         private ApplicationDbContext _dbContext;
         private readonly Random _random;
-        public int PageSize = 1;        
+        public int PageSize = 1;
 
         public Task<int> CountAsync => _dbContext.Movies.CountAsync();
 
@@ -30,7 +30,7 @@ namespace MoviesTelegramBotApp.Services
         {
             var movies = await _dbContext.Movies
                 .Include(m => m.Genre)
-                .ToListAsync();
+                .ToListAsync();            
 
             if (movies == null || !movies.Any())
             {
@@ -53,7 +53,7 @@ namespace MoviesTelegramBotApp.Services
                 .OrderBy(m => m.Id)
                 .Skip((moviePage - 1) * PageSize)
                 .Take(PageSize)
-            .ToListAsync();
+            .ToListAsync();            
 
             if (movies == null || !movies.Any())
             {
