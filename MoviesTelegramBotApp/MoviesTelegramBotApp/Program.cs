@@ -63,7 +63,6 @@ namespace MoviesTelegramBotApp
                 services.AddTransient<IMovieService, MovieService>();
                 services.AddTransient<Random>();
                 services.AddTransient<ICartoonService, CartoonService>();
-                //services.AddSingleton<IBotService, BotService>();
 
                 services.AddLogging(configure => configure.AddConsole());
             })

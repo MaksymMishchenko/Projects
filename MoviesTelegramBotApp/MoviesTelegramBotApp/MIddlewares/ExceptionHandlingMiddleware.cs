@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Polling;
@@ -15,33 +16,43 @@ public class ExceptionHandlingMiddleware : IUpdateHandler
     public ExceptionHandlingMiddleware(
         IUpdateHandler next,
         ILogger<ExceptionHandlingMiddleware> logger,
-        ITelegramBotClient botService,
+        ITelegramBotClient botClient,
         IConfiguration configuration
         )
     {
         _next = next;
         _logger = logger;
-        _botClient = botService;
-        _adminChatId = long.Parse(configuration["AdminChatId"]); // Retrieve admin chat ID from configuration
+        _botClient = botClient;
+        _adminChatId = long.Parse(configuration["AdminChatId"]);
     }
 
     public async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
         try
         {
-            // Pass the update to the next handler
+            _logger.LogInformation("Handling update...");
             await _next.HandleUpdateAsync(botClient, update, cancellationToken);
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogCritical(ex, "A database error occurred during update handling.");
+            await NotifyAdminAsync(
+                "Hey admin! Critical error: couldn't connect to the database. Immediate attention required.",
+                cancellationToken);
+
+            if (update.Message?.Chat != null)
+            {
+                await _botClient.SendTextMessageAsync(update.Message.Chat.Id,
+                    "We are experiencing database issues. Please try again later.",
+                    cancellationToken: cancellationToken);
+            }
         }
         catch (Exception ex)
         {
-            // Log the exception
-            _logger.LogInformation("MY global exception works!!!!");
             _logger.LogError(ex, "An unhandled exception occurred while processing an update.");
 
-            // Notify the admin about the exception
-            await NotifyAdminAsync(ex);
+            await NotifyAdminAsync(ex, cancellationToken);
 
-            // Optionally, inform the user about the error
             if (update.Type == UpdateType.Message && update.Message != null)
             {
                 await botClient.SendTextMessageAsync(
@@ -52,10 +63,15 @@ public class ExceptionHandlingMiddleware : IUpdateHandler
         }
     }
 
-    private async Task NotifyAdminAsync(Exception ex)
+    private async Task NotifyAdminAsync(Exception ex, CancellationToken cancellationToken)
     {
-        string errorMessage = $"Hey Admin! Exception occurred: {ex.Message}\n\n{ex.StackTrace}";
-        await _botClient.SendTextMessageAsync(_adminChatId, errorMessage);
+        var adminMessage = $"Hey Admin! Exception occurred: {ex.Message}\n\n{ex.StackTrace}";
+        await _botClient.SendTextMessageAsync(_adminChatId, adminMessage, cancellationToken: cancellationToken);
+    }
+
+    private async Task NotifyAdminAsync(string message, CancellationToken cancellationToken)
+    {
+        await _botClient.SendTextMessageAsync(_adminChatId, message, cancellationToken: cancellationToken);
     }
 
     public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)

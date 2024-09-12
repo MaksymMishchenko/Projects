@@ -49,7 +49,7 @@ namespace MoviesTelegramBotApp.Tests
         {
             // Arrange
             var dbContext = GetInMemoryDbContext();
-            var movieService = new MovieService(dbContext, null);
+            var movieService = new MovieService(dbContext, null, null);
 
             // Act
             var result = await movieService.GetAllMoviesAsync(2);
