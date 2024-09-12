@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 
@@ -10,14 +11,16 @@ namespace MoviesTelegramBotApp.Services
     public class MovieService : IMovieService
     {
         private ApplicationDbContext _dbContext;
+        private readonly ILogger<MovieService> _logger;
         private readonly Random _random;
         public int PageSize = 1;
 
         public Task<int> CountAsync => _dbContext.Movies.CountAsync();
 
-        public MovieService(ApplicationDbContext dbContext, Random random)
+        public MovieService(ApplicationDbContext dbContext, ILogger<MovieService> logger, Random random)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger;
             _random = random;
         }
 
@@ -30,7 +33,7 @@ namespace MoviesTelegramBotApp.Services
         {
             var movies = await _dbContext.Movies
                 .Include(m => m.Genre)
-                .ToListAsync();            
+                .ToListAsync();
 
             if (movies == null || !movies.Any())
             {
@@ -53,7 +56,7 @@ namespace MoviesTelegramBotApp.Services
                 .OrderBy(m => m.Id)
                 .Skip((moviePage - 1) * PageSize)
                 .Take(PageSize)
-            .ToListAsync();            
+            .ToListAsync();
 
             if (movies == null || !movies.Any())
             {
@@ -63,51 +66,63 @@ namespace MoviesTelegramBotApp.Services
             return movies;
         }
 
-        // <summary>
-        /// Asyncronously retrieves a paginated list of movies whose titles contain the specified search string.
-        /// </summary>
-        /// <param name="searchString">The string to search for within movie titles.</param>
-        /// <param name="moviePage">The page number to retrieve. Defaults to 1.</param>
-        /// <returns>A list of movies that contain the search string in their titles.</returns>
-        /// <exception cref="KeyNotFoundException">Thrown when no movies are found matching the search string.</exception>
-        public async Task<List<Movie>> GetMoviesByTitleAsync(string searchString, int moviePage = 1)
-        {
-            var foundMovie = await _dbContext.Movies
-                .Include(g => g.Genre)
-                .Where(m => m.Title!.Contains(searchString))
-                .OrderBy(m => m.Id)
-                .Skip((moviePage - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-
-            if (foundMovie == null || !foundMovie.Any())
-            {
-                throw new KeyNotFoundException($"Couldn't find the movie by'{searchString}'.");
-            }
-
-            return foundMovie;
-        }
-
         /// <summary>
-        /// Asynchronously gets the count of movies that contain the specified title substring.
+        /// Retrieves a paginated list of movies from the database that match the provided search string in their title.
+        /// It performs a case-insensitive search and includes the genre information for each movie.
+        /// Logs search attempts, results, and exceptions. Throws exceptions for invalid input.
         /// </summary>
-        /// <param name="searchString">The substring to search for in movie titles.</param>
-        /// <returns>The count of movies whose titles contain the specified substring.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when the search string is null or empty.</exception>
-        /// <remarks>
-        /// This method checks if the search string is null or empty and throws an ArgumentNullException if it is. 
-        /// It then queries the database to count the number of movies whose titles contain the search string.
-        /// </remarks>
-        public async Task<int> GetMoviesByTitleCountAsync(string searchString)
+        /// <param name="searchString">The title or part of the title to search for. Cannot be null or empty.</param>
+        /// <param name="moviePage">The page number for pagination. Must be greater than or equal to 1.</param>
+        /// <returns>A tuple containing a list of matching movies and the total count of movies found for the search term.</returns>
+        /// <exception cref="ArgumentException">Thrown when the search string is null or empty.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the movie page number is less than 1.</exception>
+        /// <exception cref="Exception">Catches and logs any other unhandled exceptions that occur during the operation.</exception>
+        public async Task<(List<Movie> Movies, int Count)> GetMoviesByTitleAsync(string searchString, int moviePage = 1)
         {
-            if (string.IsNullOrEmpty(searchString))
+            try
             {
-                throw new ArgumentNullException(nameof(searchString), "Search string is null or empty.");
-            }
+                if (string.IsNullOrWhiteSpace(searchString))
+                {
+                    _logger.LogWarning($"Search string is null or empty in {nameof(GetMoviesByTitleAsync)}.");
+                    throw new ArgumentException(nameof(searchString), "Search string in GetMoviesByTitleAsync cannot be null or empty.");
+                }
 
-            return await _dbContext.Movies
-            .Where(m => m.Title!.Contains(searchString))
-            .CountAsync();
+                if (moviePage < 1)
+                {
+                    _logger.LogWarning($"Invalid movie page value {moviePage} in {nameof(GetMoviesByTitleAsync)}.");
+                    throw new ArgumentOutOfRangeException(nameof(moviePage), "Movie page cannot be less than 1");
+                }
+
+                _logger.LogInformation($"Searching movies with title containing '{searchString}' on page {moviePage}.");
+
+                var query = _dbContext.Movies
+                    .AsNoTracking()
+                    .Include(g => g.Genre)
+                    .Where(m => m.Title != null && EF.Functions.Like(m.Title, $"%{searchString}%"));
+
+                var movies = await query
+                    .OrderBy(m => m.Id)
+                    .Skip((moviePage - 1) * PageSize)
+                    .Take(PageSize)
+                    .ToListAsync();
+
+                var totalCount = await query.CountAsync();
+
+                if (!movies.Any())
+                {
+                    _logger.LogInformation($"No movies found for search term '{searchString}'.");
+                    return (Movies: new List<Movie>(), Count: totalCount);
+                }
+
+                _logger.LogInformation($"{movies.Count} movies found for search term '{searchString}'.");
+                return (Movies: movies, Count: totalCount);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in {nameof(GetMoviesByTitleAsync)}. Search string: {searchString}, Movie page: {moviePage}");
+                throw;
+            }
         }
 
         /// <summary>

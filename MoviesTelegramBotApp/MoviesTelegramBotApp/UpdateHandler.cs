@@ -1,14 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore.Update;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using Telegram.Bot.Exceptions;
 
 /// <summary>
 /// Handles incoming updates from Telegram by processing user messages and updating their state accordingly.
@@ -29,6 +29,7 @@ internal class UpdateHandler : IUpdateHandler
     private int _moviePageByTitle = 1;
     private int _moviePageByFavorite = 1;
     private int _cartoonPage = 1;
+    private readonly long _adminChatId;
 
     private const string StateAwaitingMovieSearch = "awaiting_movie_search";
     private const string StateNavigatingMovies = "navigating_movies";
@@ -37,7 +38,8 @@ internal class UpdateHandler : IUpdateHandler
         IBotService botService,
         IMovieService movieService,
         ICartoonService cartoonService,
-        ILogger<UpdateHandler> logger)
+        ILogger<UpdateHandler> logger,
+        IConfiguration configuration)
     {
         _botService = botService;
         _movieService = movieService;
@@ -45,6 +47,7 @@ internal class UpdateHandler : IUpdateHandler
         _cartoonService = cartoonService;
         _userStates = new ConcurrentDictionary<long, (string state, string searchString)>();
         _logger = logger;
+        _adminChatId = long.Parse(configuration["AdminChatId"]!);
     }
 
     /// <summary>
@@ -71,14 +74,7 @@ internal class UpdateHandler : IUpdateHandler
             {
                 if (userState.state == StateAwaitingMovieSearch)
                 {
-                    if (messageText == "🔎 Search")
-                    {                        
-                        await _botService.SendTextMessageAsync(chatId, "🎬 Please, enter a title of movie", cancellationToken);
-
-                        return;
-                    }
                     await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
-                    _userStates[chatId] = (StateNavigatingMovies, messageText!);
                 }
                 else if (userState.state == StateNavigatingMovies)
                 {
@@ -202,9 +198,9 @@ internal class UpdateHandler : IUpdateHandler
     /// </remarks>
     private async Task SendMoviesByTitleNavAsync(string searchString, long chatId, CancellationToken cts)
     {
-        var totalMovies = await _movieService.GetMoviesByTitleCountAsync(searchString);
+        var totalMovies = await _movieService.GetMoviesByTitleAsync(searchString, _moviePageByTitle);
         bool showPrevious = _moviePageByTitle > 1;
-        bool showNext = _moviePageByTitle < totalMovies;
+        bool showNext = _moviePageByTitle < totalMovies.Count;
 
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev", string.Empty, "Next ⏭️");
     }
@@ -350,7 +346,7 @@ internal class UpdateHandler : IUpdateHandler
     {
         switch (messageText)
         {
-            case "🎥 Movies":                
+            case "🎥 Movies":
                 await GetMoviesAsync(chatId, cancellationToken);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
@@ -688,62 +684,68 @@ internal class UpdateHandler : IUpdateHandler
     }
 
     /// <summary>
-    /// Asynchronously retrieves movies based on a search string, sends the movie details to the specified chat, and handles any errors that occur during the process.
+    /// Searches for movies based on the provided title and sends the results to the user in a chat. 
+    /// If no movies are found, it prompts the user to enter a new search term. 
+    /// The method also handles navigation between multiple results and updates the user's state for future interactions.
+    /// Logs search attempts, results, and errors during the process.
     /// </summary>
-    /// <param name="searchString">The title of the movie to search for.</param>
-    /// <param name="chatId">The chat ID where the results will be sent.</param>
-    /// <param name="cancellationToken">A cancellation token to cancel the operation if needed.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
+    /// <param name="searchString">The title or part of the title to search for. Cannot be null or empty.</param>
+    /// <param name="chatId">The chat ID of the user requesting the search.</param>
+    /// <param name="cancellationToken">Token to propagate notification that the operation should be canceled.</param>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when the movie page number is invalid during search.</exception>
+    /// <exception cref="ArgumentException">Thrown when the search string is invalid.</exception>
+    /// <exception cref="Exception">Catches and logs any unhandled exceptions that occur during the operation and rethrows for global handling.</exception>
     private async Task GetFoundMoviesAsync(string searchString, long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
 
         try
         {
+            _logger.LogInformation($"Searching for movies with title '{searchString}' for chat {chatId}.");
             var moviesTask = _movieService.GetMoviesByTitleAsync(searchString, _moviePageByTitle);
             tasks.Add(moviesTask);
 
-            var movies = await moviesTask;
+            var data = await moviesTask;
 
-            if (movies != null && movies.Any())
+            if (!data.Movies.Any())
             {
-                var sendMoviesAsync = SendMoviesAsync(movies, chatId, cancellationToken);
-                tasks.Add(sendMoviesAsync);
+                _logger.LogInformation($"No movies found for search '{searchString}' in chat {chatId}.");
+                tasks.Add(_botService.SendTextMessageAsync(chatId, "I couldn't find any movies that match your search criteria." +
+                    " 🔍 Please enter a new movie title to search for:", cancellationToken));
 
-                var sendMoviesByTitleNavAsync = SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken);
-                tasks.Add(sendMoviesByTitleNavAsync);
+                _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
+            }
+            else
+            {
+                tasks.Add(SendMoviesAsync(data.Movies, chatId, cancellationToken));
+
+                if (data.Count != 1)
+                {
+                    tasks.Add(SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken));
+                }
+
+                _userStates[chatId] = (StateNavigatingMovies, searchString);
             }
         }
-        catch (KeyNotFoundException ex)
+        catch (ArgumentOutOfRangeException ex)
         {
-            string errMessage = $"Couldn't find movie by title: '{searchString}'.\nWould you like to try searching with another title?";
-            await _botService.SendTextMessageAsync(chatId, errMessage, cancellationToken: cancellationToken);
-
-            _logger.LogInformation($"{ex.Message}");
+            _logger.LogWarning(ex, $"Invalid movie page in search for '{searchString}' for chat {chatId}.");
+            tasks.Add(_botService.SendTextMessageAsync(_adminChatId, $"Warning: {ex.Message}", cancellationToken));
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, $"Invalid search string '{searchString}' in chat {chatId}.");
+            tasks.Add(_botService.SendTextMessageAsync(chatId, "Invalid search input. Please try again.", cancellationToken));
         }
         catch (Exception ex)
         {
-            await _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available 😟.", cancellationToken: cancellationToken);
-            await SendMoviesNavAsync(chatId, cancellationToken);
-
-            _logger.LogInformation($"Application has other mistakes like: {ex.Message}");
+            _logger.LogError(ex, $"Unhandled exception during movie search for '{searchString}' in chat {chatId}.");
+            tasks.Add(_botService.SendTextMessageAsync(chatId, "An error occurred while searching for movies. Please try again later.", cancellationToken));
+            throw; // Rethrow to be caught by GlobalExceptionMiddleware            
         }
         finally
         {
-            foreach (var task in tasks)
-            {
-                try
-                {
-                    await task;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"An error occurred while processing a task: {ex.Message}");
-                    await _botService.SendTextMessageAsync(chatId, "An error occurred while processing your request. Please try again later.", cancellationToken);
-                }
-            }
-
-            _logger.LogInformation("Finished processing found movies request.");
+            await Task.WhenAll(tasks);
         }
     }
 
@@ -932,14 +934,14 @@ internal class UpdateHandler : IUpdateHandler
     private void DecrementCartoonPage() => --_cartoonPage;
 
     public Task HandlePollingErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
-    {                
+    {
         var errorMessage = exception switch
         {
             ApiRequestException apiRequestException =>
             $"Telegram API Error:\n[{apiRequestException.ErrorCode}]\n{apiRequestException.Message}"
         };
-      
-        _logger.LogError(errorMessage);        
+
+        _logger.LogError(errorMessage);
 
         return Task.CompletedTask;
     }
