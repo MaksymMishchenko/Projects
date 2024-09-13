@@ -4,6 +4,7 @@ using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -588,49 +589,55 @@ internal class UpdateHandler : IUpdateHandler
     }
 
     /// <summary>
-    /// Asynchronously sends a list of movies to a user, including their details and an inline button for each movie.
+    /// Sends a series of movie messages with inline buttons to a specified chat. Each movie is sent as a photo message with a caption and a button linking to the movie's trailer.
     /// </summary>
-    /// <param name="movies">The collection of movies to send.</param>
-    /// <param name="chatId">The chat ID of the user to whom the movies will be sent.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <param name="movies">An enumerable collection of movies to be sent.</param>
+    /// <param name="chatId">The ID of the chat where the messages will be sent.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation if needed.</param>
+    /// <exception cref="Exception">Throws an exception if an error occurs during the message sending process.</exception>
+    /// <remarks>
+    /// The method logs errors if any exceptions occur during the process and rethrows the exception for further handling.
+    /// </remarks>
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
-    {
-        var tasks = new List<Task>();
-
-        foreach (var movie in movies)
-        {
-            var task = _botService.SendPhotoWithInlineButtonUrlAsync(
-                 chatId,
-                 photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
-                 caption: $"<strong>▶️ Title:</strong> {movie.Title}\n" +
-                 $"<strong>🎬 Genre:</strong> {movie.Genre.Name}\n" +
-                 $"<strong>🧾 Description:</strong> {movie.Description}\n" +
-                 $"<strong>🌍 Country:</strong> {movie.Country}\n" +
-                 $"<strong>💸 Budget:</strong> {movie.Budget}\n" +
-                 $"<strong>📌 Interest facts:</strong> {movie.InterestFactsUrl}\n" +
-                 $"<strong>✨ Behind the scene:</strong> {movie.BehindTheScene}\n",
-                 parseMode: ParseMode.Html,
-                 replyMarkup: new InlineKeyboardMarkup(
-         InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)),
-                 cancellationToken);
-
-            tasks.Add(task);
-        }
-
+    {        
         try
         {
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(movies.Select(movie =>
+           _botService.SendPhotoWithInlineButtonUrlAsync(
+              chatId,
+              photoUrl: new Telegram.Bot.Types.InputFiles.InputOnlineFile(movie.ImageUrl),
+              caption: BuildMovieCaption(movie),
+              parseMode: ParseMode.Html,
+              replyMarkup: new InlineKeyboardMarkup(
+              InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)),
+              cancellationToken)));
+           
+            _logger.LogInformation($"Successfully sent movie messages to chat ID {chatId}.");
         }
         catch (Exception ex)
         {
-            await _botService.SendTextMessageAsync(chatId, "Sorry, something went wrong. Try again later. 😟", cancellationToken);
-            _logger.LogCritical($"An exception '{ex.Message}' occurred during sending movies to user.");
-        }
-        finally
-        {
-            _logger.LogInformation("Finished processing movie send requests.");
-        }
+            _logger.LogError(ex, $"An error occurred while sending movie messages to chat ID {chatId}.");
+            throw;
+        }       
+    }
+
+    /// <summary>
+    /// Constructs a formatted caption for a movie, including details such as title, genre, description, country, budget, interest facts, and behind-the-scenes information.
+    /// </summary>
+    /// <param name="movie">The <see cref="Movie"/> object containing the details to be included in the caption.</param>
+    /// <returns>A string representing the formatted caption for the movie, with HTML markup for styling.</returns>
+    /// <remarks>
+    /// The caption is designed for use in Telegram messages, leveraging HTML tags to format text and include relevant movie details.
+    /// </remarks>
+    private string BuildMovieCaption(Movie movie)
+    {
+        return $"<strong>▶️ Title:</strong> {movie.Title}\n" +
+             $"<strong>🎬 Genre:</strong> {movie.Genre.Name}\n" +
+             $"<strong>🧾 Description:</strong> {movie.Description}\n" +
+             $"<strong>🌍 Country:</strong> {movie.Country}\n" +
+             $"<strong>💸 Budget:</strong> {movie.Budget}\n" +
+             $"<strong>📌 Interest facts:</strong> {movie.InterestFactsUrl}\n" +
+             $"<strong>✨ Behind the scene:</strong> {movie.BehindTheScene}\n";
     }
 
     /// <summary>
