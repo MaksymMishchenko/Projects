@@ -23,30 +23,6 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Retrieves all movies from the database along with their associated genres.
-        /// Returns a list of movies and the total count of movies.
-        /// If no movies are found, an empty list is returned.
-        /// </summary>
-        /// <returns>A tuple containing a list of all movies and the total count of movies in the database.</returns>
-        private async Task<(List<Movie> Movies, int Count)> GetAllMoviesAsync()
-        {
-            var query = _dbContext.Movies
-                .AsNoTracking()
-                .Include(m => m.Genre);
-
-            var movies = await query.ToListAsync();
-
-            var totalCount = await query.CountAsync();
-
-            if (!movies.Any())
-            {
-                return (Movies: new List<Movie>(), Count: totalCount);
-            }
-
-            return (Movies: movies, Count: totalCount);
-        }
-
-        /// <summary>
         /// Retrieves a paginated list of all movies from the database, including their associated genres.
         /// Logs relevant information, including the number of movies found or if none were found.
         /// Throws an exception if the specified movie page is less than 1 or if an error occurs during data retrieval.
@@ -164,13 +140,31 @@ namespace MoviesTelegramBotApp.Services
         {
             try
             {
-                var movies = await GetAllMoviesAsync();
-                int randomIndex = _random.Next(1, movies.Count);
+                _logger.LogInformation("Fetching random movie from the database");
 
-                return movies.Movies[randomIndex];
+                var totalMoviesCount = await _dbContext.Movies.CountAsync();
+
+                if (totalMoviesCount == 0)
+                {
+                    _logger.LogWarning("No movies found in the database");
+                    return null;
+                }
+
+                int randomIndex = _random.Next(0, totalMoviesCount);
+
+                var randomMovie = await _dbContext.Movies
+                    .AsNoTracking()
+                    .Include(m => m.Genre)
+                    .Skip(randomIndex)
+                    .FirstOrDefaultAsync();
+
+                _logger.LogInformation($"Random movie '{randomMovie?.Title}' retrieved successfully.");
+
+                return randomMovie;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred while retrieving a random movie.");
                 throw;
             }
         }

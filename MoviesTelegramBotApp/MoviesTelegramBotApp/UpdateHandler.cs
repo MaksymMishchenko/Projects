@@ -151,9 +151,7 @@ internal class UpdateHandler : IUpdateHandler
     {
         var totalMovies = await _movieService.GetAllMoviesAsync(_moviePage);
         bool showPrevious = _moviePage > 1;
-        bool showNext = _moviePage < totalMovies.Count;
-
-        // todo: here I need to check If I have a list of choosed items
+        bool showNext = _moviePage < totalMovies.Count;        
 
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "➕ Favorite", "Next Movie ⏭️");
     }
@@ -541,16 +539,15 @@ internal class UpdateHandler : IUpdateHandler
     }
 
     /// <summary>
-    /// Asynchronously retrieves a random movie and sends it to the user.
+    /// Fetches a random movie from the movie service and sends it to the specified chat. 
+    /// If no movie is found, or an error occurs, logs the issue and notifies the user.
     /// </summary>
-    /// <param name="chatId">The chat identifier where the movie will be sent.</param>
-    /// <param name="cts">A cancellation token to handle the cancellation of the operation if needed.</param>
+    /// <param name="chatId">The ID of the chat to which the movie details will be sent.</param>
+    /// <param name="cts">CancellationToken to signal task cancellation.</param>
+    /// <returns>Task representing the asynchronous operation of fetching and sending a random movie.</returns>
     /// <remarks>
-    /// The method performs the following operations:
-    /// 1. Requests a random movie from the movie service.
-    /// 2. Sends the retrieved movie to the user.
-    /// 3. Handles any exceptions by logging the error and notifying the user that the movie is not available.
-    /// 4. Ensures all asynchronous operations are completed before finishing.
+    /// If no movie is returned, a warning is logged and the user is informed that no movie is available. 
+    /// If an exception occurs, it is logged as critical, and an error message is sent to the user.
     /// </remarks>
     private async Task GetRandomMovieAsync(long chatId, CancellationToken cts)
     {
@@ -561,14 +558,19 @@ internal class UpdateHandler : IUpdateHandler
             var rndMovieTask = _movieService.GetRandomMovieAsync();
             tasks.Add(rndMovieTask);
             var getRandomMovieAsync = await rndMovieTask;
-            var sendMoviesTask = SendMoviesAsync(getRandomMovieAsync, chatId, cts);
-            tasks.Add(sendMoviesTask);
+
+            if (getRandomMovieAsync == null)
+            {
+                _logger.LogWarning("No movie returned from GetRandomMovieAsync.");
+                tasks.Add(_botService.SendTextMessageAsync(chatId, "Sorry, no movie is available at the moment. 😟", cancellationToken: cts));
+                return;
+            }            
+            tasks.Add(SendMoviesAsync(getRandomMovieAsync, chatId, cts));
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex.Message);
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available. 😟");
-            tasks.Add(sendTextMessageAsync);
+            _logger.LogCritical(ex, "An error occurred while fetching a random movie.");                        
+            tasks.Add(_botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available. 😟"));
         }
         finally
         {
