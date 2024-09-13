@@ -15,8 +15,6 @@ namespace MoviesTelegramBotApp.Services
         private readonly Random _random;
         public int PageSize = 1;
 
-        public Task<int> CountAsync => _dbContext.Movies.CountAsync();
-
         public MovieService(ApplicationDbContext dbContext, ILogger<MovieService> logger, Random random)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
@@ -25,45 +23,77 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Asynchronously retrieves all movies from the database, including their genres.
+        /// Retrieves all movies from the database along with their associated genres.
+        /// Returns a list of movies and the total count of movies.
+        /// If no movies are found, an empty list is returned.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation, containing a list of <see cref="Movie"/> objects.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if no movies are available or if there was an issue retrieving movies from the database.</exception>
-        private async Task<List<Movie>> GetAllMoviesAsync()
+        /// <returns>A tuple containing a list of all movies and the total count of movies in the database.</returns>
+        private async Task<(List<Movie> Movies, int Count)> GetAllMoviesAsync()
         {
-            var movies = await _dbContext.Movies
-                .Include(m => m.Genre)
-                .ToListAsync();
+            var query = _dbContext.Movies
+                .AsNoTracking()
+                .Include(m => m.Genre);
 
-            if (movies == null || !movies.Any())
+            var movies = await query.ToListAsync();
+
+            var totalCount = await query.CountAsync();
+
+            if (!movies.Any())
             {
-                throw new InvalidOperationException($"No movies available or couldn't retrieve movies from the database.");
+                return (Movies: new List<Movie>(), Count: totalCount);
             }
 
-            return movies;
+            return (Movies: movies, Count: totalCount);
         }
 
         /// <summary>
-        /// Asyncronously retrieves a paginated list of all movies from the database, including their genres.
+        /// Retrieves a paginated list of all movies from the database, including their associated genres.
+        /// Logs relevant information, including the number of movies found or if none were found.
+        /// Throws an exception if the specified movie page is less than 1 or if an error occurs during data retrieval.
         /// </summary>
-        /// <param name="moviePage">The page number to retrieve. Defaults to 1.</param>
-        /// <returns>A list of movies from the specified page.</returns>
-        /// <exception cref="InvalidOperationException">Thrown when the database connection fails or no movies are found.</exception>
-        public async Task<List<Movie>> GetAllMoviesAsync(int moviePage = 1)
+        /// <param name="moviePage">The page number of the movie list to retrieve (must be 1 or greater).</param>
+        /// <returns>A tuple containing a list of movies and the total count of movies in the database.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the movie page number is less than 1.</exception>
+        /// <exception cref="Exception">Thrown when any error occurs while fetching movies from the database.</exception>
+        public async Task<(List<Movie> Movies, int Count)> GetAllMoviesAsync(int moviePage = 1)
         {
-            var movies = await _dbContext.Movies.
-                Include(m => m.Genre)
-                .OrderBy(m => m.Id)
-                .Skip((moviePage - 1) * PageSize)
-                .Take(PageSize)
-            .ToListAsync();
-
-            if (movies == null || !movies.Any())
+            try
             {
-                throw new InvalidOperationException($"No movies available or couldn't retrieve movies from the database.");
-            }
+                if (moviePage < 1)
+                {
+                    _logger.LogWarning($"Invalid movie page value {moviePage} in {nameof(GetAllMoviesAsync)}.");
+                    throw new ArgumentOutOfRangeException(nameof(moviePage), "Movie page cannot be less than 1");
+                }
 
-            return movies;
+                _logger.LogInformation($"Getting all movies form database on page {moviePage}.");
+
+                var query = _dbContext.Movies
+                .AsNoTracking()
+                .Include(m => m.Genre);
+
+                var totalCount = await query.CountAsync();
+
+                var movies = await query
+                    .OrderBy(m => m.Id)
+                    .Skip((moviePage - 1) * PageSize)
+                    .Take(PageSize)
+                .ToListAsync();
+
+
+                if (!movies.Any())
+                {
+                    _logger.LogInformation($"No movies found.");
+                    return (Movies: new List<Movie>(), Count: totalCount);
+                }
+
+                _logger.LogInformation($"{movies.Count} movies found on page {moviePage}.");
+                return (Movies: movies, Count: totalCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while retrieving movies on page {moviePage} in {nameof(GetAllMoviesAsync)}.");
+                throw;
+            }
         }
 
         /// <summary>
@@ -137,7 +167,7 @@ namespace MoviesTelegramBotApp.Services
                 var movies = await GetAllMoviesAsync();
                 int randomIndex = _random.Next(1, movies.Count);
 
-                return movies[randomIndex];
+                return movies.Movies[randomIndex];
             }
             catch (Exception)
             {

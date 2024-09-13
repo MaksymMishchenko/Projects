@@ -149,9 +149,9 @@ internal class UpdateHandler : IUpdateHandler
     /// </remarks>
     private async Task SendMoviesNavAsync(long chatId, CancellationToken cts)
     {
-        var totalMovies = await _movieService.CountAsync;
+        var totalMovies = await _movieService.GetAllMoviesAsync(_moviePage);
         bool showPrevious = _moviePage > 1;
-        bool showNext = _moviePage < totalMovies;
+        bool showNext = _moviePage < totalMovies.Count;
 
         // todo: here I need to check If I have a list of choosed items
 
@@ -495,42 +495,49 @@ internal class UpdateHandler : IUpdateHandler
                 break;
         }
     }
-
-    /// <summary>
-    /// Asynchronously retrieves a list of movies and sends them to the user.
-    /// </summary>
-    /// <param name="chatId">The chat identifier where the movies will be sent.</param>
-    /// <param name="cancellationToken">A cancellation token to handle the cancellation of the operation if needed.</param>
-    /// <remarks>
-    /// The method performs the following operations:
-    /// 1. Fetches movies for the current page from the movie service.
-    /// 2. Sends the retrieved movies to the user.
-    /// 3. Handles any exceptions that occur during the process by logging the error and notifying the user of the service unavailability.
-    /// It uses a list of tasks to manage the asynchronous operations and ensures all tasks are completed before finishing.
-    /// </remarks>
     private async Task GetMoviesAsync(long chatId, CancellationToken cancellationToken)
     {
         var tasks = new List<Task>();
 
         try
         {
+            _logger.LogInformation($"Fetching movies for chatId {chatId} on page {_moviePage}.");
+
             var moviesTask = _movieService.GetAllMoviesAsync(_moviePage);
             tasks.Add(moviesTask);
 
-            var getAllMoviesAsync = await moviesTask;
+            var data = await moviesTask;
 
-            var sendMoviesAsync = SendMoviesAsync(getAllMoviesAsync, chatId, cancellationToken);
-            tasks.Add(sendMoviesAsync);
+            if (!data.Movies.Any())
+            {
+                _logger.LogInformation($"No movies found for chatId {chatId} on page {_moviePage}.");
+                tasks.Add(_botService.SendTextMessageAsync(chatId, "Something terrible happened... but no movies found.\n" +
+                    " Please, try again later", cancellationToken));
+            }
+            else
+            {
+                _logger.LogInformation($"{data.Movies.Count} movies found for chatId {chatId}.");
+                tasks.Add(SendMoviesAsync(data.Movies, chatId, cancellationToken));
+            }
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            _logger.LogCritical(ex, $"Invalid page number during movie retrieval for chatId {chatId}. Exception: {ex.Message}");
+            tasks.Add(_botService.SendTextMessageAsync(chatId,
+                "We are sorry.\nService is unavailable. We do our best to resolve this mistake. 😟",
+                cancellationToken));
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex.Message);
+            _logger.LogCritical(ex, $"Unexpected error while retrieving movies for chatId {chatId}. Exception: {ex.Message}");
             var exResponse = "We are sorry.\nService is unavailable. We do our best to resolve this mistake. 😟";
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken: cancellationToken);
-            tasks.Add(sendTextMessageAsync);
+            tasks.Add(_botService.SendTextMessageAsync(chatId, exResponse, cancellationToken));
         }
-
-        await Task.WhenAll(tasks);
+        finally
+        {
+            _logger.LogInformation($"Finished processing movie retrieval for chatId {chatId}.");
+            await Task.WhenAll(tasks);
+        }
     }
 
     /// <summary>
