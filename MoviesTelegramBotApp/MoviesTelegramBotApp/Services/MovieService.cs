@@ -168,40 +168,64 @@ namespace MoviesTelegramBotApp.Services
                 throw;
             }
         }
-
         /// <summary>
-        /// Asynchronously retrieves a paginated list of movies by genre and the total count of movies in that genre.
+        /// Retrieves a paginated list of movies from the database that match a specified genre.
         /// </summary>
-        /// <param name="genre">The genre to search for.</param>
-        /// <param name="moviePage">The page number for pagination. Default is 1.</param>
-        /// <returns>A task representing the asynchronous operation, containing a tuple with a list of movies and the total count of movies in that genre.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if the genre string is null or empty.</exception>
-        /// <exception cref="KeyNotFoundException">Thrown if no movies are found for the specified genre.</exception>
+        /// <param name="genre">The genre to filter movies by. Must be a non-empty string.</param>
+        /// <param name="moviePage">The page number for pagination. Must be greater than or equal to 1.</param>
+        /// <returns>A tuple containing a list of movies that match the specified genre and the total count of such movies.</returns>
+        /// <exception cref="ArgumentException">Thrown when the genre is null or empty.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the moviePage is less than 1.</exception>
+        /// <remarks>
+        /// Logs warnings for invalid inputs and empty search results, and logs information about the search operation and results.
+        /// If an exception occurs during the database query, it is logged and rethrown to be handled by higher-level exception handling mechanisms.
+        /// </remarks>
         public async Task<(List<Movie> Movies, int Count)> GetMoviesByGenreAsync(string genre, int moviePage = 1)
         {
-            if (string.IsNullOrEmpty(genre))
+            try
             {
-                throw new ArgumentNullException(nameof(genre), "Search genre string is null or empty.");
+                if (string.IsNullOrWhiteSpace(genre))
+                {
+                    _logger.LogWarning($"Search string is null or empty in {nameof(GetMoviesByGenreAsync)}.");
+                    throw new ArgumentException(nameof(genre), "Search string genre in GetMoviesByGenreAsync cannot be null or empty.");
+                }
+
+                if (moviePage < 1)
+                {
+                    _logger.LogWarning($"Invalid movie page value {moviePage} in {nameof(GetMoviesByGenreAsync)}.");
+                    throw new ArgumentOutOfRangeException(nameof(moviePage), "Movie page cannot be less than 1");
+                }
+
+                _logger.LogInformation($"Searching movies with genre containing '{genre}' on page {moviePage}.");
+
+                var movieQuery = _dbContext.Movies
+                    .AsNoTracking()
+                    .Include(m => m.Genre)
+                    .Where(m => m.Genre.Name != null && EF.Functions.Like(m.Genre.Name, $"%{genre}%"));
+
+                var totalCount = await movieQuery.CountAsync();
+
+                var moviesByGenre = await movieQuery
+                      .OrderBy(m => m.Id)
+                      .Skip((moviePage - 1) * PageSize)
+                      .Take(PageSize)
+                      .ToListAsync();
+
+                if (!moviesByGenre.Any())
+                {
+                    _logger.LogWarning($"No movies found by genre {genre}");
+                    return (Movies: new List<Movie>(), Count: totalCount);
+                }
+
+                _logger.LogInformation($"Successfully retrieved {moviesByGenre.Count} movies for genre '{genre}' on page {moviePage}.");
+                return (Movies: moviesByGenre, Count: totalCount);
+
             }
-
-            var movieQuery = _dbContext.Movies.Include(m => m.Genre).Where(m => m.Genre.Name == genre);
-
-            var totalCount = await movieQuery.CountAsync();
-
-            var moviesByGenre = await _dbContext.Movies
-                  .Include(m => m.Genre)
-                  .Where(m => m.Genre.Name == genre)
-                  .OrderBy(m => m.Id)
-                  .Skip((moviePage - 1) * PageSize)
-                  .Take(PageSize)
-                  .ToListAsync();
-
-            if (moviesByGenre == null || !moviesByGenre.Any())
+            catch (Exception ex)
             {
-                throw new KeyNotFoundException($"Сouldn't find movies by genre: '{genre}'.");
+                _logger.LogError(ex, $"An error occurred while retrieving movies by genre {genre}.");
+                throw;
             }
-
-            return (Movies: moviesByGenre, Count: totalCount);
         }
 
         /// <summary>

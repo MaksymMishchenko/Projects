@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
+using System.Threading;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -151,7 +152,7 @@ internal class UpdateHandler : IUpdateHandler
     {
         var totalMovies = await _movieService.GetAllMoviesAsync(_moviePage);
         bool showPrevious = _moviePage > 1;
-        bool showNext = _moviePage < totalMovies.Count;        
+        bool showNext = _moviePage < totalMovies.Count;
 
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "➕ Favorite", "Next Movie ⏭️");
     }
@@ -564,12 +565,12 @@ internal class UpdateHandler : IUpdateHandler
                 _logger.LogWarning("No movie returned from GetRandomMovieAsync.");
                 tasks.Add(_botService.SendTextMessageAsync(chatId, "Sorry, no movie is available at the moment. 😟", cancellationToken: cts));
                 return;
-            }            
+            }
             tasks.Add(SendMoviesAsync(getRandomMovieAsync, chatId, cts));
         }
         catch (Exception ex)
         {
-            _logger.LogCritical(ex, "An error occurred while fetching a random movie.");                        
+            _logger.LogCritical(ex, "An error occurred while fetching a random movie.");
             tasks.Add(_botService.SendTextMessageAsync(chatId, "Sorry, the movie is not available. 😟"));
         }
         finally
@@ -759,18 +760,17 @@ internal class UpdateHandler : IUpdateHandler
     }
 
     /// <summary>
-    /// Asynchronously retrieves and sends a list of movies by genre for a specified user and chat.
+    /// Retrieves movies by genre for a specific chat ID. The method checks if the user's genre state is valid and non-empty, then:
+    /// 1. Logs the attempt to fetch movies for the specified genre and page.
+    /// 2. Fetches the movies by genre using the `GetMoviesByGenreAsync` method.
+    /// 3. Handles the result:
+    ///    - If no movies are found, logs the event and informs the user to enter a new genre.
+    ///    - If movies are found, logs the success and sends the movies to the user.
+    /// 4. Catches and logs exceptions (`ArgumentOutOfRangeException`, `ArgumentException`, and general exceptions) while sending appropriate error messages to the user.
+    /// 5. Ensures that all tasks are awaited and logs the completion of the request processing.
+    ///
+    /// This method ensures proper handling and logging of user requests for genre-specific movies, including error management and communication with the user.
     /// </summary>
-    /// <param name="genre">The genre of movies to retrieve.</param>
-    /// <param name="chatId">The chat identifier where the movies will be sent.</param>
-    /// <param name="cts">CancellationToken to observe while waiting for the task to complete.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if the genre is null or empty.</exception>
-    /// <exception cref="KeyNotFoundException">Thrown if no movies are found for the specified genre.</exception>
-    /// <remarks>
-    /// This method retrieves the user's current page for the specified genre and attempts to send the list of movies. 
-    /// If an error occurs, appropriate messages are sent to the user and logged.
-    /// </remarks>
     private async Task GetAllMoviesByGenre(long chatId, CancellationToken cts)
     {
         if (_userGenreState.TryGetValue(chatId, out var genreUserState))
@@ -781,47 +781,57 @@ internal class UpdateHandler : IUpdateHandler
 
                 try
                 {
-                    var getMoviesByGenre = _movieService.GetMoviesByGenreAsync(genreUserState.CurrentGenre, genreUserState.CurrentPage);
+                    _logger.LogInformation($"Fetching movies for genre '{genreUserState.CurrentGenre}'" +
+                        $" on page {genreUserState.CurrentPage} for chat {chatId}.");
+
+                    var getMoviesByGenre = _movieService.GetMoviesByGenreAsync(genreUserState.CurrentGenre,
+                        genreUserState.CurrentPage);
                     tasks.Add(getMoviesByGenre);
 
                     var moviesByGenre = await getMoviesByGenre;
 
-                    var sendMoviesAsync = SendMoviesAsync(moviesByGenre.Movies, chatId, cts);
-                    tasks.Add(sendMoviesAsync);
+                    if (!moviesByGenre.Movies.Any())
+                    {
+                        _logger.LogInformation($"No movies found for genre '{genreUserState.CurrentGenre}' in chat {chatId}.");
+                        tasks.Add(_botService.SendTextMessageAsync(chatId, "I couldn't find any movies that match your genre criteria." +
+                            " 🔍 Please enter a new movie genre to search for:", cts));
+                    }
+                    else
+                    {
+                        _logger.LogInformation($"Successfully retrieved {moviesByGenre.Movies.Count} movies for genre '{genreUserState.CurrentGenre}'" +
+                            $" on page {genreUserState.CurrentPage}.");
+                        tasks.Add(SendMoviesAsync(moviesByGenre.Movies, chatId, cts));
+                    }
                 }
-                catch (ArgumentNullException ex)
+                catch (ArgumentOutOfRangeException ex)
                 {
-                    await _botService.SendTextMessageAsync(chatId, "Please, enter a movies genre", cts);
-                    _logger.LogWarning($"ArgumentNullException: {ex.Message}");
+                    _logger.LogError(ex, $"ArgumentOutOfRangeException: {ex.Message} - Issue retrieving movies for genre '{genreUserState.CurrentGenre}' for chat {chatId}.");
+                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre '{genreUserState.CurrentGenre}' are not available. 😟", cts);
                 }
-                catch (KeyNotFoundException ex)
+                catch (ArgumentException ex)
                 {
-                    await _botService.SendTextMessageAsync(chatId, $"Sorry, the movies by genre {genreUserState.CurrentGenre} is not available 😟.", cts);
-                    _logger.LogError($"KeyNotFoundException: {ex.Message}");
+                    _logger.LogWarning(ex, $"ArgumentException: {ex.Message} - Invalid genre input '{genreUserState.CurrentGenre}' for chat {chatId}.");
+                    await _botService.SendTextMessageAsync(chatId, "Please enter a valid movie genre.", cts);
                 }
                 catch (Exception ex)
                 {
+                    _logger.LogError(ex, $"Exception: {ex.Message} - An unexpected error occurred while processing movies for genre '{genreUserState.CurrentGenre}' for chat {chatId}.");
                     await _botService.SendTextMessageAsync(chatId, "An error occurred while processing your request. Please try again later.", cts);
-                    _logger.LogError($"Exception: {ex.Message}");
                 }
                 finally
                 {
-                    foreach (var task in tasks)
-                    {
-                        try
-                        {
-                            await task;
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError($"An error occurred while processing a task: {ex.Message}");
-                            await _botService.SendTextMessageAsync(chatId, "An error occurred while processing your request. Please try again later.", cts);
-                        }
-                    }
-
-                    _logger.LogInformation("Finished processing movies by genre request.");
+                    await Task.WhenAll(tasks);
+                    _logger.LogInformation($"Finished processing movies by genre request for genre '{genreUserState.CurrentGenre}' on page {genreUserState.CurrentPage} for chat {chatId}.");
                 }
             }
+            else
+            {
+                _logger.LogWarning($"Current genre is empty for chat {chatId}. Cannot retrieve movies.");
+            }
+        }
+        else
+        {
+            _logger.LogWarning($"User genre state not found for chat {chatId}. Cannot retrieve movies.");
         }
     }
 
