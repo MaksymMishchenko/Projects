@@ -229,25 +229,33 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Asynchronously retrieves a distinct list of all genres from the movies in the database.
+        /// Retrieves a list of all genres from the database.
+        /// Logs a warning if no genres are found and returns an empty list.
+        /// Logs an error and rethrows the exception if an error occurs during the retrieval process.
         /// </summary>
-        /// <returns>A task representing the asynchronous operation, containing a list of unique <see cref="Genre"/> objects.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if no genres are found in the database.</exception>
+        /// <returns>A list of genres from the database, or an empty list if no genres are found.</returns>
+        /// <exception cref="Exception">Rethrows any exception that occurs during the retrieval process.</exception>
         public async Task<List<Genre>> GetAllGenresAsync()
         {
-
-            var movieGenres = await _dbContext.Movies
-            .Include(m => m.Genre)
-            .Select(m => m.Genre)
-            .Distinct()
-            .ToListAsync() ?? new List<Genre>();
-
-            if (movieGenres == null || !movieGenres.Any())
+            try
             {
-                throw new InvalidOperationException("No genres found");
-            }
+                var genres = await _dbContext.Genres
+                .AsNoTracking()
+                .ToListAsync();
 
-            return movieGenres;
+                if (!genres.Any())
+                {
+                    _logger.LogWarning("No genres found in the database.");
+                    return new List<Genre>();
+                }
+
+                return genres;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while retrieving genres from database.");
+                throw;
+            }
         }
 
         /// <summary>

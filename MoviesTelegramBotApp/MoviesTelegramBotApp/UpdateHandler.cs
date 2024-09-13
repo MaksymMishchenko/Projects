@@ -277,52 +277,60 @@ internal class UpdateHandler : IUpdateHandler
     }
 
     /// <summary>
-    /// Asynchronously sends a message with buttons for each movie genre to a specified chat.
+    /// Retrieves movie genres from the service and sends a list of genre buttons to the specified chat. 
+    /// If no genres are found, a fallback message is sent. In case of an error, an error message is sent.
     /// </summary>
-    /// <param name="chatId">The ID of the chat to send the message to.</param>
-    /// <param name="cts">A cancellation token to observe while waiting for the task to complete.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    /// <remarks>
-    /// This method retrieves all movie genres from the movie service and creates a keyboard with buttons for each genre. 
-    /// It also includes a "Go Top 🔝" button. If the genres are unavailable, an error message is sent.
-    /// </remarks>
-    /// <exception cref="InvalidOperationException">Thrown if there is an issue retrieving genres from the database.</exception>
+    /// <param name="chatId">The ID of the chat to which the genre buttons or error message will be sent.</param>
+    /// <param name="cts">A cancellation token to observe while sending messages asynchronously.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     private async Task SendMoviesGenresButtons(long chatId, CancellationToken cts)
     {
         var tasks = new List<Task>();
 
         try
         {
-            var genres = await _movieService.GetAllGenresAsync();
+            var genresTask = _movieService.GetAllGenresAsync();
+            tasks.Add(genresTask);
 
-            var buttons = new List<KeyboardButton>();
+            var genres = await genresTask;
 
-            foreach (var genre in genres)
+            _logger.LogInformation($"Retrieved {genres.Count} genres for chat ID {chatId}.");
+
+            if (!genres.Any())
             {
-                var button = new KeyboardButton($"{"🧾 " + genre.Name}");
-
-                buttons.Add(button);
+                _logger.LogWarning("No genres found. Sending fallback message.");
+                tasks.Add(_botService.SendTextMessageAsync(
+                    chatId,
+                    "No genres found. Please try again later.",
+                    cancellationToken: cts));
             }
+            else
+            {
+                var buttons = genres
+                    .Select(genre => new KeyboardButton($"🧾 {genre.Name}"))
+                    .Append(new KeyboardButton("🎥 Movies"))
+                    .ToArray();
 
-            buttons.Add(new KeyboardButton("🎥 Movies"));
+                var replyKeyboardMarkup = new ReplyKeyboardMarkup(buttons)
+                {
+                    ResizeKeyboard = true
+                };
 
-            KeyboardButton[] buttonArray = buttons.ToArray();
-            var replyKeyBoardMarkup = new ReplyKeyboardMarkup(buttons) { ResizeKeyboard = true };
-
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(
-                chatId,
-                "<b>Сhoose a movie genre, please 🔽</b>",
-                parseMode: ParseMode.Html,
-                replyKeyBoardMarkup,
-                cancellationToken: cts);
-            tasks.Add(sendTextMessageAsync);
+                tasks.Add(_botService.SendTextMessageAsync(
+                    chatId,
+                    "<b>Choose a movie genre, please 🔽</b>",
+                    parseMode: ParseMode.Html,
+                    replyKeyboardMarkup,
+                    cancellationToken: cts));
+            }
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            _logger.LogCritical(ex.Message);
-            var exResponse = "Sorry, the genres are not available 😟";
-            var sendTextMessageAsync = _botService.SendTextMessageAsync(chatId, exResponse, cancellationToken: cts);
-            tasks.Add(sendTextMessageAsync);
+            _logger.LogError("An error occurred while sending genre buttons for chat ID {chatId}.", ex);
+            tasks.Add(_botService.SendTextMessageAsync(
+                chatId,
+                "Sorry, the genres are not available 😟",
+                cancellationToken: cts));
         }
         finally
         {
