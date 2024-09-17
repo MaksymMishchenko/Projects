@@ -3,8 +3,6 @@ using Microsoft.Extensions.Logging;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
@@ -599,7 +597,7 @@ internal class UpdateHandler : IUpdateHandler
     /// The method logs errors if any exceptions occur during the process and rethrows the exception for further handling.
     /// </remarks>
     private async Task SendMoviesAsync(IEnumerable<Movie> movies, long chatId, CancellationToken cancellationToken)
-    {        
+    {
         try
         {
             await Task.WhenAll(movies.Select(movie =>
@@ -611,14 +609,14 @@ internal class UpdateHandler : IUpdateHandler
               replyMarkup: new InlineKeyboardMarkup(
               InlineKeyboardButton.WithUrl("Check out the trailer", movie.MovieUrl)),
               cancellationToken)));
-           
+
             _logger.LogInformation($"Successfully sent movie messages to chat ID {chatId}.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"An error occurred while sending movie messages to chat ID {chatId}.");
             throw;
-        }       
+        }
     }
 
     /// <summary>
@@ -862,11 +860,11 @@ internal class UpdateHandler : IUpdateHandler
     /// 
     private async Task UpdateIsFavoriteAsync(long chatId, CancellationToken cts, int movieId, bool isFavorite)
     {
-        var taskList = new List<Task>();
+        var tasks = new List<Task>();
         try
         {
             var updateIsFavorite = _movieService.UpdateIsFavoriteAsync(movieId, isFavorite);
-            taskList.Add(updateIsFavorite);
+            tasks.Add(updateIsFavorite);
 
             await updateIsFavorite;
 
@@ -884,7 +882,7 @@ internal class UpdateHandler : IUpdateHandler
         }
         finally
         {
-            await Task.WhenAll(taskList);
+            await Task.WhenAll(tasks);
         }
     }
 

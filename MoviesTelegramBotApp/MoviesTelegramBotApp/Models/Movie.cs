@@ -15,5 +15,7 @@
 
         public int GenreId { get; set; }
         public Genre? Genre { get; set; }
+
+        public ICollection<UserFavoriteMovie>? Users { get; set; } = new List<UserFavoriteMovie>();
     }
 }
