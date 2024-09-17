@@ -268,8 +268,7 @@ namespace MoviesTelegramBotApp.Services
         public async Task UpdateIsFavoriteAsync(int movieId, bool isFavorite)
         {
             var foundMovie = await _dbContext.Movies.FindAsync(movieId);
-
-            //ArgumentNullException.ThrowIfNull(foundMovie);
+            
             if (foundMovie == null)
             {
                 throw new ArgumentNullException("An error occurred during finding the movie in database. Throw from MovieService in line 204");
