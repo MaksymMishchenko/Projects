@@ -9,6 +9,8 @@ namespace MoviesTelegramBotApp
         public DbSet<Genre> Genres { get; set; }
         public DbSet<Cartoon> Cartoons { get; set; }
         public DbSet<CartoonGenre> CartoonGenre { get; set; }
+        public DbSet<User> Users { get; set; }
+        public DbSet<UserFavoriteMovie> UserFavoriteMovies { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -16,8 +18,20 @@ namespace MoviesTelegramBotApp
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure UserFavoriteMovie as a composite key
             modelBuilder.Entity<UserFavoriteMovie>()
-        .HasKey(uf => new { uf.UserId, uf.MovieId });
+                .HasKey(ufm => new { ufm.UserId, ufm.MovieId });
+
+            // Configure many-to-many relationship between User and Movie
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.FavoriteMovies)
+                .WithOne(ufm => ufm.User)
+                .HasForeignKey(ufm => ufm.UserId);
+
+            modelBuilder.Entity<Movie>()
+                .HasMany(m => m.Users)
+                .WithOne(ufm => ufm.Movie)
+                .HasForeignKey(ufm => ufm.MovieId);
 
             modelBuilder.Entity<Movie>()
                 .HasOne(g => g.Genre)

@@ -256,25 +256,48 @@ namespace MoviesTelegramBotApp.Services
                 _logger.LogError(ex, "An error occurred while retrieving genres from database.");
                 throw;
             }
-        }
+        }        
 
-        /// <summary>
-        /// Asynchronously updates the `IsFavorite` property of a movie in the database.
-        /// If the movie with the specified ID does not exist, an `ArgumentNullException` is thrown.
-        /// </summary>
-        /// <param name="movieId">The ID of the movie to update.</param>
-        /// <param name="isFavorite">The new favorite status to set for the movie.</param>
-        /// <exception cref="ArgumentNullException">Thrown when the movie with the specified ID is not found in the database.</exception>      
-        public async Task UpdateIsFavoriteAsync(int movieId, bool isFavorite)
-        {
-            var foundMovie = await _dbContext.Movies.FindAsync(movieId);
+        public async Task UpdateIsFavoriteAsync(long chatId, int movieId, bool isFavorite)
+        {            
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.ChatId == chatId);
+
+            if (user == null)
+            {               
+                user = new User { ChatId = chatId };
+                _dbContext.Users.Add(user);
+                await _dbContext.SaveChangesAsync(); 
+            }
             
-            if (foundMovie == null)
+            var movie = await _dbContext.Movies.FindAsync(movieId);
+
+            if (movie == null)
             {
-                throw new ArgumentNullException("An error occurred during finding the movie in database. Throw from MovieService in line 204");
+                throw new ArgumentException("Movie not found.");
             }
 
-            foundMovie.IsFavorite = isFavorite;
+            if (isFavorite)
+            {                
+                var userFavoriteMovie = await _dbContext.UserFavoriteMovies
+                    .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
+
+                if (userFavoriteMovie == null)
+                {
+                    userFavoriteMovie = new UserFavoriteMovie { UserId = user.Id, MovieId = movieId };
+                    _dbContext.UserFavoriteMovies.Add(userFavoriteMovie);
+                }
+            }
+            else
+            {                
+                var userFavoriteMovie = await _dbContext.UserFavoriteMovies
+                    .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
+
+                if (userFavoriteMovie != null)
+                {
+                    _dbContext.UserFavoriteMovies.Remove(userFavoriteMovie);
+                }
+            }
+            
             await _dbContext.SaveChangesAsync();
         }
 

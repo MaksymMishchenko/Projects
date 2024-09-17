@@ -468,6 +468,7 @@ internal class UpdateHandler : IUpdateHandler
             case "➕ Favorite":
                 await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePageByFavorite, true);
                 await SendMoviesNavAsync(chatId, cancellationToken);
+                IncrementMoviePageByFavorite();
                 break;
 
             case "🎞️ Choices":
@@ -863,12 +864,11 @@ internal class UpdateHandler : IUpdateHandler
         var tasks = new List<Task>();
         try
         {
-            var updateIsFavorite = _movieService.UpdateIsFavoriteAsync(movieId, isFavorite);
+            var updateIsFavorite = _movieService.UpdateIsFavoriteAsync(chatId, movieId, isFavorite);
             tasks.Add(updateIsFavorite);
 
             await updateIsFavorite;
-
-            await _botService.SendTextMessageAsync(chatId, "The movie was added to Choices list", cts);
+            await _botService.SendTextMessageAsync(chatId, "The movie was added to Choices list", cts);            
         }
         catch (NullReferenceException ex)
         {
