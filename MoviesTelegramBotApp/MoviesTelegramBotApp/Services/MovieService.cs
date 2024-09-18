@@ -329,7 +329,7 @@ namespace MoviesTelegramBotApp.Services
         /// <param name="user">The user for whom the movie is to be added to the favorites list.</param>
         /// <param name="movieId">The ID of the movie to be added to the user's favorites.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task AddFavoriteMovieAsync(User user, int movieId)
+        private async Task AddFavoriteMovieAsync(User user, int movieId)
         {
             _logger.LogInformation($"Attempting to add MovieId: {movieId} to UserId: {user.Id}'s favorite movies.");
 
@@ -356,7 +356,7 @@ namespace MoviesTelegramBotApp.Services
         /// <param name="user">The user from whose favorites list the movie is to be removed.</param>
         /// <param name="movieId">The ID of the movie to be removed from the user's favorites.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task RemoveFavoriteMovieAsync(User user, int movieId)
+        private async Task RemoveFavoriteMovieAsync(User user, int movieId)
         {
             _logger.LogInformation($"Attempting to remove MovieId: {movieId} from UserId: {user.Id}'s favorite movies.");
 
@@ -381,26 +381,8 @@ namespace MoviesTelegramBotApp.Services
         /// <returns>A task that represents the asynchronous operation. The task result is a list of favorite movies with their associated genres.</returns>
         public async Task<(List<Movie> Movies, int Count)> GetListOfFavoriteMoviesAsync(int moviePage = 1)
         {
-            var moviesByTrueFavoriteProperty = _dbContext.Movies
-                .Include(m => m.Genre)
-                .Where(m => m.IsFavorite == true);
 
-            var count = await moviesByTrueFavoriteProperty.CountAsync();
-
-            var favoriteMoviesList = await _dbContext.Movies
-                .Include(m => m.Genre)
-                .Where(m => m.IsFavorite == true)
-                .OrderBy(m => m.Id)
-                .Skip((moviePage - 1) * PageSize)
-                .Take(PageSize)
-                .ToListAsync();
-
-            if (favoriteMoviesList == null)
-            {
-                throw new ArgumentNullException("An error occurred during finding the movies in database. Throw from MovieService in line 231");
-            }
-
-            return (Movies: favoriteMoviesList, Count: count);
+            return (Movies: null, Count: 0);
         }
     }
 }
