@@ -258,47 +258,120 @@ namespace MoviesTelegramBotApp.Services
             }
         }
 
+        /// <summary>
+        /// Updates the favorite status of a specified movie for a user based on their chat ID.
+        /// If the user does not exist in the database, a new user is created. 
+        /// If the movie is not in the user's favorites and `isFavorite` is true, the movie is added to the user's favorites. 
+        /// If the movie is already in the user's favorites and `isFavorite` is false, the movie is removed from the user's favorites.
+        /// Logs the operation details, including whether a new user was created, and if the movie was found in the database.
+        /// Throws an exception if the movie ID is invalid or the movie is not found.
+        /// </summary>
+        /// <param name="chatId">The chat ID of the user.</param>
+        /// <param name="movieId">The ID of the movie to be added or removed from favorites.</param>
+        /// <param name="isFavorite">A boolean indicating whether to add or remove the movie from the user's favorites.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the movie ID is less than 1.</exception>
+        /// <exception cref="ArgumentException">Thrown when the movie is not found in the database.</exception>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task UpdateIsFavoriteAsync(long chatId, int movieId, bool isFavorite)
         {
+            _logger.LogInformation($"Starting UpdateIsFavoriteAsync for ChatId: {chatId} and MovieId: {movieId} with IsFavorite: {isFavorite}.");
+
+            if (movieId < 1)
+            {
+                _logger.LogWarning($"Invalid movie Id value {movieId} in {nameof(UpdateIsFavoriteAsync)}.");
+                throw new ArgumentOutOfRangeException(nameof(movieId), "Movie Id cannot be less than 1");
+            }
+
+            _logger.LogInformation($"Searching for user with ChatId: '{chatId}'.");
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.ChatId == chatId);
 
             if (user == null)
             {
+                _logger.LogInformation($"User with ChatId: '{chatId}' not found. Creating a new user.");
                 user = new User { ChatId = chatId };
                 _dbContext.Users.Add(user);
                 await _dbContext.SaveChangesAsync();
             }
+            else
+            {
+                _logger.LogInformation($"User with ChatId: '{chatId}' found. UserId: {user.Id}");
+            }
 
+            _logger.LogInformation($"Searching for movie with MovieId: {movieId}.");
             var movie = await _dbContext.Movies.FindAsync(movieId);
 
             if (movie == null)
             {
+                _logger.LogWarning($"Movie with Id: {movieId} not found.");
                 throw new ArgumentException("Movie not found.");
             }
 
             if (isFavorite)
             {
-                var userFavoriteMovie = await _dbContext.UserFavoriteMovies
-                    .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
-
-                if (userFavoriteMovie == null)
-                {
-                    userFavoriteMovie = new UserFavoriteMovie { UserId = user.Id, MovieId = movieId };
-                    _dbContext.UserFavoriteMovies.Add(userFavoriteMovie);
-                }
+                _logger.LogInformation($"Adding movie with MovieId: {movieId} to favorites for UserId: {user.Id}.");
+                await AddFavoriteMovieAsync(user, movieId);
             }
             else
             {
-                var userFavoriteMovie = await _dbContext.UserFavoriteMovies
-                    .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
-
-                if (userFavoriteMovie != null)
-                {
-                    _dbContext.UserFavoriteMovies.Remove(userFavoriteMovie);
-                }
+                _logger.LogInformation($"Removing movie with MovieId: {movieId} from favorites for UserId: {user.Id}.");
+                await RemoveFavoriteMovieAsync(user, movieId);
             }
 
             await _dbContext.SaveChangesAsync();
+            _logger.LogInformation($"Successfully updated favorite status for MovieId: {movieId} and UserId: {user.Id}.");
+        }
+
+        /// <summary>
+        /// Adds a specified movie to the user's list of favorite movies if it's not already present.
+        /// Checks if the movie is already in the user's favorites, and if not, adds it to the database.
+        /// Logs the operation details, including whether the movie was already in the user's favorites.
+        /// </summary>
+        /// <param name="user">The user for whom the movie is to be added to the favorites list.</param>
+        /// <param name="movieId">The ID of the movie to be added to the user's favorites.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task AddFavoriteMovieAsync(User user, int movieId)
+        {
+            _logger.LogInformation($"Attempting to add MovieId: {movieId} to UserId: {user.Id}'s favorite movies.");
+
+            var userFavoriteMovie = await _dbContext.UserFavoriteMovies
+                .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
+
+            if (userFavoriteMovie == null)
+            {
+                _logger.LogInformation($"MovieId: {movieId} is not currently in UserId: {user.Id}'s favorites. Adding now.");
+                userFavoriteMovie = new UserFavoriteMovie { UserId = user.Id, MovieId = movieId };
+                _dbContext.UserFavoriteMovies.Add(userFavoriteMovie);
+            }
+            else
+            {
+                _logger.LogInformation($"MovieId: {movieId} is already in UserId: {user.Id}'s favorites. No action taken.");
+            }
+        }
+
+        /// <summary>
+        /// Removes a specified movie from the user's list of favorite movies if it exists.
+        /// Checks if the movie is present in the user's favorites, and if found, removes it from the database.
+        /// Logs the operation details, including whether the movie was found in the user's favorites.
+        /// </summary>
+        /// <param name="user">The user from whose favorites list the movie is to be removed.</param>
+        /// <param name="movieId">The ID of the movie to be removed from the user's favorites.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
+        public async Task RemoveFavoriteMovieAsync(User user, int movieId)
+        {
+            _logger.LogInformation($"Attempting to remove MovieId: {movieId} from UserId: {user.Id}'s favorite movies.");
+
+            var userFavoriteMovie = await _dbContext.UserFavoriteMovies
+                .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
+
+            if (userFavoriteMovie != null)
+            {
+                _logger.LogInformation($"MovieId: {movieId} found in UserId: {user.Id}'s favorites. Removing now.");
+                _dbContext.UserFavoriteMovies.Remove(userFavoriteMovie);
+            }
+            else
+            {
+                _logger.LogInformation($"MovieId: {movieId} was not found in UserId: {user.Id}'s favorites. No action taken.");
+            }
         }
 
         /// <summary>
