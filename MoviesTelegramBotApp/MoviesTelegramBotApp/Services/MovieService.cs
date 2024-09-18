@@ -375,14 +375,58 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
-        /// Asynchronously retrieves a list of all movies marked as favorites from the database, including their associated genres.
-        /// Ensures that the result is not null by throwing an <see cref="ArgumentNullException"/> if the list is null.
+        /// Retrieves a paginated list of favorite movies for a user specified by their chat ID.
         /// </summary>
-        /// <returns>A task that represents the asynchronous operation. The task result is a list of favorite movies with their associated genres.</returns>
-        public async Task<(List<Movie> Movies, int Count)> GetListOfFavoriteMoviesAsync(int moviePage = 1)
+        /// <param name="chatId">The chat ID of the user whose favorite movies are to be retrieved.</param>
+        /// <param name="moviePage">The page number for pagination, starting from 1. Defaults to 1.</param>
+        /// <returns>A tuple containing a list of favorite movies and the total count of favorite movies for the user.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when the moviePage is less than 1.</exception>
+        /// <exception cref="ArgumentException">Thrown when the user with the specified chat ID is not found.</exception>
+        public async Task<(List<Movie> Movies, int Count)> GetListOfFavoriteMoviesAsync(long chatId, int moviePage = 1)
         {
+            _logger.LogInformation($"Starting GetListOfFavoriteMoviesAsync for ChatId: {chatId} and moviePage: {moviePage}.");
 
-            return (Movies: null, Count: 0);
+            // Check for invalid page value
+            if (moviePage < 1)
+            {
+                _logger.LogWarning($"Invalid movie page value {moviePage} provided in {nameof(GetListOfFavoriteMoviesAsync)}.");
+                throw new ArgumentOutOfRangeException(nameof(moviePage), "Movie page cannot be less than 1");
+            }
+
+            // Retrieve the user by chatId
+            var user = await _dbContext.Users
+                .AsNoTracking()
+                .Include(fm => fm.FavoriteMovies)
+                .FirstOrDefaultAsync(u => u.ChatId == chatId);
+
+            if (user == null)
+            {
+                _logger.LogWarning($"User with ChatId: {chatId} not found.");
+                throw new ArgumentException("User not found");
+            }
+
+            _logger.LogInformation($"User with ChatId: {chatId} found. Retrieving favorite movies.");
+
+            var query = _dbContext.UserFavoriteMovies
+                .AsNoTracking()
+                .Where(ufm => ufm.UserId == user.Id)
+                .Select(ufm => ufm.Movie);
+
+            // Count total favorite movies
+            var totalCount = await query.CountAsync();
+            _logger.LogInformation($"Total count of favorite movies for UserId: {user.Id} is {totalCount}.");
+
+            // Retrieve the paginated list of favorite movies
+            var favoriteMovies = await query
+                .OrderBy(m => m.Id)
+                .Skip((moviePage - 1) * PageSize)
+                .Take(PageSize)
+                .ToListAsync();
+
+            _logger.LogInformation($"Retrieved {favoriteMovies.Count} favorite movies for UserId: {user.Id} on page: {moviePage}.");
+
+            return (Movies: favoriteMovies, Count: totalCount);
         }
     }
 }
