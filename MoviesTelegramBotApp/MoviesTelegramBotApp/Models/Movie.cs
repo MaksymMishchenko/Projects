@@ -10,8 +10,7 @@
         public string? ImageUrl { get; set; }
         public string? MovieUrl { get; set; }
         public string? InterestFactsUrl { get; set; }
-        public string? BehindTheScene { get; set; }
-        public bool IsFavorite { get; set; } = false;
+        public string? BehindTheScene { get; set; }                
 
         public int GenreId { get; set; }
         public Genre? Genre { get; set; }

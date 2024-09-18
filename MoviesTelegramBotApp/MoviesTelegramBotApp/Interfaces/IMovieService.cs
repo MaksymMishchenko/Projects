@@ -10,6 +10,6 @@ namespace MoviesTelegramBotApp.Interfaces
         Task<(List<Movie> Movies, int Count)> GetMoviesByGenreAsync(string genre, int moviePage);
         Task<List<Genre>> GetAllGenresAsync();
         Task UpdateIsFavoriteAsync(long chatId, int movieId, bool isFavorite);
-        Task<(List<Movie> Movies, int Count)> GetListOfFavoriteMoviesAsync(int moviePage);
+        Task<(List<Movie> Movies, int Count)> GetListOfFavoriteMoviesAsync(int moviePage = 1);
     }
 }
