@@ -68,7 +68,7 @@ internal class UpdateHandler : IUpdateHandler
         if (update.Type == UpdateType.Message && update.Message!.Type == MessageType.Text)
         {
             var chatId = update.Message.Chat.Id;
-            var messageText = update.Message.Text;
+            var messageText = update.Message.Text;            
 
             if (_userStates.TryGetValue(chatId, out var userState))
             {
@@ -466,9 +466,8 @@ internal class UpdateHandler : IUpdateHandler
                 break;
 
             case "➕ Favorite":
-                await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePageByFavorite, true);
-                await SendMoviesNavAsync(chatId, cancellationToken);
-                IncrementMoviePageByFavorite();
+                await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePage, true);
+                await SendMoviesNavAsync(chatId, cancellationToken);                
                 break;
 
             case "🎞️ Choices":
