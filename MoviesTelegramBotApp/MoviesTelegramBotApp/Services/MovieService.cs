@@ -256,19 +256,19 @@ namespace MoviesTelegramBotApp.Services
                 _logger.LogError(ex, "An error occurred while retrieving genres from database.");
                 throw;
             }
-        }        
+        }
 
         public async Task UpdateIsFavoriteAsync(long chatId, int movieId, bool isFavorite)
-        {            
+        {
             var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.ChatId == chatId);
 
             if (user == null)
-            {               
+            {
                 user = new User { ChatId = chatId };
                 _dbContext.Users.Add(user);
-                await _dbContext.SaveChangesAsync(); 
+                await _dbContext.SaveChangesAsync();
             }
-            
+
             var movie = await _dbContext.Movies.FindAsync(movieId);
 
             if (movie == null)
@@ -277,7 +277,7 @@ namespace MoviesTelegramBotApp.Services
             }
 
             if (isFavorite)
-            {                
+            {
                 var userFavoriteMovie = await _dbContext.UserFavoriteMovies
                     .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
 
@@ -288,7 +288,7 @@ namespace MoviesTelegramBotApp.Services
                 }
             }
             else
-            {                
+            {
                 var userFavoriteMovie = await _dbContext.UserFavoriteMovies
                     .FirstOrDefaultAsync(ufm => ufm.UserId == user.Id && ufm.MovieId == movieId);
 
@@ -297,7 +297,7 @@ namespace MoviesTelegramBotApp.Services
                     _dbContext.UserFavoriteMovies.Remove(userFavoriteMovie);
                 }
             }
-            
+
             await _dbContext.SaveChangesAsync();
         }
 
@@ -322,7 +322,6 @@ namespace MoviesTelegramBotApp.Services
                 .Take(PageSize)
                 .ToListAsync();
 
-            //ArgumentNullException.ThrowIfNull(favoriteMoviesList);
             if (favoriteMoviesList == null)
             {
                 throw new ArgumentNullException("An error occurred during finding the movies in database. Throw from MovieService in line 231");
