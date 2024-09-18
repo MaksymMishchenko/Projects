@@ -899,7 +899,7 @@ internal class UpdateHandler : IUpdateHandler
 
         try
         {
-            var getAllFavoriteMovies = _movieService.GetListOfFavoriteMoviesAsync(_moviePageByFavorite);
+            var getAllFavoriteMovies = _movieService.GetListOfFavoriteMoviesAsync(chatId, _moviePageByFavorite);
             tasksList.Add(getAllFavoriteMovies);
 
             var favMovies = await getAllFavoriteMovies;
