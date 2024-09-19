@@ -74,7 +74,7 @@ internal class UpdateHandler : IUpdateHandler
             {
                 if (userState.state == StateAwaitingMovieSearch)
                 {
-                    await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
+                    await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);                    
                 }
                 else if (userState.state == StateNavigatingMovies)
                 {
@@ -487,7 +487,8 @@ internal class UpdateHandler : IUpdateHandler
                 break;
 
             case "🔎 Search":
-                await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find\n  For example: 'The Mask'", ParseMode.Html);
+                 await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find" +
+                    "\nFor example: 'The Mask'", ParseMode.Html);
                 _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
                 break;
 
@@ -735,8 +736,7 @@ internal class UpdateHandler : IUpdateHandler
                 _logger.LogInformation($"No movies found for search '{searchString}' in chat {chatId}.");
                 tasks.Add(_botService.SendTextMessageAsync(chatId, "I couldn't find any movies that match your search criteria." +
                     " 🔍 Please enter a new movie title to search for:", cancellationToken));
-
-                _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
+                _userStates[chatId] = (StateNavigatingMovies, searchString);
             }
             else
             {
@@ -746,8 +746,7 @@ internal class UpdateHandler : IUpdateHandler
                 {
                     tasks.Add(SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken));
                 }
-
-                _userStates[chatId] = (StateNavigatingMovies, searchString);
+                _userStates[chatId] = (StateNavigatingMovies, searchString);               
             }
         }
         catch (ArgumentOutOfRangeException ex)
