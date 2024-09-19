@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using MoviesTelegramBotApp.Interfaces;
 using MoviesTelegramBotApp.Models;
 using System.Collections.Concurrent;
@@ -74,7 +75,7 @@ internal class UpdateHandler : IUpdateHandler
             {
                 if (userState.state == StateAwaitingMovieSearch)
                 {
-                    await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);                    
+                    await GetFoundMoviesAsync(messageText!, chatId, cancellationToken);
                 }
                 else if (userState.state == StateNavigatingMovies)
                 {
@@ -153,7 +154,12 @@ internal class UpdateHandler : IUpdateHandler
         bool showPrevious = _moviePage > 1;
         bool showNext = _moviePage < totalMovies.Count;
 
-        await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", "➕ Favorite", "Next Movie ⏭️");
+        var isFavorite = await _movieService.IsMovieInFavoritesAsync(chatId, _moviePage);
+
+        string favoriteButton = isFavorite ? "➖ UnFavorite" : "➕ Favorite";
+
+        await SendNavigationAsync(chatId, cts, showPrevious, showNext,
+            "Main Menu 🔝", "🎬 Genres", "⏮️ Prev Movie", favoriteButton, "Next Movie ⏭️");
     }
 
     /// <summary>
@@ -205,7 +211,7 @@ internal class UpdateHandler : IUpdateHandler
 
     private async Task SendChoicesMoviesNavAsync(long chatId, CancellationToken cts)
     {
-        var movies = await _movieService.GetListOfFavoriteMoviesAsync(chatId, _moviePageByFavorite);        
+        var movies = await _movieService.GetListOfFavoriteMoviesAsync(chatId, _moviePageByFavorite);
         bool showPrevious = _moviePageByFavorite > 1;
         bool showNext = _moviePageByFavorite < movies.Count;
 
@@ -468,6 +474,10 @@ internal class UpdateHandler : IUpdateHandler
                 await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePage, true);
                 await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
+            case "➖ UnFavorite":
+                await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePage, false);
+                await SendMoviesNavAsync(chatId, cancellationToken);
+                break;
 
             case "🎞️ Choices":
                 await GetListOfFavoriteMoviesAsync(chatId, cancellationToken);
@@ -487,8 +497,8 @@ internal class UpdateHandler : IUpdateHandler
                 break;
 
             case "🔎 Search":
-                 await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find" +
-                    "\nFor example: 'The Mask'", ParseMode.Html);
+                await _botService.SendTextMessageAsync(chatId, "🔍 Please enter a movie you want to find" +
+                   "\nFor example: 'The Mask'", ParseMode.Html);
                 _userStates[chatId] = (StateAwaitingMovieSearch, string.Empty);
                 break;
 
@@ -746,7 +756,7 @@ internal class UpdateHandler : IUpdateHandler
                 {
                     tasks.Add(SendMoviesByTitleNavAsync(searchString, chatId, cancellationToken));
                 }
-                _userStates[chatId] = (StateNavigatingMovies, searchString);               
+                _userStates[chatId] = (StateNavigatingMovies, searchString);
             }
         }
         catch (ArgumentOutOfRangeException ex)
@@ -866,11 +876,20 @@ internal class UpdateHandler : IUpdateHandler
             tasks.Add(updateIsFavorite);
 
             await updateIsFavorite;
-            await _botService.SendTextMessageAsync(chatId, "The movie was added to Choices list", cts);
+
+            if (await _movieService.IsMovieInFavoritesAsync(chatId, movieId))
+            {
+                await _botService.SendTextMessageAsync(chatId, "The movie has just been added to the Choices list", cts);
+            }
+            else
+            {
+                await _botService.SendTextMessageAsync(chatId, "The movie has just been deleted from the Choices list", cts);
+            }
         }
         catch (ArgumentOutOfRangeException ex)
         {
-
+            _logger.LogError(ex, $"Invalid movieId: {movieId} provided in {nameof(UpdateIsFavoriteAsync)}. The movieId cannot be less than 1.");
+            await _botService.SendTextMessageAsync(chatId, "Invalid movie ID. Please try again with a valid movie.", cts);
         }
         catch (Exception ex)
         {
