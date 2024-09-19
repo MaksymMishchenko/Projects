@@ -375,6 +375,33 @@ namespace MoviesTelegramBotApp.Services
         }
 
         /// <summary>
+        /// Checks if a specific movie (identified by movieId) is in the user's (identified by chatId) favorite list.
+        /// Logs the process, and handles invalid movieId values.
+        /// Returns true if the movie is in the user's favorites, otherwise returns false.
+        /// </summary>
+        /// <param name="chatId">The chat ID of the user.</param>
+        /// <param name="movieId">The ID of the movie to check.</param>
+        /// <returns>True if the movie is in the user's favorites, otherwise false.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if movieId is less than 1.</exception>
+        public async Task<bool> IsMovieInFavoritesAsync(long chatId, int movieId)
+        {
+            if (movieId < 1)
+            {
+                _logger.LogWarning($"Invalid movie Id value {movieId} in {nameof(IsMovieInFavoritesAsync)}.");
+                throw new ArgumentOutOfRangeException(nameof(movieId), "Movie Id cannot be less than 1");
+            }
+
+            _logger.LogInformation($"Checking if MovieId: {movieId} is in favorites for ChatId: {chatId}.");
+
+            bool isFavorite = await _dbContext.UserFavoriteMovies
+                .AsNoTracking()
+                .AnyAsync(ufm => ufm.User.ChatId == chatId && ufm.MovieId == movieId);
+
+            _logger.LogInformation($"MovieId: {movieId} is{(isFavorite ? "" : " not")} in favorites for ChatId: {chatId}.");
+            return isFavorite;
+        }
+
+        /// <summary>
         /// Retrieves a paginated list of favorite movies for a user specified by their chat ID.
         /// </summary>
         /// <param name="chatId">The chat ID of the user whose favorite movies are to be retrieved.</param>
