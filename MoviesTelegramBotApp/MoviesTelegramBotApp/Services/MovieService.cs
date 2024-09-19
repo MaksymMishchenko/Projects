@@ -410,6 +410,7 @@ namespace MoviesTelegramBotApp.Services
 
             var query = _dbContext.UserFavoriteMovies
                 .AsNoTracking()
+                .Include(m => m.Movie.Genre)
                 .Where(ufm => ufm.UserId == user.Id)
                 .Select(ufm => ufm.Movie);
 
