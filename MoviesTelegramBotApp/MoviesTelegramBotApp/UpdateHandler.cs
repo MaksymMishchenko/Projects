@@ -68,7 +68,7 @@ internal class UpdateHandler : IUpdateHandler
         if (update.Type == UpdateType.Message && update.Message!.Type == MessageType.Text)
         {
             var chatId = update.Message.Chat.Id;
-            var messageText = update.Message.Text;            
+            var messageText = update.Message.Text;
 
             if (_userStates.TryGetValue(chatId, out var userState))
             {
@@ -205,10 +205,9 @@ internal class UpdateHandler : IUpdateHandler
 
     private async Task SendChoicesMoviesNavAsync(long chatId, CancellationToken cts)
     {
-        var totalMovies = await _movieService.GetListOfFavoriteMoviesAsync(_moviePage);
-        var count = totalMovies.Count;
-        bool showPrevious = count > 1;
-        bool showNext = _moviePageByFavorite < count;
+        var movies = await _movieService.GetListOfFavoriteMoviesAsync(chatId, _moviePageByFavorite);        
+        bool showPrevious = _moviePageByFavorite > 1;
+        bool showNext = _moviePageByFavorite < movies.Count;
 
         await SendNavigationAsync(chatId, cts, showPrevious, showNext, "Main Menu 🔝", string.Empty, "⏮️ Prev", string.Empty, "Next ⏭️");
     }
@@ -467,7 +466,7 @@ internal class UpdateHandler : IUpdateHandler
 
             case "➕ Favorite":
                 await UpdateIsFavoriteAsync(chatId, cancellationToken, _moviePage, true);
-                await SendMoviesNavAsync(chatId, cancellationToken);                
+                await SendMoviesNavAsync(chatId, cancellationToken);
                 break;
 
             case "🎞️ Choices":
@@ -484,6 +483,7 @@ internal class UpdateHandler : IUpdateHandler
             case "⏮️ Prev":
                 DecrementMoviePageByFavorite();
                 await GetListOfFavoriteMoviesAsync(chatId, cancellationToken);
+                await SendChoicesMoviesNavAsync(chatId, cancellationToken);
                 break;
 
             case "🔎 Search":
@@ -867,17 +867,16 @@ internal class UpdateHandler : IUpdateHandler
             tasks.Add(updateIsFavorite);
 
             await updateIsFavorite;
-            await _botService.SendTextMessageAsync(chatId, "The movie was added to Choices list", cts);            
+            await _botService.SendTextMessageAsync(chatId, "The movie was added to Choices list", cts);
         }
-        catch (NullReferenceException ex)
+        catch (ArgumentOutOfRangeException ex)
         {
-            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while adding the movie to favorites", cts);
-            _logger.LogCritical($"An error occurred during finding the movie in database. See message: {ex.Message}");
+
         }
         catch (Exception ex)
         {
-            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while adding the movie to favorites", cts);
             _logger.LogCritical($"There was an error updating the 'Is Favorite' property for this movie in the database. See message: {ex.Message}");
+            await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while adding or removing the movie to favorites", cts);
         }
         finally
         {
@@ -904,10 +903,9 @@ internal class UpdateHandler : IUpdateHandler
 
             var favMovies = await getAllFavoriteMovies;
 
-            var sendMovies = SendMoviesAsync(favMovies.Movies, chatId, cts);
-            tasksList.Add(sendMovies);
+            tasksList.Add(SendMoviesAsync(favMovies.Movies, chatId, cts));
         }
-        catch (NullReferenceException ex)
+        catch (ArgumentOutOfRangeException ex)
         {
             await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while retrieving movies from favorite list", cts);
             _logger.LogCritical($"An error occurred during retrieving movies from favorite list. See message: {ex.Message}");
@@ -917,7 +915,6 @@ internal class UpdateHandler : IUpdateHandler
             await _botService.SendTextMessageAsync(chatId, "Sorry, an error occurred while retrieving movies from favorite list", cts);
             _logger.LogCritical($"An error occurred during retrieving movies from favorite list. See message: {ex.Message}");
         }
-
         finally
         {
             await Task.WhenAll(tasksList);
