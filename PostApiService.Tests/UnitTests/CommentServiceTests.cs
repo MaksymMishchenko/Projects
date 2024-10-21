@@ -34,10 +34,29 @@ namespace PostApiService.Tests.UnitTests
             Assert.Equal(postId, comment.PostId);
             Assert.True(comment.CreatedAt <= DateTime.Now);
 
-            var addedComment = await context.Comments.FirstOrDefaultAsync(c => c.PostId == postId && c.Content == "Some test comment");
+            var addedComment = await context.Comments
+                .FirstOrDefaultAsync(c => c.PostId == postId && c.Content == "Some test comment");
             Assert.NotNull(addedComment);
             Assert.Equal("Some test comment", addedComment.Content);
             Assert.Equal(postId, addedComment.PostId);
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_Shoul_Delete_Comment_When_Exists()
+        {
+            // Arrange
+            var (commentService, context) = GetCommentService();
+            var comment = new Comment { CommentId = 1, Content = "Test content", PostId = 1 };
+
+            context.Comments.Add(comment);
+            await context.SaveChangesAsync();
+
+            // Act
+            await commentService.DeleteCommentAsync(comment.CommentId);
+
+            // Assert
+            var detectedComment = await context.Comments.FindAsync(comment.CommentId);
+            Assert.Null(detectedComment);
         }
     }
 }
