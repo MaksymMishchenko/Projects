@@ -121,4 +121,58 @@ public class PostServiceTests
         Assert.Equal("Some Description", editedPost.Description);
         Assert.Equal("http://example.com/test.jpg", editedPost.Slug);
     }
+
+    [Fact]
+    public async Task GetAllPostsAsync_Should_Fetching_AllPosts_FromDB()
+    {
+        // Arrange
+        var (postService, context) = GetPostService();
+
+        var post1 = new Post
+        {
+            PostId = 1,
+            Title = "Post 1",
+            Description = "This is a post 1.",
+            Content = "Content of the test post 1.",
+            ImageUrl = "http://example.com/image1.jpg",
+            MetaTitle = "Post 1 Meta Title",
+            MetaDescription = "Post 1 Meta Description",
+            Slug = "test-post-one"
+        };
+
+        var post2 = new Post
+        {
+            PostId = 2,
+            Title = "Post 2",
+            Description = "This is a post 2.",
+            Content = "Content of the test post 2.",
+            ImageUrl = "http://example.com/image2.jpg",
+            MetaTitle = "Post 2 Meta Title",
+            MetaDescription = "Post 2 Meta Description",
+            Slug = "test-post-two"
+        };
+
+        await postService.AddPostAsync(post1);
+        await postService.AddPostAsync(post2);
+
+        // Act
+        var allPosts = await postService.GetAllPostsAsync();
+
+        // Assert
+        Assert.NotNull(allPosts);
+        Assert.Equal(2, allPosts.Count());
+
+        Assert.Collection(allPosts,
+            p1 =>
+            {
+                Assert.Equal("Post 1", p1.Title);
+                Assert.Equal("test-post-one", p1.Slug);
+            },
+            p2 =>
+            {
+                Assert.Equal("Post 2", p2.Title);
+                Assert.Equal("test-post-two", p2.Slug);
+            }
+        );
+    }
 }
