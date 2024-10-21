@@ -175,4 +175,52 @@ public class PostServiceTests
             }
         );
     }
+
+    [Fact]
+    public async Task GetPostByIdAsync_Should_Get_Post_ById()
+    {
+        // Arrange
+        var (postService, context) = GetPostService();
+
+        var post1 = new Post
+        {
+            PostId = 1,
+            Title = "Post 1",
+            Description = "This is a post 1.",
+            Content = "Content of the test post 1.",
+            ImageUrl = "http://example.com/image1.jpg",
+            MetaTitle = "Post 1 Meta Title",
+            MetaDescription = "Post 1 Meta Description",
+            Slug = "test-post-one"
+        };
+
+        var post2 = new Post
+        {
+            PostId = 2,
+            Title = "Post 2",
+            Description = "This is a post 2.",
+            Content = "Content of the test post 2.",
+            ImageUrl = "http://example.com/image2.jpg",
+            MetaTitle = "Post 2 Meta Title",
+            MetaDescription = "Post 2 Meta Description",
+            Slug = "test-post-two"
+        };
+
+        await postService.AddPostAsync(post1);
+        await postService.AddPostAsync(post2);
+
+        // Act
+        var postById = await postService.GetPostByIdAsync(post2.PostId);
+
+        // Assert
+        Assert.NotNull(postById);
+        Assert.Equal(post2.PostId, postById.PostId);
+        Assert.Equal(post2.Title, postById.Title);
+        Assert.Equal(post2.Description, postById.Description);
+        Assert.Equal(post2.Content, postById.Content);
+        Assert.Equal(post2.ImageUrl, postById.ImageUrl);
+        Assert.Equal(post2.MetaTitle, postById.MetaTitle);
+        Assert.Equal(post2.MetaDescription, postById.MetaDescription);
+        Assert.Equal(post2.Slug, postById.Slug);
+    }
 }
