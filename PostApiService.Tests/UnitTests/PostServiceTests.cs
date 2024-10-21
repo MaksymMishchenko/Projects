@@ -123,7 +123,7 @@ public class PostServiceTests
     }
 
     [Fact]
-    public async Task GetAllPostsAsync_Should_Fetching_AllPosts_FromDB()
+    public async Task GetAllPostsAsync_Should_Fetching_AllPosts_With_Comments()
     {
         // Arrange
         var (postService, context) = GetPostService();
@@ -137,7 +137,13 @@ public class PostServiceTests
             ImageUrl = "http://example.com/image1.jpg",
             MetaTitle = "Post 1 Meta Title",
             MetaDescription = "Post 1 Meta Description",
-            Slug = "test-post-one"
+            Slug = "test-post-one",
+            Comments = new List<Comment> {
+            new Comment { CommentId = 1,
+                Author = "Peter",
+                Content = "Comment 1",
+                CreatedAt = DateTime.Now }
+            }
         };
 
         var post2 = new Post
@@ -149,7 +155,14 @@ public class PostServiceTests
             ImageUrl = "http://example.com/image2.jpg",
             MetaTitle = "Post 2 Meta Title",
             MetaDescription = "Post 2 Meta Description",
-            Slug = "test-post-two"
+            Slug = "test-post-two",
+            Comments = new List<Comment> {
+
+            new Comment { CommentId = 2,
+                Author = "Michael",
+                Content = "Comment 1",
+                CreatedAt = DateTime.Now }
+            }
         };
 
         await postService.AddPostAsync(post1);
@@ -167,11 +180,19 @@ public class PostServiceTests
             {
                 Assert.Equal("Post 1", p1.Title);
                 Assert.Equal("test-post-one", p1.Slug);
+                Assert.NotNull(p1.Comments);
+                Assert.Single(p1.Comments);
+                Assert.Equal("Peter", p1.Comments.First(p1 => p1.CommentId == 1).Author);
+                Assert.Equal("Comment 1", p1.Comments.First(p1 => p1.CommentId == 1).Content);
             },
             p2 =>
             {
                 Assert.Equal("Post 2", p2.Title);
                 Assert.Equal("test-post-two", p2.Slug);
+                Assert.NotNull(p2.Comments);
+                Assert.Single(p2.Comments);
+                Assert.Equal("Michael", p2.Comments.First(p1 => p1.CommentId == 2).Author);
+                Assert.Equal("Comment 1", p2.Comments.First(p1 => p1.CommentId == 2).Content);
             }
         );
     }
