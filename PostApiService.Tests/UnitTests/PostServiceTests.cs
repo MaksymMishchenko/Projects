@@ -86,4 +86,39 @@ public class PostServiceTests
         var postCount = await context.Posts.CountAsync();
         Assert.Equal(0, postCount);
     }
+
+    [Fact]
+    public async Task EditPostAsync_Should_Edit_Post_ByPost()
+    {
+        // Arrange
+        var (postService, context) = GetPostService();
+        var post = new Post
+        {
+            PostId = 1,
+            Title = "Test Post",
+            Description = "This is a test post.",
+            Content = "Content of the test post.",
+            ImageUrl = "http://example.com/image.jpg",
+            MetaTitle = "Test Post Meta Title",
+            MetaDescription = "Test Post Meta Description",
+            Slug = "test-post"
+        };
+
+        await postService.AddPostAsync(post);
+
+        post.Title = "Some Post";
+        post.Description = "Some Description";
+        post.Slug = "http://example.com/test.jpg";
+
+        // Act
+        await postService.EditPostAsync(post);
+
+        //Assert
+        var editedPost = await context.Posts.FindAsync(post.PostId);
+
+        Assert.NotNull(editedPost);
+        Assert.Equal("Some Post", editedPost.Title);
+        Assert.Equal("Some Description", editedPost.Description);
+        Assert.Equal("http://example.com/test.jpg", editedPost.Slug);
+    }
 }
