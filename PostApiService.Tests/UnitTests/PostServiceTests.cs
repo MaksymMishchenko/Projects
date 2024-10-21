@@ -198,7 +198,7 @@ public class PostServiceTests
     }
 
     [Fact]
-    public async Task GetPostByIdAsync_Should_Get_Post_ById()
+    public async Task GetPostByIdAsync_Should_Get_Post_ById_With_Comments()
     {
         // Arrange
         var (postService, context) = GetPostService();
@@ -212,7 +212,14 @@ public class PostServiceTests
             ImageUrl = "http://example.com/image1.jpg",
             MetaTitle = "Post 1 Meta Title",
             MetaDescription = "Post 1 Meta Description",
-            Slug = "test-post-one"
+            Slug = "test-post-one",
+            Comments = new List<Comment> {
+            new Comment{
+                CommentId = 1,
+                Author = "Bob",
+                Content = "Content from Bob",
+                CreatedAt = DateTime.Now }
+            }
         };
 
         var post2 = new Post
@@ -224,7 +231,14 @@ public class PostServiceTests
             ImageUrl = "http://example.com/image2.jpg",
             MetaTitle = "Post 2 Meta Title",
             MetaDescription = "Post 2 Meta Description",
-            Slug = "test-post-two"
+            Slug = "test-post-two",
+            Comments = new List<Comment> {
+            new Comment{
+                CommentId = 2,
+                Author = "Matthew",
+                Content = "Content from Matthew",
+                CreatedAt = DateTime.Now }
+            }
         };
 
         await postService.AddPostAsync(post1);
@@ -243,5 +257,9 @@ public class PostServiceTests
         Assert.Equal(post2.MetaTitle, postById.MetaTitle);
         Assert.Equal(post2.MetaDescription, postById.MetaDescription);
         Assert.Equal(post2.Slug, postById.Slug);
+        Assert.NotNull(postById.Comments);
+        Assert.Single(postById.Comments);
+        Assert.Equal(post2.Comments[0].Author, postById.Comments[0].Author);
+        Assert.Equal(post2.Comments[0].Content, postById.Comments[0].Content);
     }
 }
