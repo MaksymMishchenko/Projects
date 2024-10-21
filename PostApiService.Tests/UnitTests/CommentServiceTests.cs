@@ -72,5 +72,26 @@ namespace PostApiService.Tests.UnitTests
             // Assert
             Assert.True(true); // Dummy assertion since the main goal is to ensure no exception is thrown
         }
+
+        [Fact]
+        public async Task EditCommentAsync_Should_Edit_Comment_ById()
+        {
+            // Arrange
+            var (commentService, context) = GetCommentService();
+            var comment = new Comment { CommentId = 1, Content = "Test content", PostId = 1 };
+
+            context.Comments.Add(comment);
+            await context.SaveChangesAsync();
+
+            var editedComment = new Comment { CommentId = 1, Content = "Test content", PostId = 1 };
+
+            // Act
+            await commentService.EditCommentAsync(editedComment);
+
+            // Assert
+            var fetchedComment = await context.Comments.FindAsync(comment.CommentId);
+            Assert.NotNull(fetchedComment);
+            Assert.Equal(comment.Content, fetchedComment.Content);
+        }        
     }
 }
