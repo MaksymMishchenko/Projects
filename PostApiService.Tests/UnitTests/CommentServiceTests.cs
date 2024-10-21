@@ -58,5 +58,19 @@ namespace PostApiService.Tests.UnitTests
             var detectedComment = await context.Comments.FindAsync(comment.CommentId);
             Assert.Null(detectedComment);
         }
+
+        [Fact]
+        public async Task DeleteCommentAsync_Should_NotFail_WhenComment_DoesNotExist()
+        {
+            // Arrange
+            var (commentService, context) = GetCommentService();
+            var commentId = 999;
+
+            // Act
+            await commentService.DeleteCommentAsync(commentId);
+
+            // Assert
+            Assert.True(true); // Dummy assertion since the main goal is to ensure no exception is thrown
+        }
     }
 }
