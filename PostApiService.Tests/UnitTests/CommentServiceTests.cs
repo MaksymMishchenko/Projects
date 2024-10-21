@@ -92,6 +92,22 @@ namespace PostApiService.Tests.UnitTests
             var fetchedComment = await context.Comments.FindAsync(comment.CommentId);
             Assert.NotNull(fetchedComment);
             Assert.Equal(comment.Content, fetchedComment.Content);
-        }        
+        }
+
+        [Fact]
+        public async Task EditCommentAsync_Should_NotUpdate_NotExistentComment()
+        {
+            // Arrange
+            var (commentService, context) = GetCommentService();
+
+            var nonExistentComment = new Comment { CommentId = 999, Content = "Non-existent content", PostId = 1 };
+
+            // Act
+            await commentService.EditCommentAsync(nonExistentComment);
+
+            // Assert
+            var fetchedComment = await context.Comments.FindAsync(nonExistentComment.CommentId);
+            Assert.Null(fetchedComment);
+        }
     }
 }
