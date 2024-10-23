@@ -125,5 +125,33 @@ namespace PostApiService.Tests.IntegrationTests
             int totalCountAfterRemove = await _context.Posts.CountAsync();
             Assert.Equal(1, totalCountAfterRemove);
         }
+
+        [Fact]
+        public async Task GetAllPostsAsync_Should_Return_All_Posts()
+        {
+            // Arrange
+            await SeedTestData();
+
+            var post3 = new Post
+            {
+                Title = "Test Post 3",
+                Description = "This is a test post 3.",
+                Content = "Content of the test post 3.",
+                ImageUrl = "http://example.com/image3.jpg",
+                MetaTitle = "Test Post Meta Title 3",
+                MetaDescription = "Test Post Meta Description 3",
+                Slug = "test-post-three"
+            };
+
+            await _postService.AddPostAsync(post3);
+
+            // Act
+            var posts = await _postService.GetAllPostsAsync();
+
+            // Assert
+            Assert.NotNull(posts);
+            var totalCount = await _context.Posts.CountAsync();
+            Assert.Equal(3, totalCount);
+        }
     }
 }
