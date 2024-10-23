@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PostApiService.Dto;
 using PostApiService.Models;
 using PostApiService.Services;
 
@@ -152,6 +151,23 @@ namespace PostApiService.Tests.IntegrationTests
             Assert.NotNull(posts);
             var totalCount = await _context.Posts.CountAsync();
             Assert.Equal(3, totalCount);
+        }
+
+        [Fact]
+        public async Task GetPostByIdAsync_Should_Return_Post_If_Found()
+        {
+            // Arrange
+            await SeedTestData();
+
+            var addedPost = await _context.Posts.FirstOrDefaultAsync(p => p.Content == "Content of the test post 2.");
+            Assert.NotNull(addedPost);
+
+            // Act
+            var foundedPost = await _postService.GetPostByIdAsync(addedPost.PostId);
+
+            // Assert
+            Assert.NotNull(foundedPost);
+            Assert.Equal(addedPost.PostId, foundedPost.PostId);
         }
     }
 }
