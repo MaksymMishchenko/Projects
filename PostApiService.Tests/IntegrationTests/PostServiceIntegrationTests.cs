@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PostApiService.Dto;
 using PostApiService.Models;
 using PostApiService.Services;
 
@@ -15,13 +16,10 @@ namespace PostApiService.Tests.IntegrationTests
             _postService = new PostService(_context);
         }
 
-        [Fact]
-        public async Task AddPostAsync_Should_Add_Post_And_SaveChanges()
+        private async Task SeedTestData()
         {
-            const int postsCollectionCount = 2;
-            // Arrange
             var post1 = new Post
-            {                
+            {
                 Title = "Test Post",
                 Description = "This is a test post.",
                 Content = "Content of the test post.",
@@ -32,7 +30,7 @@ namespace PostApiService.Tests.IntegrationTests
             };
 
             var post2 = new Post
-            {                
+            {
                 Title = "Test Post 2",
                 Description = "This is a test post 2.",
                 Content = "Content of the test post 2.",
@@ -42,17 +40,68 @@ namespace PostApiService.Tests.IntegrationTests
                 Slug = "test-post-two"
             };
 
-            // Act
-
             await _postService.AddPostAsync(post1);
             await _postService.AddPostAsync(post2);
+        }
+
+        [Fact]
+        public async Task AddPostAsync_Should_Add_Post_And_SaveChanges()
+        {
+            const int postsCollectionCount = 3;
+            // Arrange
+            await SeedTestData();
+
+            var post3 = new Post
+            {
+                Title = "Test Post 3",
+                Description = "This is a test post 3.",
+                Content = "Content of the test post 3.",
+                ImageUrl = "http://example.com/image3.jpg",
+                MetaTitle = "Test Post Meta Title 3",
+                MetaDescription = "Test Post Meta Description 3",
+                Slug = "test-post-three"
+            };
+
+            // Act
+            await _postService.AddPostAsync(post3);
 
             // Assert
-            var addedPost = await _context.Posts.FindAsync(post1.PostId);
+            var addedPost = await _context.Posts.FindAsync(post3.PostId);
             var postCount = await _context.Posts.CountAsync();
-            Assert.NotNull(addedPost);            
+            Assert.NotNull(addedPost);
             Assert.Equal(postsCollectionCount, postCount);
-            Assert.Equal(post1.Title, addedPost.Title);
+            Assert.Equal(post3.Title, addedPost.Title);
+            Assert.Equal(post3.Description, addedPost.Description);
+            Assert.Equal(post3.Content, addedPost.Content);
+            Assert.Equal(post3.ImageUrl, addedPost.ImageUrl);
+            Assert.Equal(post3.MetaTitle, addedPost.MetaTitle);
+            Assert.Equal(post3.MetaDescription, addedPost.MetaDescription);
+            Assert.Equal(post3.Slug, addedPost.Slug);
+        }
+
+        [Fact]
+        public async Task EditPostAsync_Should_Edit_Post_And_SaveChanges()
+        {
+            await SeedTestData();
+
+            int postToBeUpdatedId = 1;
+
+            // Arrange            
+            var postToBeUpdated = await _postService.GetPostByIdAsync(postToBeUpdatedId);
+            Assert.NotNull(postToBeUpdated);
+
+            postToBeUpdated.Title = "Changed post title";
+            postToBeUpdated.MetaTitle = "Changed Test Post Meta Title";
+
+            // Act
+            await _postService.EditPostAsync(postToBeUpdated);
+
+            // Assert
+            var updatedPost = await _context.Posts.FirstOrDefaultAsync(p => p.PostId == postToBeUpdatedId);
+            Assert.NotNull(updatedPost);
+            Assert.Equal(postToBeUpdatedId, updatedPost.PostId);
+            Assert.Equal("Changed post title", updatedPost.Title);
+            Assert.Equal("Changed Test Post Meta Title", updatedPost.MetaTitle);
         }
     }
 }
