@@ -103,5 +103,27 @@ namespace PostApiService.Tests.IntegrationTests
             Assert.Equal("Changed post title", updatedPost.Title);
             Assert.Equal("Changed Test Post Meta Title", updatedPost.MetaTitle);
         }
+
+        [Fact]
+        public async Task DeletePostAsync_Should_Remove_Post_If_Exists()
+        {
+            // Arrange
+            await SeedTestData();
+            int totalCount = await _context.Posts.CountAsync();
+            Assert.Equal(2, totalCount);
+
+            var postToBeRemoved = await _context.Posts.FirstOrDefaultAsync(p => p.Slug == "test-post-one");
+            Assert.NotNull(postToBeRemoved);
+
+            // Act
+            await _postService.DeletePostAsync(postToBeRemoved.PostId);
+
+            // Assert
+            var deletedPost = await _context.Posts.FindAsync(postToBeRemoved.PostId);
+            Assert.Null(deletedPost);
+
+            int totalCountAfterRemove = await _context.Posts.CountAsync();
+            Assert.Equal(1, totalCountAfterRemove);
+        }
     }
 }
