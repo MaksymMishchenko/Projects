@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PostApiService.Models;
 using PostApiService.Services;
+using PostApiService.Tests.IntegrationTests;
 
 public class PostServiceTests
 {
