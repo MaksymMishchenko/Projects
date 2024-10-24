@@ -72,8 +72,40 @@ namespace PostApiService.Tests.IntegrationTests
                 .Include(p => p.Comments)
                 .FirstOrDefaultAsync(p => p.PostId == postId);
             Assert.NotNull(post);
-            Assert.Contains(updatedPost.Comments, c => c.Content == comment.Content && c.Author == comment.Author);
+            Assert.Contains(updatedPost.Comments, c => c.Content == comment.Content
+            && c.Author == comment.Author);
             Assert.Single(updatedPost.Comments);
+        }
+
+        [Fact]
+        public async Task EditCommentAsync_Should_Edit_Comment_If_Exist()
+        {
+            // Arrange
+            await SeedTestData();
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Slug == "test-post-two");
+            Assert.NotNull(post);
+            var postId = post.PostId;
+
+            var comment = new Comment
+            {
+                Content = "Comment content for post 2",
+                Author = "William",
+                CreatedAt = DateTime.Now,
+            };
+
+            await _commentService.AddCommentAsync(postId, comment);
+            Assert.Contains(post.Comments, c => c.Content == comment.Content
+            && c.Author == comment.Author);
+
+            comment.Content = "Edited Comment content for post 2";
+
+            // Act
+            await _commentService.EditCommentAsync(comment);
+
+            // Assert
+            var editedComment = await _context.Comments.FirstOrDefaultAsync(c => c.Content == comment.Content);
+            Assert.NotNull(editedComment);
+            Assert.Equal(comment.Content, editedComment.Content);
         }
     }
 }
