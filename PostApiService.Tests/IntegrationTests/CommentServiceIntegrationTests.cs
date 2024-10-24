@@ -61,7 +61,7 @@ namespace PostApiService.Tests.IntegrationTests
             {
                 Content = "Comment content for post 1",
                 Author = "Bob",
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.Now
             };
 
             // Act
@@ -90,7 +90,7 @@ namespace PostApiService.Tests.IntegrationTests
             {
                 Content = "Comment content for post 2",
                 Author = "William",
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.Now
             };
 
             await _commentService.AddCommentAsync(postId, comment);
@@ -106,6 +106,37 @@ namespace PostApiService.Tests.IntegrationTests
             var editedComment = await _context.Comments.FirstOrDefaultAsync(c => c.Content == comment.Content);
             Assert.NotNull(editedComment);
             Assert.Equal(comment.Content, editedComment.Content);
+        }
+
+        [Fact]
+        public async Task DeleteCommentAsync_Should_Remove_Comment_If_Exists()
+        {
+            // Arrange
+            await SeedTestData();
+
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Slug == "test-post-two");
+            Assert.NotNull(post);
+            var postId = post.PostId;
+
+            var comment = new Comment
+            {
+                Content = "Comment content for post 2",
+                Author = "William",
+                CreatedAt = DateTime.Now
+            };
+
+            await _commentService.AddCommentAsync(postId, comment);
+
+            var initialCommentCount = await _context.Comments.CountAsync();
+
+            // Act
+            await _commentService.DeleteCommentAsync(comment.CommentId);
+
+            // Assert
+            var deletedComment = await _context.Comments.FindAsync(comment.CommentId);
+            var finalCommentCount = await _context.Comments.CountAsync();
+            Assert.Null(deletedComment);
+            Assert.Equal(initialCommentCount - 1, finalCommentCount);
         }
     }
 }
