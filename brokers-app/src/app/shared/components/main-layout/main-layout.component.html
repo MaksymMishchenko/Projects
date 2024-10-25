@@ -1,2 +1,39 @@
-<p>main-layout works!</p>
+<header class="header">
+    <div class="container">
+      <div class="logo">
+        <a routerLink="/" aria-label="Home">
+          <img src="/owp-thrive-dark-logo.webp" alt="Logo" />
+          
+        </a>
+      </div>
+  
+      <nav class="navigation">
+        <ul class="nav-list">
+          <li><a routerLink="/about">About</a></li>
+          <li><a routerLink="/services">Services</a></li>
+          <li><a routerLink="/blog">Blog</a></li>
+          <li><a routerLink="/contact">Contact</a></li>
+        </ul>
+      </nav>
+  
+      <div class="header-actions">
+        <a class="btn btn-primary" routerLink="/get-started">Get Started</a>
+        <div class="menu-icon" (click)="toggleMenu()">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+      </div>
+    </div>
+  
+    <div class="mobile-nav" [class.active]="menuOpen">
+      <ul class="mobile-nav-list">
+        <li><a routerLink="/about" (click)="closeMenu()">About</a></li>
+        <li><a routerLink="/services" (click)="closeMenu()">Services</a></li>
+        <li><a routerLink="/blog" (click)="closeMenu()">Blog</a></li>
+        <li><a routerLink="/contact" (click)="closeMenu()">Contact</a></li>
+      </ul>
+    </div>
+  </header>
+  
 <router-outlet></router-outlet>
